@@ -55,4 +55,5 @@ nav:
   - Introduction: index.md
   - Getting Started:
       - getting_started/install.md
+      - getting_started/deploying.md
 copyright: Copyright &copy; 2024 Better HPC

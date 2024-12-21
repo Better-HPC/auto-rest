@@ -3,20 +3,13 @@ hide:
   - navigation
 ---
 
-# Welcome to MkDocs
+# Auto REST
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+AutoRest is a dynamic REST API generator designed to build APIs on-the-fly using an existing database schema. 
+Application features include:
 
-## Commands
-
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+- Dynamic ORM models generated from database schemas.
+- Supports multiple database drivers: SQLite, PostgreSQL, MySQL, Oracle, and Microsoft SQL Server.
+- Configurable logging and connection pooling.
+- API endpoints for CRUD operations, metadata, and more.
+- Pagination and ordering capabilities.
