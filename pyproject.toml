@@ -29,8 +29,8 @@ auto-rest = "auto_rest.__main__:main"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+aiomysql = "^0.2.0"
 aioodbc = "^0.5.0"
-asyncmy = "^0.2.10"
 asyncpg = "^0.30.0"
 fastapi = "^0.115.6"
 httpx = "^0.28.1"
