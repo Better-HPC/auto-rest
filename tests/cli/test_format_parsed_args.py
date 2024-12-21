@@ -1,5 +1,6 @@
 import unittest
 from argparse import Namespace
+from gc import enable
 
 from sqlalchemy.engine.url import URL
 
@@ -26,7 +27,8 @@ class TestFormatParsedArgs(unittest.TestCase):
             pool_out=20,
             server_host="127.0.0.1",
             server_port=8000,
-            log_level="INFO"
+            log_level="INFO",
+            enable_meta=True,
         )
 
         expected_db_url = URL.create(drivername="sqlite", host="localhost", database="test.db")
@@ -57,7 +59,8 @@ class TestFormatParsedArgs(unittest.TestCase):
             pool_out=30,
             server_host="0.0.0.0",
             server_port=8080,
-            log_level="DEBUG"
+            log_level="DEBUG",
+            enable_meta=True,
         )
 
         expected_db_url = URL.create(
@@ -95,7 +98,8 @@ class TestFormatParsedArgs(unittest.TestCase):
             pool_out=25,
             server_host="192.168.1.1",
             server_port=9000,
-            log_level="WARNING"
+            log_level="WARNING",
+            enable_meta=True,
         )
 
         expected_db_url = URL.create(
