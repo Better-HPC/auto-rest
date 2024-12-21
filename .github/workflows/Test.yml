@@ -54,7 +54,6 @@ jobs:
     services:
       sqlite:
         image: nouchka/sqlite3:latest
-        options: --mount type=bind,source=${{ github.workspace }}/tests/fixtures.sql,target=/fixtures.sql
 
       postgres:
         image: postgres:latest
