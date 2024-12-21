@@ -1,0 +1,106 @@
+name: 🤖 Publish Package
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Set the version number of the published application.'
+        default: '0.0.0'
+        required: false
+        type: string
+
+jobs:
+  publish-docker:
+    runs-on: ubuntu-latest
+    name: Docker Image
+    environment: publish
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: false
+
+      - name: Set package version
+        run: poetry version "${{ inputs.version }}"
+
+      - name: Fetch image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: auto-rest-docker
+          path: /tmp
+
+      - name: Load image
+        run: docker load --input /tmp/auto-rest.tar
+
+      - name: Define Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/better-hpc/auto-rest
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.title="Keystone API"
+            org.opencontainers.image.description="API service for the Keystone HPC project."
+            org.opencontainers.image.url="https://github.com/better-hpc/auto-rest"
+            org.opencontainers.image.source="https://github.com/better-hpc/auto-rest"
+            org.opencontainers.image.version="${{ inputs.version }}"
+            org.opencontainers.image.authors="Better HPC LLC"
+            org.opencontainers.image.revision="${{ github.sha }}"
+            org.opencontainers.image.vendor="Better HPC LLC"
+            org.opencontainers.image.ref.name="ghcr.io/better-hpc/auto-rest:${{ inputs.version }}"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+
+  publish-pypi:
+    name: Python Distribution
+    runs-on: ubuntu-latest
+    environment: publish
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: false
+
+      - name: Fetch build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: auto-rest-python
+          path: dist
+
+      - name: Publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          print-hash: true
+          attestations: false

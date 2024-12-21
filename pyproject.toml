@@ -1,0 +1,36 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "auto-rest"
+version = "0.0.0"
+readme = "README.md"
+description = "Automatically map database schemas and deploy per-table REST API endpoints."
+authors = ["Better HPC LLC"]
+keywords = ["Better", "HPC", "automatic", "rest", "api"]
+classifiers = [
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Internet",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Software Development",
+    "Typing :: Typed"
+]
+
+[tool.poetry.scripts]
+auto-rest = "auto_rest.__main__:main"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+asyncpg = "^0.30.0"
+fastapi = "^0.115.6"
+sqlalchemy = "^2.0.36"
+uvicorn = "^0.32.1"
+httpx = "^0.28.1"

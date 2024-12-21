@@ -1,0 +1,17 @@
+# Distribution and packaging
+__pycache__/
+dist/
+
+# IDE / Developer
+.idea/
+*.env
+*.db
+
+# OS
+.DS_Store
+
+# Documentation
+site/
+
+# Testing
+*.coverage
