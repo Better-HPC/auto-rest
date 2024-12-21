@@ -3,10 +3,10 @@ from unittest.mock import MagicMock
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy.engine import Engine
+from sqlalchemy import URL, Engine
 
 from auto_rest.app import create_app
-from auto_rest.metadata import DESCRIPTION, NAME, SUMMARY
+from auto_rest.metadata import NAME
 
 
 class TestCreateApp(unittest.TestCase):
@@ -17,6 +17,7 @@ class TestCreateApp(unittest.TestCase):
         """Set up shared resources for test cases."""
 
         cls.mock_engine = MagicMock(spec=Engine)
+        cls.mock_engine.url = MagicMock(spec=URL)
         cls.mock_models = {
             "user": MagicMock(),
             "post": MagicMock()
@@ -24,12 +25,10 @@ class TestCreateApp(unittest.TestCase):
         cls.app: FastAPI = create_app(cls.mock_engine, cls.mock_models)
         cls.client = TestClient(cls.app)
 
-    def test_app_metadata(self) -> None:
-        """Test the application's metadata."""
+    def test_app_title(self) -> None:
+        """Test the application's title."""
 
         self.assertEqual(NAME.title(), self.app.title)
-        self.assertEqual(DESCRIPTION, self.app.description)
-        self.assertEqual(SUMMARY, self.app.summary)
 
     def test_root_handler(self) -> None:
         """Test the application has a root handler."""
