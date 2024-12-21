@@ -34,16 +34,14 @@ def create_db_url(
         The fully qualified database connection URL.
     """
 
-    return str(
-        URL.create(
-            drivername=driver,
-            username=username,
-            password=password,
-            host=host,
-            port=port,
-            database=database
-        )
-    )
+    return URL.create(
+        drivername=driver,
+        username=username,
+        password=password,
+        host=host,
+        port=port,
+        database=database
+    ).render_as_string(hide_password=False)
 
 
 def create_connection_pool(url: str, pool_size: int, max_overflow: int, pool_timeout: int) -> Engine:
