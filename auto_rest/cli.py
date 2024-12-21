@@ -1,12 +1,10 @@
 """Utilities for parsing and formatting command line arguments."""
 
-from argparse import ArgumentParser, Namespace
-
-from sqlalchemy import URL
+from argparse import ArgumentParser
 
 from .metadata import SUMMARY, VERSION
 
-__all__ = ["create_argument_parser", "format_parsed_args"]
+__all__ = ["create_argument_parser"]
 
 
 def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
@@ -39,12 +37,12 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
 
     driver = parser.add_argument_group("database type")
     db_type = driver.add_mutually_exclusive_group(required=True)
-    db_type.add_argument("--sqlite", action="store_const", dest="driver", const="sqlite", help="use a SQLite database driver.")
-    db_type.add_argument("--psql", action="store_const", dest="driver", const="postgresql+asyncpg", help="use a PostgreSQL database driver.")
-    db_type.add_argument("--mysql", action="store_const", dest="driver", const="mysql+asyncmy", help="use a MySQL database driver.")
-    db_type.add_argument("--oracle", action="store_const", dest="driver", const="oracle+oracledb", help="use an Oracle database driver.")
-    db_type.add_argument("--mssql", action="store_const", dest="driver", const="mssql+aioodbc", help="use a Microsoft database driver.")
-    db_type.add_argument("--driver", action="store", nargs=1, dest="driver", help="use a custom database driver.")
+    db_type.add_argument("--sqlite", action="store_const", dest="db_driver", const="sqlite", help="use a SQLite database driver.")
+    db_type.add_argument("--psql", action="store_const", dest="db_driver", const="postgresql+asyncpg", help="use a PostgreSQL database driver.")
+    db_type.add_argument("--mysql", action="store_const", dest="db_driver", const="mysql+asyncmy", help="use a MySQL database driver.")
+    db_type.add_argument("--oracle", action="store_const", dest="db_driver", const="oracle+oracledb", help="use an Oracle database driver.")
+    db_type.add_argument("--mssql", action="store_const", dest="db_driver", const="mssql+aioodbc", help="use a Microsoft database driver.")
+    db_type.add_argument("--driver", action="store", nargs=1, dest="db_driver", help="use a custom database driver.")
 
     database = parser.add_argument_group("database location")
     database.add_argument("--db-host", required=True, help="database address to connect to.")
@@ -63,34 +61,3 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     server.add_argument("--server-port", type=int, default=8081, help="API server port number.")
 
     return parser
-
-
-def format_parsed_args(args: Namespace) -> dict[str, any]:
-    """Convert parsed commandline arguments into a convenient format.
-    
-    Args:
-        args: Argument namespace returned from the application command line parser.
-
-    Returns:
-        A dictionary of application arguments.
-    """
-
-    db_url = URL.create(
-        drivername=args.driver,
-        username=args.db_user,
-        password=args.db_pass,
-        host=args.db_host,
-        port=args.db_port,
-        database=args.db_name
-    )
-
-    return {
-        "db_url": str(db_url),
-        "pool_min": args.pool_min,
-        "pool_max": args.pool_max,
-        "pool_timeout": args.pool_out,
-        "server_host": args.server_host,
-        "server_port": args.server_port,
-        "log_level": args.log_level,
-        "enable_meta": args.enable_meta
-    }

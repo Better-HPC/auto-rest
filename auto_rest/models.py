@@ -2,14 +2,48 @@
 
 import logging
 
-from sqlalchemy import create_engine, Engine, MetaData
+from sqlalchemy import create_engine, Engine, MetaData, URL
 from sqlalchemy.orm import declarative_base
 
-__all__ = ["create_connection_pool", "create_db_models", "ModelBase"]
+__all__ = ["create_connection_pool", "create_db_url", "create_db_models", "ModelBase"]
 
 logger = logging.getLogger(__name__)
 
 ModelBase = declarative_base()
+
+
+def create_db_url(
+    driver: str,
+    host: str | None,
+    port: int | None,
+    database: str | None,
+    username: str | None,
+    password: str | None
+) -> str:
+    """Create a database URL from the provided parameters.
+
+    Args:
+        driver: The sqlalchemy compatible database driver.
+        host: The hostname or IP address of the database server.
+        port: The port number for the database connection.
+        database: The name of the database to connect to.
+        username: The username to authenticate to the database.
+        password: The password for the database user.
+
+    Returns:
+        The fully qualified database connection URL.
+    """
+
+    return str(
+        URL.create(
+            drivername=driver,
+            username=username,
+            password=password,
+            host=host,
+            port=port,
+            database=database
+        )
+    )
 
 
 def create_connection_pool(url: str, pool_size: int, max_overflow: int, pool_timeout: int) -> Engine:
