@@ -43,10 +43,82 @@ jobs:
         env:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
+  function-tests:
+    name: Function Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        database: [ sqlite, postgres, mysql, oracle, mssql ]
+
+    services:
+      sqlite:
+        image: nouchka/sqlite3:latest
+        options: --mount type=bind,source=${{ github.workspace }}/tests/fixtures.sql,target=/fixtures.sql
+
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testdb
+        ports:
+          - 3306:3306
+
+      oracle:
+        image: sath89/oracle-12c:latest
+        ports:
+          - 1521:1521
+
+      mssql:
+        image: mcr.microsoft.com/mssql/server:latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: "YourPassword123"
+          MSSQL_PID: Express
+        ports:
+          - 1433:1433
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up database with fixtures
+        run: |
+          case ${{ matrix.database }} in
+            sqlite)
+              sqlite3 demo.db < /fixtures.sql
+              ;;
+            postgres)
+              psql -h localhost -U postgres -d testdb -f tests/fixtures.sql
+              ;;
+            mysql)
+              mysql -h 127.0.0.1 -u root -proot testdb < tests/fixtures.sql
+              ;;
+            oracle)
+              sqlplus username/password@localhost:1521/XEPDB1 @tests/fixtures.sql
+              ;;
+            mssql)
+              /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "YourPassword123" -d master -i tests/fixtures.sql
+              ;;
+            *)
+              echo "Unsupported database: ${{ matrix.database }}"
+              exit 1
+              ;;
+          esac
+
   report-test-status:
     name: Report Test Status
     runs-on: ubuntu-latest
-    needs: [ unit-tests ]
+    needs: [ unit-tests, function-tests ]
     if: always()
 
     steps:
