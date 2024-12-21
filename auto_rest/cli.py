@@ -34,23 +34,23 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
         help="Set the logging level."
     )
 
-    database = parser.add_argument_group("database settings")
+    features = parser.add_argument_group(title="API features")
+    features.add_argument("--enable-meta", action="store_true", help="enable the 'meta' endpoint.")
 
-    db_type = database.add_mutually_exclusive_group(required=True)
-    db_type.add_argument("--sqlite", action="store_true", help="use a SQLite database.")
-    db_type.add_argument("--psql", action="store_true", help="use a PostgreSQL database.")
-    db_type.add_argument("--mysql", action="store_true", help="use a MySQL database.")
+    driver = parser.add_argument_group("database type")
+    db_type = driver.add_mutually_exclusive_group(required=True)
+    db_type.add_argument("--sqlite", action="store_const", dest="driver", const="sqlite", help="use a SQLite database driver.")
+    db_type.add_argument("--psql",  action="store_const", dest="driver", const="postgresql+asyncpg", help="use a PostgreSQL database driver.")
+    db_type.add_argument("--mysql", action="store_const", dest="driver", const="mysql", help="use a MySQL database driver.")
 
+    database = parser.add_argument_group("database location")
     database.add_argument("--db-host", required=True, help="database address to connect to.")
     database.add_argument("--db-port", type=int, help="database port to connect to.")
     database.add_argument("--db-name", help="database name to connect to.")
     database.add_argument("--db-user", help="username to authenticate with.")
     database.add_argument("--db-pass", help="password to authenticate with.")
 
-    features = parser.add_argument_group(title="API features")
-    features.add_argument("--enable-meta", action="store_true", help="enable the 'meta' endpoint.")
-
-    connection = parser.add_argument_group(title="connection pool settings")
+    connection = parser.add_argument_group(title="database connection")
     connection.add_argument("--pool-min", type=int, default=50, help="minimum number of maintained database connections.")
     connection.add_argument("--pool-max", type=int, default=100, help="max number of allowed database connections.")
     connection.add_argument("--pool-out", type=int, default=30, help="seconds to wait on connection before timing out.")
@@ -72,15 +72,8 @@ def format_parsed_args(args: Namespace) -> dict[str, any]:
         A dictionary of application arguments.
     """
 
-    driver_flags: [str, bool] = {
-        "sqlite": args.sqlite,
-        "postgresql+asyncpg": args.psql,
-        "mysql": args.mysql
-    }
-
-    driver = next(p for p, a in driver_flags.items() if a)
     db_url = URL.create(
-        drivername=driver,
+        drivername=args.driver,
         username=args.db_user,
         password=args.db_pass,
         host=args.db_host,

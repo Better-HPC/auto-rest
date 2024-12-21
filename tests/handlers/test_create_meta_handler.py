@@ -23,7 +23,6 @@ class TestCreateMetaHandler(unittest.TestCase):
         self.mock_conn_pool.url.port = 5432
         self.mock_conn_pool.url.username = "test_user"
 
-
     def test_meta_handler_returns_correct_metadata(self):
         """Test that the meta_handler function returns the correct metadata."""
 
