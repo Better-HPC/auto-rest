@@ -72,4 +72,5 @@ nav:
       - reference/handlers.md
       - reference/metadata.md
       - reference/models.md
+  - Contributing: contributing.md
 copyright: Copyright &copy; 2024 Better HPC
