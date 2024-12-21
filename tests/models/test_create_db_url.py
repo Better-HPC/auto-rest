@@ -95,3 +95,31 @@ class TestCreateDbUrl(unittest.TestCase):
 
         expected_url = "postgresql://user:password@localhost:5432"
         self.assertEqual(expected_url, result)
+
+    def test_create_db_url_sqlite_relative_path(self):
+        """Test SQLite URL with a relative file path."""
+
+        result = create_db_url(
+            driver="sqlite",
+            host="path/to/database.db",  # Relative path
+            port=None,
+            database=None,
+            username=None,
+            password=None
+        )
+        expected_url = "sqlite:///path/to/database.db"
+        self.assertEqual(result, expected_url)
+
+    def test_create_db_url_sqlite_absolute_path(self):
+        """Test SQLite URL with an absolute file path."""
+
+        result = create_db_url(
+            driver="sqlite",
+            host="/absolute/path/to/database.db",  # Absolute path
+            port=None,
+            database=None,
+            username=None,
+            password=None
+        )
+        expected_url = "sqlite:////absolute/path/to/database.db"
+        self.assertEqual(result, expected_url)
