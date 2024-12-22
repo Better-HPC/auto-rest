@@ -22,4 +22,4 @@ class TestWelcomeHandler(unittest.TestCase):
 
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual({"message": "Welcome to AutoRest! See the /docs/ endpoint to get started."}, response.json())
+        self.assertEqual({"message": "Welcome to AutoRest!"}, response.json())

@@ -56,6 +56,22 @@ class TestCreateApp(unittest.TestCase):
         response = self.client.get("/version")
         self.assertEqual(200, response.status_code)
 
+    def test_docs_endpoint_disabled(self) -> None:
+        """Test the application has no docs endpoint by default."""
+
+        default_app = create_app(self.engine, self.mock_models)
+        default_client = TestClient(default_app)
+        response = default_client.get("/docs")
+        self.assertEqual(404, response.status_code)
+
+    def test_docs_endpoint_enabled(self) -> None:
+        """Test the application has a docs endpoint when enabled."""
+
+        default_app = create_app(self.engine, self.mock_models, enable_docs=True)
+        default_client = TestClient(default_app)
+        response = default_client.get("/docs")
+        self.assertEqual(200, response.status_code)
+
     def test_meta_endpoint_disabled(self) -> None:
         """Test the application has no meta endpoint by default."""
 
