@@ -40,7 +40,8 @@ def run_application(
     server_host: str,
     server_port: int,
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-    enable_meta: bool
+    enable_docs: bool,
+    enable_meta: bool,
 ) -> None:
     """Map a database schema and launch an API server.
 
@@ -60,6 +61,7 @@ def run_application(
         server_host: The API server host address.
         server_port: The API server port number.
         log_level: The desired logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
+        enable_docs: Whether to enable the 'docs' API endpoint.
         enable_meta: Whether to enable the 'meta' API endpoint.
     """
 
@@ -72,7 +74,7 @@ def run_application(
 
     # Build the app
     db_models = create_db_models(db_conn)
-    app = create_app(db_conn, db_models, enable_meta=enable_meta)
+    app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs)
 
     # Launch a uvicorn server
     run_app(app, server_host, server_port, log_level=log_level)

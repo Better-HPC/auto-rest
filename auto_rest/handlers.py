@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 async def welcome_handler() -> dict:
     """Return a welcome message in JSON format pointing users to the docs."""
 
-    return {"message": "Welcome to AutoRest! See the /docs/ endpoint to get started."}
+    return {"message": "Welcome to Auto-Rest!"}
 
 
 async def version_handler() -> dict:
