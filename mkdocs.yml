@@ -66,11 +66,12 @@ nav:
       - getting_started/install.md
       - getting_started/deploying.md
   - Package Reference:
-      - reference/app.md
-      - reference/cli.md
-      - reference/dependencies.md
-      - reference/handlers.md
-      - reference/metadata.md
-      - reference/models.md
+      - reference/auto_rest.md
+      - reference/auto_rest.app.md
+      - reference/auto_rest.cli.md
+      - reference/auto_rest.dependencies.md
+      - reference/auto_rest.handlers.md
+      - reference/auto_rest.metadata.md
+      - reference/auto_rest.models.md
   - Contributing: contributing.md
 copyright: Copyright &copy; 2024 Better HPC
