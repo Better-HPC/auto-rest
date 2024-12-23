@@ -48,7 +48,6 @@ class AbstractCompatibilityTest(metaclass=ABCMeta):
         testing_endpoints = ["/db/users/", "/db/products/", "/db/orders/"]
         testing_data = [users_data, products_data, orders_data]
 
-
         for endpoint, data in zip(testing_endpoints, testing_data):
             response = self.client.get(endpoint)
             self.assertEqual(200, response.status_code)

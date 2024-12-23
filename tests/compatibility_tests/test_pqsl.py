@@ -3,7 +3,7 @@
 import os
 from unittest import skipIf, TestCase
 
-from auto_rest.models import create_db_url
+from auto_rest.models import create_db_url, get_driver
 from .utils import AbstractCompatibilityTest
 
 PSQL_HOST = os.getenv("POSTGRES_HOST")
@@ -18,7 +18,7 @@ class SimpleTest(AbstractCompatibilityTest, TestCase):
         """Return the URL of the database to test compatibility against."""
 
         return create_db_url(
-            driver="postgresql+asyncpg",
+            driver=get_driver("psql"),
             host=PSQL_HOST,
             port=int(os.getenv("POSTGRES_PORT", "5432")),
             database=os.getenv("POSTGRES_DB"),

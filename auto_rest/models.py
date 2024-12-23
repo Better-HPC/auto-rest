@@ -6,11 +6,36 @@ from pathlib import Path
 from sqlalchemy import create_engine, Engine, MetaData, URL
 from sqlalchemy.orm import declarative_base
 
-__all__ = ["create_connection_pool", "create_db_url", "create_db_models", "ModelBase"]
+__all__ = [
+    "create_connection_pool",
+    "create_db_url",
+    "create_db_models",
+    "get_driver",
+    "ModelBase",
+]
 
 logger = logging.getLogger(__name__)
 
 ModelBase = declarative_base()
+
+
+def get_driver(dbms: str) -> str:
+    """Return the default driver to use for a given database type.
+
+    Args:
+        dbms: The type of database management system.
+
+    Returns:
+        The name of a SQLAlchemy driver.
+    """
+
+    return {
+        "sqlite": "sqlite",
+        "psql": "postgresql+asyncpg",
+        "mysql": "mysql+asyncmy",
+        "oracle": "oracle+oracledb",
+        "mssql": "mssql+aiomysql"
+    }[dbms]
 
 
 def create_db_url(

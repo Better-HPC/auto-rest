@@ -3,6 +3,7 @@
 import tempfile
 from unittest import TestCase
 
+from auto_rest.models import get_driver
 from .utils import AbstractCompatibilityTest
 
 
@@ -27,4 +28,5 @@ class SimpleTest(AbstractCompatibilityTest, TestCase):
     def get_db_url(cls) -> str:
         """Return the URL of the database to test compatibility against."""
 
-        return f"sqlite:///{cls.temp_file.name}"
+        driver = get_driver("sqlite")
+        return f"{driver}:///{cls.temp_file.name}"
