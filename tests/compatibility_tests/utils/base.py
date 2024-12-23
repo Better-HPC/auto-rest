@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 from auto_rest.app import create_app
 from auto_rest.models import create_db_models
-from .fixtures import *
+from tests.compatibility_tests.utils.fixtures import *
 
 
 class AbstractCompatibilityTest(metaclass=ABCMeta):
@@ -45,7 +45,7 @@ class AbstractCompatibilityTest(metaclass=ABCMeta):
     def test_list_endpoints(self) -> None:
         """Test fetching data from the list endpoints."""
 
-        testing_endpoints = ['/db/users/', '/db/products/', '/db/orders/']
+        testing_endpoints = ["/db/users/", "/db/products/", "/db/orders/"]
         testing_data = [users_data, products_data, orders_data]
 
 

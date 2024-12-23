@@ -3,7 +3,7 @@
 import tempfile
 from unittest import TestCase
 
-from tests.compatibility_tests.base import AbstractCompatibilityTest
+from .utils import AbstractCompatibilityTest
 
 
 class SimpleTest(AbstractCompatibilityTest, TestCase):
