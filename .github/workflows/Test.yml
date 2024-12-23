@@ -3,6 +3,11 @@ name: 🤖 Test
 on:
   workflow_call:
 
+env:
+  POSTGRES_DB: testdb
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+
 jobs:
   tests:
     name: Tests
@@ -17,9 +22,9 @@ jobs:
       postgres:
         image: postgres:latest
         env:
-          POSTGRES_DB: testdb
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
         ports:
           - 5432:5432
 
