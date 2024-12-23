@@ -4,6 +4,7 @@ on:
   workflow_call:
 
 env:
+  POSTGRES_HOST: localhost
   POSTGRES_DB: testdb
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: postgres
