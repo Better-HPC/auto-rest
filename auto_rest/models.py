@@ -1,6 +1,7 @@
 """ORM layer used to dynamically map database schemas and generate model interfaces."""
 
 import logging
+from pathlib import Path
 
 from sqlalchemy import create_engine, Engine, MetaData, URL
 from sqlalchemy.orm import declarative_base
@@ -14,11 +15,11 @@ ModelBase = declarative_base()
 
 def create_db_url(
     driver: str,
-    host: str | None,
-    port: int | None,
-    database: str | None,
-    username: str | None,
-    password: str | None
+    host: str,
+    port: int | None = None,
+    database: str | None = None,
+    username: str | None = None,
+    password: str | None = None
 ) -> str:
     """Create a database URL from the provided parameters.
 
@@ -33,6 +34,15 @@ def create_db_url(
     Returns:
         The fully qualified database connection URL.
     """
+
+    # Handle special case where SQLite uses file paths
+    if driver == "sqlite" and host:
+        path = Path(host)
+        if path.is_absolute():
+            return f"sqlite:///{path}"
+
+        else:
+            return f"sqlite:///{path}"
 
     return URL.create(
         drivername=driver,
