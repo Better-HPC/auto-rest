@@ -9,7 +9,7 @@ from .utils import AbstractCompatibilityTest
 PSQL_HOST = os.getenv("PSQL_TEST_HOST")
 
 
-@skipIf(PSQL_HOST is None, "PSQL_TEST_HOST is not set")
+@skipIf(PSQL_HOST is None, "POSTGRES_HOST is not set")
 class SimpleTest(AbstractCompatibilityTest, TestCase):
     """Base compatibility tests applied to a PostgreSQL database."""
 
@@ -20,8 +20,8 @@ class SimpleTest(AbstractCompatibilityTest, TestCase):
         return create_db_url(
             driver="postgresql+asyncpg",
             host=PSQL_HOST,
-            port=int(os.getenv("PSQL_TEST_PORT", "5432")),
-            database=os.getenv("PSQL_TEST_NAME"),
-            username=os.getenv("PSQL_TEST_USER"),
-            password=os.getenv("PSQL_TEST_PASSWORD"),
+            port=int(os.getenv("POSTGRES_PORT", "5432")),
+            database=os.getenv("POSTGRES_DB"),
+            username=os.getenv("POSTGRES_USER"),
+            password=os.getenv("POSTGRES_PASSWORD"),
         )
