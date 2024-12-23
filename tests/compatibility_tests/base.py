@@ -2,11 +2,10 @@
 
 from abc import ABCMeta, abstractmethod
 
-from sqlalchemy import Column, create_engine, Integer, MetaData, String, Table
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
 
-Base = declarative_base()
+from .fixtures import *
 
 
 class AbstractCompatibilityTest(metaclass=ABCMeta):
@@ -28,16 +27,14 @@ class AbstractCompatibilityTest(metaclass=ABCMeta):
     def setUp(self) -> None:
         """Reset the database with new fixtures before each test."""
 
-        metadata = MetaData()
-
-        Table('book', metadata,
-            Column('id', Integer, primary_key=True),
-            Column('title', String),
-            Column('primary_author', String),
-        )
-
         metadata.drop_all(bind=self.engine)
-        metadata.create_all(self.engine)
+        metadata.create_all(bind=self.engine)
+
+        with self.session_maker() as session:
+            session.execute(users.insert().values(users_data))
+            session.execute(products.insert().values(products_data))
+            session.execute(orders.insert().values(orders_data))
+            session.commit()
 
     def test_print_tables_and_contents(self) -> None:
         """Test that prints the database tables and their contents."""
