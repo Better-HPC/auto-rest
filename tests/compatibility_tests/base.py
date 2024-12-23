@@ -29,7 +29,6 @@ class AbstractCompatibilityTest(metaclass=ABCMeta):
 
         metadata.drop_all(bind=self.engine)
         metadata.create_all(bind=self.engine)
-
         with self.session_maker() as session:
             session.execute(users.insert().values(users_data))
             session.execute(products.insert().values(products_data))
