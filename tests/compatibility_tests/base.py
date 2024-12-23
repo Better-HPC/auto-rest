@@ -1,3 +1,5 @@
+"""Base classes for testing package compatibility against different database backends."""
+
 from abc import ABCMeta, abstractmethod
 
 from sqlalchemy import Column, create_engine, Integer, MetaData, String, Table
@@ -8,12 +10,12 @@ Base = declarative_base()
 
 
 class AbstractCompatibilityTest(metaclass=ABCMeta):
-    """Base class for building database compatibility tests."""
+    """Base class for database compatibility tests."""
 
     @classmethod
     @abstractmethod
     def get_db_url(cls) -> str:
-        """Return the URL of the database to test compatibility against"""
+        """Return the URL of the database to test compatibility against."""
 
     @classmethod
     def setUpClass(cls) -> None:
