@@ -14,9 +14,6 @@ jobs:
         python-version: [ "3.10", "3.11", "3.12", "3.13" ]
 
     services:
-      sqlite:
-        image: nouchka/sqlite3:latest
-
       postgres:
         image: postgres:latest
         env:
@@ -25,28 +22,6 @@ jobs:
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
-
-      mysql:
-        image: mysql:latest
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testdb
-        ports:
-          - 3306:3306
-
-      oracle:
-        image: sath89/oracle-12c:latest
-        ports:
-          - 1521:1521
-
-      mssql:
-        image: mcr.microsoft.com/mssql/server:latest
-        env:
-          ACCEPT_EULA: Y
-          MSSQL_SA_PASSWORD: "YourPassword123"
-          MSSQL_PID: Express
-        ports:
-          - 1433:1433
 
     steps:
       - name: Checkout repository
