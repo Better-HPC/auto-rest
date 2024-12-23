@@ -2,9 +2,12 @@
 
 from abc import ABCMeta, abstractmethod
 
-from sqlalchemy import create_engine, MetaData
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from auto_rest.app import create_app
+from auto_rest.models import create_db_models
 from .fixtures import *
 
 
@@ -35,14 +38,13 @@ class AbstractCompatibilityTest(metaclass=ABCMeta):
             session.execute(orders.insert().values(orders_data))
             session.commit()
 
-    def test_print_tables_and_contents(self) -> None:
-        """Test that prints the database tables and their contents."""
+        models = create_db_models(self.engine)
+        self.app = create_app(self.engine, models)
+        self.client = TestClient(self.app)
 
-        # Query the metadata for tables in the database
-        metadata = MetaData()
-        metadata.reflect(bind=self.engine)
+    def test_list_endpoints(self) -> None:
+        """Test fetching data from the list endpoints."""
 
-        # Print all tables
-        print("Tables in the database:")
-        for table_name in metadata.tables:
-            print(f"- {table_name}")
+        for endpoint in ['/db/users/', '/db/products/', '/db/orders/']:
+            response = self.client.get(endpoint)
+            self.assertEqual(200, response.status_code)
