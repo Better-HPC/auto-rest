@@ -33,6 +33,7 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     )
 
     features = parser.add_argument_group(title="API features")
+    features.add_argument("--enable-docs", action="store_true", help="enable the 'docs' endpoint.")
     features.add_argument("--enable-meta", action="store_true", help="enable the 'meta' endpoint.")
 
     driver = parser.add_argument_group("database type")

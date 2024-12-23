@@ -40,7 +40,7 @@ def configure_logging(level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITI
     )
 
 
-def create_app(conn: Engine, models: dict[str, ModelBase], enable_meta: bool = False) -> FastAPI:
+def create_app(conn: Engine, models: dict[str, ModelBase], enable_meta: bool = False, enable_docs: bool = False) -> FastAPI:
     """Initialize a new FastAPI Application.
 
     Args:
@@ -56,7 +56,7 @@ def create_app(conn: Engine, models: dict[str, ModelBase], enable_meta: bool = F
         title=NAME.title(),
         version=VERSION,
         summary=f"A REST API generated dynamically from the '{conn.url.database}' database schema.",
-        docs_url="/docs/",
+        docs_url="/docs/" if enable_docs else None,
         redoc_url=None
     )
 
