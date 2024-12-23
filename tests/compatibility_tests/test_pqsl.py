@@ -6,7 +6,7 @@ from unittest import skipIf, TestCase
 from auto_rest.models import create_db_url
 from .utils import AbstractCompatibilityTest
 
-PSQL_HOST = os.getenv("PSQL_TEST_HOST")
+PSQL_HOST = os.getenv("POSTGRES_HOST")
 
 
 @skipIf(PSQL_HOST is None, "POSTGRES_HOST is not set")
