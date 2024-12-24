@@ -43,7 +43,7 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     db_type.add_argument("--mysql", action="store_const", dest="db_driver", const="mysql+asyncmy", help="use a MySQL database driver.")
     db_type.add_argument("--oracle", action="store_const", dest="db_driver", const="oracle+oracledb", help="use an Oracle database driver.")
     db_type.add_argument("--mssql", action="store_const", dest="db_driver", const="mssql+aiomysql", help="use a Microsoft database driver.")
-    db_type.add_argument("--driver", action="store", nargs=1, dest="db_driver", help="use a custom database driver.")
+    db_type.add_argument("--driver", action="store", dest="db_driver", help="use a custom database driver.")
 
     database = parser.add_argument_group("database location")
     database.add_argument("--db-host", required=True, help="database address to connect to.")
@@ -53,9 +53,9 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     database.add_argument("--db-pass", help="password to authenticate with.")
 
     connection = parser.add_argument_group(title="database connection")
-    connection.add_argument("--pool-min", type=int, help="minimum number of maintained database connections.")
-    connection.add_argument("--pool-max", type=int, help="max number of allowed database connections.")
-    connection.add_argument("--pool-out", type=int, help="seconds to wait on connection before timing out.")
+    connection.add_argument("--pool-min", nargs="?", type=int, help="minimum number of maintained database connections.")
+    connection.add_argument("--pool-max", nargs="?", type=int, help="max number of allowed database connections.")
+    connection.add_argument("--pool-out", nargs="?", type=int, help="seconds to wait on connection before timing out.")
 
     server = parser.add_argument_group(title="server settings")
     server.add_argument("--server-host", default="127.0.0.1", help="API server host address.")
