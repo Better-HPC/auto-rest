@@ -92,7 +92,7 @@ def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
         logger.debug("Synchronous database connection established successfully.")
         return engine
 
-    except Exception as e:
+    except Exception as e: # pragma: no cover
         logger.error(f"Could not connect to the database: {e}")
         raise
 
