@@ -1,12 +1,14 @@
-"""ORM layer used to dynamically map database schemas and generate model interfaces."""
+"""ORM layer using async SQLAlchemy to dynamically map database schemas and generate model interfaces."""
 
 import logging
 from pathlib import Path
 
 from sqlalchemy import create_engine, Engine, MetaData, URL
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.orm import declarative_base
 
-__all__ = ["create_connection_pool", "create_db_url", "create_db_models", "ModelBase"]
+__all__ = ["create_db_engine", "create_db_models", "create_db_url", "ModelBase"]
 
 logger = logging.getLogger(__name__)
 
@@ -54,35 +56,38 @@ def create_db_url(
     ).render_as_string(hide_password=False)
 
 
-def create_connection_pool(url: str, pool_size: int, max_overflow: int, pool_timeout: int) -> Engine:
-    """Initialize a new pool of database connections.
+def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
+    """Initialize a new pool of async database connections.
+
+    Instantiates and returns an Engine or AsyncEngine depending on
+    whether the underlying database driver supports async operations.
 
     Args:
         url: Database connection URL.
-        pool_size: Number of persistent connections to keep in the pool.
-        max_overflow: Maximum connections to allow beyond the persistent pool size.
-        pool_timeout: Maximum time to wait for a connection from the pool in seconds.
+        **kwargs: Optional init parameters for the returned engine.
 
     Returns:
         A SQLAlchemy Engine instance.
     """
 
-    params = {
-        "pool_size": pool_size,
-        "max_overflow": max_overflow,
-        "pool_timeout": pool_timeout
-    }
-
-    params_str = ", ".join(f"{key}={value}" for key, value in params.items())
+    params_str = ", ".join(f"{key}={value}" for key, value in kwargs.items())
     logger.info(f"Connecting to database at {url} ({params_str}).")
 
     try:
-        engine = create_engine(url, **params)
-        logger.debug("Database connection established successfully.")
+        engine = create_async_engine(url, **kwargs)
+        logger.debug("Asynchronous database connection established successfully.")
+        return engine
+
+    except InvalidRequestError as e:
+        logger.warning(f"Could not establish asynchronous connection. Falling back to synchronous. ({e})")
+
+    try:
+        engine = create_engine(url, **kwargs)
+        logger.debug("Synchronous database connection established successfully.")
         return engine
 
     except Exception as e:
-        logger.error(f"Error connecting to the database: {e}")
+        logger.error(f"Could not connect to the database: {e}")
         raise
 
 

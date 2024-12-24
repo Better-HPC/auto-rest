@@ -53,9 +53,9 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     database.add_argument("--db-pass", help="password to authenticate with.")
 
     connection = parser.add_argument_group(title="database connection")
-    connection.add_argument("--pool-min", type=int, default=50, help="minimum number of maintained database connections.")
-    connection.add_argument("--pool-max", type=int, default=100, help="max number of allowed database connections.")
-    connection.add_argument("--pool-out", type=int, default=30, help="seconds to wait on connection before timing out.")
+    connection.add_argument("--pool-min", type=int, default=None, help="minimum number of maintained database connections.")
+    connection.add_argument("--pool-max", type=int, default=None, help="max number of allowed database connections.")
+    connection.add_argument("--pool-out", type=int, default=None, help="seconds to wait on connection before timing out.")
 
     server = parser.add_argument_group(title="server settings")
     server.add_argument("--server-host", default="127.0.0.1", help="API server host address.")

@@ -46,6 +46,6 @@ class TestCreateArgumentParser(unittest.TestCase):
         """Test the default connection pool settings."""
 
         args = self.parser.parse_args(["--sqlite", "--db-host", "localhost"])
-        self.assertEqual(args.pool_min, 50)
-        self.assertEqual(args.pool_max, 100)
-        self.assertEqual(args.pool_out, 30)
+        self.assertEqual(args.pool_min, None)
+        self.assertEqual(args.pool_max, None)
+        self.assertEqual(args.pool_out, None)

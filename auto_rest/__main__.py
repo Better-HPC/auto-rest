@@ -70,7 +70,7 @@ def run_application(
 
     # Connect to the database
     db_url = create_db_url(driver=db_driver, host=db_host, port=db_port, database=db_name, username=db_user, password=db_pass)
-    db_conn = create_connection_pool(db_url, pool_min, pool_max, pool_out)
+    db_conn = create_db_engine(db_url, pool_size=pool_min, max_overflow=pool_max, pool_timeout=pool_out)
 
     # Build the app
     db_models = create_db_models(db_conn)
