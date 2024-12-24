@@ -20,20 +20,20 @@ class TestCreateDbEngine(TestCase):
 
         self.temp_file.close()
 
-    def test_create_sync_connection(self) -> None:
-        """Test the successful creation of a database connection pool."""
+    def test_create_sync_engine(self) -> None:
+        """Test creating an engine with a synchronous driver."""
 
         engine = create_db_engine(f"sqlite:///{self.temp_file.name}")
         self.assertIsInstance(engine, Engine)
 
-    def test_create_async_connection_pool(self) -> None:
-        """Test the creation of an asynchronous database connection pool."""
+    def test_create_async_cengine(self) -> None:
+        """Test creating an engine with an asynchronous driver."""
 
         engine = create_db_engine(f"sqlite+aiosqlite:///{self.temp_file.name}")
         self.assertIsInstance(engine, AsyncEngine)
 
     def test_invalid_url(self) -> None:
-        """Test handling an invalid database URL."""
+        """Test handling for an invalid database URL."""
 
         with self.assertRaises(Exception):
             create_db_engine("invalid_url", pool_size=5, max_overflow=10, pool_timeout=30)

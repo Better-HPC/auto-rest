@@ -1,9 +1,9 @@
-import unittest
+from unittest import TestCase
 
 from auto_rest.models import create_db_url
 
 
-class TestCreateDbUrl(unittest.TestCase):
+class TestCreateDbUrl(TestCase):
     """Unit tests for the `create_db_url` function."""
 
     def test_create_db_url_with_all_params(self) -> None:

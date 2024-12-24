@@ -8,7 +8,13 @@ from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.orm import declarative_base
 
-__all__ = ["create_db_engine", "create_db_models", "create_db_url", "ModelBase"]
+__all__ = [
+    "create_db_engine",
+    "create_db_metadata",
+    "create_db_models",
+    "create_db_url",
+    "ModelBase"
+]
 
 logger = logging.getLogger(__name__)
 
@@ -91,25 +97,51 @@ def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
         raise
 
 
-def create_db_models(conn: Engine) -> dict[str, ModelBase]:
-    """Dynamically generate database models.
+def create_db_metadata(conn: Engine | AsyncEngine) -> MetaData:
+    """Create and reflect the metadata for the database connection.
 
     Args:
-        conn: Open database connection.
+        conn: Open database connection (sync or async).
 
     Returns:
-        A dictionary mapping table names to database models
+        A MetaData object reflecting the schema of the database.
     """
 
     logger.info(f"Loading database schema for {conn.url}.")
 
     try:
-        # Reflect the database schema from the database metadata
         metadata = MetaData()
-        metadata.reflect(bind=conn)
 
+        # For async engines, use an async reflection
+        if isinstance(conn, AsyncEngine):
+            loop = conn.sync_engine._pool._asyncio_event_loop
+            loop.run_until_complete(metadata.reflect(bind=conn))
+
+        # For sync engines, use the regular reflection
+        else:
+            metadata.reflect(bind=conn)
+
+        return metadata
+
+    except Exception as e:  # pragma: no cover
+        logger.error(f"Error reflecting metadata: {e}")
+        raise
+
+
+def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
+    """Dynamically generate database models from the provided metadata.
+
+    Args:
+        metadata: The schema of the database.
+
+    Returns:
+        A dictionary mapping table names to database models.
+    """
+
+    models = {}
+
+    try:
         # Dynamically create a class for each table
-        models = {}
         for table_name, table in metadata.tables.items():
             logger.debug(f"Building model for table {table_name}.")
             class_name = table_name.capitalize()

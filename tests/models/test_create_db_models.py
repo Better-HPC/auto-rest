@@ -40,7 +40,7 @@ class TestCreateDbModels(unittest.TestCase):
     def test_models_are_created(self) -> None:
         """Test models are generated for each table."""
 
-        models = create_db_models(self.engine)
+        models = create_db_models(self.metadata)
 
         # Validate the count and names of generated models
         self.assertEqual(2, len(models))
@@ -70,8 +70,6 @@ class TestCreateDbModels(unittest.TestCase):
     def test_create_db_models_empty_database(self) -> None:
         """Test handling an empty database."""
 
-        empty_engine = create_engine("sqlite:///:memory:")
-        models = create_db_models(empty_engine)
-
         # Validate that no models are generated
+        models = create_db_models(MetaData())
         self.assertEqual(0, len(models))
