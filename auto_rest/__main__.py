@@ -34,19 +34,19 @@ def run_application(
     db_name: str,
     db_user: str,
     db_pass: str,
-    pool_min: int,
-    pool_max: int,
-    pool_out: int,
     server_host: str,
     server_port: int,
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
     enable_docs: bool,
     enable_meta: bool,
+    pool_min: int | None,
+    pool_max: int | None,
+    pool_out: int | None,
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
 ) -> None:
     """Map a database schema and launch an API server.
 
-    This function is functionally equivalent to launching an API server from the
-    CLI, except it is callable as a Python function.
+    This function accepts the same arguments as the CLI and is functionally
+    equivalent as launching an API server from the command line.
 
     Args:
         db_driver: The sqlalchemy compatible database driver to use.
@@ -55,26 +55,28 @@ def run_application(
         db_name: The database name to connect to.
         db_user: The username for authenticating with the database.
         db_pass: The password for authenticating with the database.
+        server_host: The API server host address.
+        server_port: The API server port number.
+        enable_docs: Whether to enable the 'docs' API endpoint.
+        enable_meta: Whether to enable the 'meta' API endpoint.
         pool_min: Minimum number of maintained database connections.
         pool_max: Maximum number of allowed database connections.
         pool_out: Timeout in seconds to wait for a database connection before timing out.
-        server_host: The API server host address.
-        server_port: The API server port number.
         log_level: The desired logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
-        enable_docs: Whether to enable the 'docs' API endpoint.
-        enable_meta: Whether to enable the 'meta' API endpoint.
     """
 
-    # Initial application setup
     configure_logging(log_level)
 
-    # Connect to the database
+    # Filter out optional args
+    pool_args = dict(pool_size=pool_min, max_overflow=pool_max, pool_timeout=pool_out)
+    pool_args = {k: v for k, v in pool_args.items() if v is not None}
+
+    # Connect to and map the database
     db_url = create_db_url(driver=db_driver, host=db_host, port=db_port, database=db_name, username=db_user, password=db_pass)
-    db_conn = create_db_engine(db_url, pool_size=pool_min, max_overflow=pool_max, pool_timeout=pool_out)
+    db_conn = create_db_engine(db_url, **pool_args)
+    db_meta = create_db_metadata(db_conn)
+    db_models = create_db_models(db_meta)
 
-    # Build the app
-    db_models = create_db_models(db_conn)
+    # Build and launch the app
     app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs)
-
-    # Launch a uvicorn server
     run_app(app, server_host, server_port, log_level=log_level)
