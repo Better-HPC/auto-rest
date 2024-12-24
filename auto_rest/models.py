@@ -1,12 +1,20 @@
-"""ORM layer used to dynamically map database schemas and generate model interfaces."""
+"""ORM layer using async SQLAlchemy to dynamically map database schemas and generate model interfaces."""
 
 import logging
 from pathlib import Path
 
 from sqlalchemy import create_engine, Engine, MetaData, URL
+from sqlalchemy.exc import InvalidRequestError
+from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.orm import declarative_base
 
-__all__ = ["create_connection_pool", "create_db_url", "create_db_models", "ModelBase"]
+__all__ = [
+    "create_db_engine",
+    "create_db_metadata",
+    "create_db_models",
+    "create_db_url",
+    "ModelBase"
+]
 
 logger = logging.getLogger(__name__)
 
@@ -54,57 +62,86 @@ def create_db_url(
     ).render_as_string(hide_password=False)
 
 
-def create_connection_pool(url: str, pool_size: int, max_overflow: int, pool_timeout: int) -> Engine:
-    """Initialize a new pool of database connections.
+def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
+    """Initialize a new pool of async database connections.
+
+    Instantiates and returns an Engine or AsyncEngine depending on
+    whether the underlying database driver supports async operations.
 
     Args:
         url: Database connection URL.
-        pool_size: Number of persistent connections to keep in the pool.
-        max_overflow: Maximum connections to allow beyond the persistent pool size.
-        pool_timeout: Maximum time to wait for a connection from the pool in seconds.
+        **kwargs: Optional init parameters for the returned engine.
 
     Returns:
         A SQLAlchemy Engine instance.
     """
 
-    params = {
-        "pool_size": pool_size,
-        "max_overflow": max_overflow,
-        "pool_timeout": pool_timeout
-    }
-
-    params_str = ", ".join(f"{key}={value}" for key, value in params.items())
+    params_str = ", ".join(f"{key}={value}" for key, value in kwargs.items())
     logger.info(f"Connecting to database at {url} ({params_str}).")
 
     try:
-        engine = create_engine(url, **params)
-        logger.debug("Database connection established successfully.")
+        engine = create_async_engine(url, **kwargs)
+        logger.debug("Asynchronous database connection established successfully.")
         return engine
 
-    except Exception as e:
-        logger.error(f"Error connecting to the database: {e}")
+    except InvalidRequestError as e:
+        logger.warning(f"Could not establish asynchronous connection. Falling back to synchronous. ({e})")
+
+    try:
+        engine = create_engine(url, **kwargs)
+        logger.debug("Synchronous database connection established successfully.")
+        return engine
+
+    except Exception as e: # pragma: no cover
+        logger.error(f"Could not connect to the database: {e}")
         raise
 
 
-def create_db_models(conn: Engine) -> dict[str, ModelBase]:
-    """Dynamically generate database models.
+def create_db_metadata(conn: Engine | AsyncEngine) -> MetaData:
+    """Create and reflect the metadata for the database connection.
 
     Args:
-        conn: Open database connection.
+        conn: Open database connection (sync or async).
 
     Returns:
-        A dictionary mapping table names to database models
+        A MetaData object reflecting the schema of the database.
     """
 
     logger.info(f"Loading database schema for {conn.url}.")
 
     try:
-        # Reflect the database schema from the database metadata
         metadata = MetaData()
-        metadata.reflect(bind=conn)
 
+        # For async engines, use an async reflection
+        if isinstance(conn, AsyncEngine):
+            loop = conn.sync_engine._pool._asyncio_event_loop
+            loop.run_until_complete(metadata.reflect(bind=conn))
+
+        # For sync engines, use the regular reflection
+        else:
+            metadata.reflect(bind=conn)
+
+        return metadata
+
+    except Exception as e:  # pragma: no cover
+        logger.error(f"Error reflecting metadata: {e}")
+        raise
+
+
+def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
+    """Dynamically generate database models from the provided metadata.
+
+    Args:
+        metadata: The schema of the database.
+
+    Returns:
+        A dictionary mapping table names to database models.
+    """
+
+    models = {}
+
+    try:
         # Dynamically create a class for each table
-        models = {}
         for table_name, table in metadata.tables.items():
             logger.debug(f"Building model for table {table_name}.")
             class_name = table_name.capitalize()

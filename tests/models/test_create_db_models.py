@@ -1,11 +1,11 @@
-import unittest
+from unittest import TestCase
 
 from sqlalchemy import Column, create_engine, INTEGER, MetaData, Table, VARCHAR
 
 from auto_rest.models import create_db_models
 
 
-class TestCreateDbModels(unittest.TestCase):
+class TestCreateDbModels(TestCase):
     """Unit tests for the `create_db_models` function."""
 
     @classmethod
@@ -40,7 +40,7 @@ class TestCreateDbModels(unittest.TestCase):
     def test_models_are_created(self) -> None:
         """Test models are generated for each table."""
 
-        models = create_db_models(self.engine)
+        models = create_db_models(self.metadata)
 
         # Validate the count and names of generated models
         self.assertEqual(2, len(models))
@@ -67,11 +67,9 @@ class TestCreateDbModels(unittest.TestCase):
         self.assertEqual(INTEGER, table2_columns["id"].type.__class__)
         self.assertEqual(VARCHAR, table2_columns["description"].type.__class__)
 
-    def test_create_db_models_empty_database(self) -> None:
-        """Test handling an empty database."""
-
-        empty_engine = create_engine("sqlite:///:memory:")
-        models = create_db_models(empty_engine)
+    def test_empty_database(self) -> None:
+        """Test an empty collection is returned for an empty database."""
 
         # Validate that no models are generated
+        models = create_db_models(MetaData())
         self.assertEqual(0, len(models))
