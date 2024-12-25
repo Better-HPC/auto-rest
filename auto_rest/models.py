@@ -1,9 +1,10 @@
 """ORM layer using async SQLAlchemy to dynamically map database schemas and generate model interfaces."""
 
+import asyncio
 import logging
 from pathlib import Path
 
-from sqlalchemy import create_engine, Engine, URL
+from sqlalchemy import create_engine, Engine, MetaData, URL
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.orm import declarative_base
@@ -33,14 +34,14 @@ def create_db_url(
 
     Args:
         driver: The sqlalchemy compatible database driver.
-        host: The hostname or IP address of the database server.
-        port: The port number for the database connection.
-        database: The name of the database to connect to.
-        username: The username to authenticate to the database.
+        host: The database server hostname or IP address.
+        port: The database server port number.
+        database: The database name.
+        username: The username to authenticate as.
         password: The password for the database user.
 
     Returns:
-        The fully qualified database connection URL.
+        The fully qualified database URL.
     """
 
     # Handle special case where SQLite uses file paths
@@ -63,17 +64,17 @@ def create_db_url(
 
 
 def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
-    """Initialize a new pool of async database connections.
+    """Initialize a new database engine.
 
-    Instantiates and returns an Engine or AsyncEngine depending on
-    whether the underlying database driver supports async operations.
+    Instantiates and returns an `Engine` or `AsyncEngine` instance depending
+    on whether the database URL indicates support for async operations.
 
     Args:
-        url: Database connection URL.
-        **kwargs: Optional init parameters for the returned engine.
+        url: A fully qualified database connection URL.
+        **kwargs: Optional init parameters for the returned instance.
 
     Returns:
-        A SQLAlchemy Engine instance.
+        A SQLAlchemy `Engine` or `AsyncEngine` instance.
     """
 
     params_str = ", ".join(f"{key}={value}" for key, value in kwargs.items())
@@ -97,17 +98,10 @@ def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
         raise
 
 
-from sqlalchemy.ext.asyncio import AsyncEngine
-from sqlalchemy import MetaData
-import logging
-import asyncio
+async def _async_reflect_metadata(engine: AsyncEngine, metadata: MetaData) -> None:
+    """Helper function used to reflect database metadata using an async engine."""
 
-logger = logging.getLogger(__name__)
-
-
-async def async_reflect_metadata(conn: AsyncEngine, metadata: MetaData) -> None:
-    """Reflect the metadata using an async engine."""
-    async with conn.connect() as connection:  # Async connection
+    async with engine.connect() as connection:
         await connection.run_sync(metadata.reflect)
 
 
@@ -126,19 +120,16 @@ def create_db_metadata(engine: Engine | AsyncEngine) -> MetaData:
     try:
         metadata = MetaData()
 
-        # For async engines, use an async reflection
         if isinstance(engine, AsyncEngine):
-            # Use the current event loop to reflect metadata
-            asyncio.run(async_reflect_metadata(engine, metadata))
+            asyncio.run(_async_reflect_metadata(engine, metadata))
 
-        # For sync engines, use the regular reflection
         else:
             metadata.reflect(bind=engine)
 
         return metadata
 
     except Exception as e:  # pragma: no cover
-        logger.error(f"Error reflecting metadata: {e}")
+        logger.error(f"Error mapping database schema: {e}")
         raise
 
 
@@ -146,7 +137,7 @@ def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
     """Dynamically generate database models from the provided metadata.
 
     Args:
-        metadata: The schema of the database.
+        metadata: Up-to-date database metadata.
 
     Returns:
         A dictionary mapping table names to database models.
