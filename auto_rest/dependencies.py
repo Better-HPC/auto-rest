@@ -20,17 +20,17 @@ __all__ = [
 ]
 
 
-def create_db_dependency(conn_pool: Engine) -> Callable[[], Session]:
+def create_db_dependency(engine: Engine) -> Callable[[], Session]:
     """Factory function for a FastAPI dependency that generates new database sessions.
 
     Args:
-        conn_pool: Connection pool to generate new sessions from.
+        engine: Database engine to use when generating new sessions.
 
     Returns:
         A function that yields new database session.
     """
 
-    session_factory = sessionmaker(bind=conn_pool, autocommit=False, autoflush=False)
+    session_factory = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
     def get_db_session() -> Session:
         """Yield a new database session."""
