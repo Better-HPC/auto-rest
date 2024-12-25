@@ -44,13 +44,13 @@ def create_db_url(
     """
 
     # Handle special case where SQLite uses file paths
-    if driver == "sqlite" and host:
+    if "sqlite" in driver:
         path = Path(host)
         if path.is_absolute():
-            return f"sqlite:///{path}"
+            return f"{driver}:///{path}"
 
         else:
-            return f"sqlite:///{path}"
+            return f"{driver}:///{path}"
 
     return URL.create(
         drivername=driver,
