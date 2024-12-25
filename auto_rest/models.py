@@ -3,7 +3,7 @@
 import logging
 from pathlib import Path
 
-from sqlalchemy import create_engine, Engine, MetaData, URL
+from sqlalchemy import create_engine, Engine, URL
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.orm import declarative_base
@@ -92,34 +92,48 @@ def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
         logger.debug("Synchronous database connection established successfully.")
         return engine
 
-    except Exception as e: # pragma: no cover
+    except Exception as e:  # pragma: no cover
         logger.error(f"Could not connect to the database: {e}")
         raise
 
 
-def create_db_metadata(conn: Engine | AsyncEngine) -> MetaData:
+from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy import MetaData
+import logging
+import asyncio
+
+logger = logging.getLogger(__name__)
+
+
+async def async_reflect_metadata(conn: AsyncEngine, metadata: MetaData) -> None:
+    """Reflect the metadata using an async engine."""
+    async with conn.connect() as connection:  # Async connection
+        await connection.run_sync(metadata.reflect)
+
+
+def create_db_metadata(engine: Engine | AsyncEngine) -> MetaData:
     """Create and reflect the metadata for the database connection.
 
     Args:
-        conn: Open database connection (sync or async).
+        engine: A database engine.
 
     Returns:
         A MetaData object reflecting the schema of the database.
     """
 
-    logger.info(f"Loading database schema for {conn.url}.")
+    logger.info(f"Loading database schema for {engine.url}.")
 
     try:
         metadata = MetaData()
 
         # For async engines, use an async reflection
-        if isinstance(conn, AsyncEngine):
-            loop = conn.sync_engine._pool._asyncio_event_loop
-            loop.run_until_complete(metadata.reflect(bind=conn))
+        if isinstance(engine, AsyncEngine):
+            # Use the current event loop to reflect metadata
+            asyncio.run(async_reflect_metadata(engine, metadata))
 
         # For sync engines, use the regular reflection
         else:
-            metadata.reflect(bind=conn)
+            metadata.reflect(bind=engine)
 
         return metadata
 
