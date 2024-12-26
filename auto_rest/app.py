@@ -40,13 +40,14 @@ def configure_logging(level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITI
     )
 
 
-def create_app(conn: Engine, models: dict[str, ModelBase], enable_meta: bool = False, enable_docs: bool = False) -> FastAPI:
+def create_app(engine: Engine, models: dict[str, ModelBase], enable_meta: bool = False, enable_docs: bool = False) -> FastAPI:
     """Initialize a new FastAPI Application.
 
     Args:
-        conn: The database connection to use in the app.
+        engine: The database engine to use in the app.
         models: Mapping of database model names to ORM classes.
         enable_meta: Add a `meta` API endpoint with DB metadata.
+        enable_docs: Add a `docs` API endpoint with API documentation.
 
     Returns:
         A new FastAPI application.
@@ -55,7 +56,7 @@ def create_app(conn: Engine, models: dict[str, ModelBase], enable_meta: bool = F
     app = FastAPI(
         title=NAME.title(),
         version=VERSION,
-        summary=f"A REST API generated dynamically from the '{conn.url.database}' database schema.",
+        summary=f"A REST API generated dynamically from the '{engine.url.database}' database schema.",
         docs_url="/docs/" if enable_docs else None,
         redoc_url=None
     )
@@ -64,11 +65,11 @@ def create_app(conn: Engine, models: dict[str, ModelBase], enable_meta: bool = F
     app.add_api_route("/version/", version_handler, methods=["GET"], tags=["Application Info"])
 
     if enable_meta:
-        app.add_api_route(f"/meta/", create_meta_handler(conn), methods=["GET"], tags=["Application Info"])
+        app.add_api_route(f"/meta/", create_meta_handler(engine), methods=["GET"], tags=["Application Info"])
 
     for model_name, model_class in models.items():
         logger.debug(f"Adding API routes for table '{model_name}'.")
-        app.add_api_route(f"/db/{model_name}/", create_list_handler(conn, model_class), methods=["GET"], tags=["Database Operations"])
+        app.add_api_route(f"/db/{model_name}/", create_list_handler(engine, model_class), methods=["GET"], tags=["Database Operations"])
 
     return app
 
