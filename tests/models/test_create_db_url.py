@@ -8,7 +8,7 @@ class TestCreateDbUrl(TestCase):
     """Unit tests for the `create_db_url` function."""
 
     def test_create_url_with_all_params(self) -> None:
-        """Test creating a DB URL with all parameters provided."""
+        """Test creating a database URL with all parameters provided."""
 
         result = create_db_url(
             driver="postgresql",
@@ -23,7 +23,7 @@ class TestCreateDbUrl(TestCase):
         self.assertEqual(expected_url, result)
 
     def test_create_url_without_password(self) -> None:
-        """Test creating a DB URL without a password."""
+        """Test creating a database URL without a password."""
 
         result = create_db_url(
             driver="postgresql",
@@ -38,7 +38,7 @@ class TestCreateDbUrl(TestCase):
         self.assertEqual(expected_url, result)
 
     def test_create_url_without_username_and_password(self) -> None:
-        """Test creating a DB URL without a username and password."""
+        """Test creating a database URL without a username and password."""
 
         result = create_db_url(
             driver="postgresql",
@@ -53,7 +53,7 @@ class TestCreateDbUrl(TestCase):
         self.assertEqual(expected_url, result)
 
     def test_create_url_without_port(self) -> None:
-        """Test creating a DB URL without a port."""
+        """Test creating a database URL without a port."""
 
         result = create_db_url(
             driver="postgresql",
@@ -68,7 +68,7 @@ class TestCreateDbUrl(TestCase):
         self.assertEqual(expected_url, result)
 
     def test_create_url_without_database(self) -> None:
-        """Test creating a DB URL without a database."""
+        """Test creating a database URL without a database name."""
 
         result = create_db_url(
             driver="postgresql",
@@ -83,7 +83,7 @@ class TestCreateDbUrl(TestCase):
         self.assertEqual(expected_url, result)
 
     def test_create_sqlite_url_with_relative_path(self) -> None:
-        """Test SQLite URL with a relative file path."""
+        """Test creating a SQLite URL with a relative file path."""
 
         path = Path("path/to/database.db")
         self.assertFalse(path.is_absolute())
@@ -100,7 +100,7 @@ class TestCreateDbUrl(TestCase):
         self.assertEqual(result, expected_url)
 
     def test_create_sqlite_url_with_absolute_path(self) -> None:
-        """Test SQLite URL with an absolute file path."""
+        """Test creating a SQLite URL with an absolute file path."""
 
         result = create_db_url(
             driver="sqlite",
