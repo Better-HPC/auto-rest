@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest import TestCase
 
 from auto_rest.models import create_db_url
@@ -84,15 +85,18 @@ class TestCreateDbUrl(TestCase):
     def test_create_sqlite_url_with_relative_path(self) -> None:
         """Test SQLite URL with a relative file path."""
 
+        path = Path("path/to/database.db")
+        self.assertFalse(path.is_absolute())
+
         result = create_db_url(
             driver="sqlite",
-            host="path/to/database.db",  # Relative path
+            host=str(path),  # Relative path
             port=None,
             database=None,
             username=None,
             password=None
         )
-        expected_url = "sqlite:///path/to/database.db"
+        expected_url = f"sqlite:///{path.resolve()}"
         self.assertEqual(result, expected_url)
 
     def test_create_sqlite_url_with_absolute_path(self) -> None:

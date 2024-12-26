@@ -10,16 +10,15 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncEngine, AsyncSession
 from sqlalchemy.orm import declarative_base, Session, sessionmaker
 
 __all__ = [
+    "create_db_url",
     "create_db_engine",
     "create_db_metadata",
     "create_db_models",
-    "create_db_url",
     "create_session_factory",
-    "ModelBase"
+    "ModelBase",
 ]
 
 logger = logging.getLogger(__name__)
-
 ModelBase = declarative_base()
 
 
@@ -29,7 +28,7 @@ def create_db_url(
     port: int | None = None,
     database: str | None = None,
     username: str | None = None,
-    password: str | None = None
+    password: str | None = None,
 ) -> str:
     """Create a database URL from the provided parameters.
 
@@ -47,12 +46,8 @@ def create_db_url(
 
     # Handle special case where SQLite uses file paths
     if "sqlite" in driver:
-        path = Path(host)
-        if path.is_absolute():
-            return f"{driver}:///{path}"
-
-        else:
-            return f"{driver}:///{path}"
+        path = Path(host).resolve()
+        return f"{driver}:///{path}"
 
     return URL.create(
         drivername=driver,
@@ -60,7 +55,7 @@ def create_db_url(
         password=password,
         host=host,
         port=port,
-        database=database
+        database=database,
     ).render_as_string(hide_password=False)
 
 
@@ -78,20 +73,19 @@ def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
         A SQLAlchemy `Engine` or `AsyncEngine` instance.
     """
 
-    params_str = ", ".join(f"{key}={value}" for key, value in kwargs.items())
-    logger.info(f"Connecting to database at {url} ({params_str}).")
+    logger.info(f"Connecting to database at {url} ({kwargs}).")
 
     try:
         engine = create_async_engine(url, **kwargs)
-        logger.debug("Asynchronous database connection established successfully.")
+        logger.debug("Asynchronous connection established.")
         return engine
 
     except InvalidRequestError as e:
-        logger.warning(f"Could not establish asynchronous connection. Falling back to synchronous. ({e})")
+        logger.warning(f"Async connection failed, falling back to sync. Error: {e}")
 
     try:
         engine = create_engine(url, **kwargs)
-        logger.debug("Synchronous database connection established successfully.")
+        logger.debug("Synchronous connection established.")
         return engine
 
     except Exception as e:  # pragma: no cover
@@ -118,9 +112,9 @@ def create_db_metadata(engine: Engine | AsyncEngine) -> MetaData:
 
     logger.info(f"Loading database schema for {engine.url}.")
 
-    try:
-        metadata = MetaData()
+    metadata = MetaData()
 
+    try:
         if isinstance(engine, AsyncEngine):
             asyncio.run(_async_reflect_metadata(engine, metadata))
 
@@ -130,7 +124,7 @@ def create_db_metadata(engine: Engine | AsyncEngine) -> MetaData:
         return metadata
 
     except Exception as e:  # pragma: no cover
-        logger.error(f"Error mapping database schema: {e}")
+        logger.error(f"Schema reflection error: {e}")
         raise
 
 
@@ -149,9 +143,12 @@ def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
     try:
         # Dynamically create a class for each table
         for table_name, table in metadata.tables.items():
-            logger.debug(f"Building model for table {table_name}.")
-            class_name = table_name.capitalize()
-            models[table_name] = type(class_name, (ModelBase,), {"__table__": table})
+            logger.debug(f"Creating model for table {table_name}")
+            models[table_name] = type(
+                table_name.capitalize(),
+                (ModelBase,),
+                {"__table__": table},
+            )
 
         logger.info(f"Successfully generated {len(models)} models.")
         return models
@@ -161,7 +158,7 @@ def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
         raise
 
 
-def create_session_factory(engine):
+def create_session_factory(engine: Engine | AsyncEngine):
     """Factory function for a FastAPI dependency that generates new database sessions.
 
     Args:
@@ -175,19 +172,12 @@ def create_session_factory(engine):
         session_factory = async_sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
         async def get_db_session() -> AsyncSession:
-            """Yield a new database session."""
-
-            logging.debug("Fetching database session.")
             async with session_factory() as session:
                 yield session
-
     else:
         session_factory = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
         def get_db_session() -> Session:
-            """Yield a new database session."""
-
-            logging.debug("Fetching database session.")
             with session_factory() as session:
                 yield session
 
