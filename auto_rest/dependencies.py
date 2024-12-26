@@ -47,8 +47,16 @@ def apply_pagination_params(query: Select, params: dict[str, int], response: Res
         A copy of the query modified to only return the paginated values.
     """
 
-    limit = params["limit"]
-    offset = params["offset"]
+    try:
+        limit = params["limit"]
+        offset = params["offset"]
+
+    except KeyError:
+        raise ValueError("Pagination parameters must include values for `limit` and `offset`.")
+
+    if limit < 0 or offset < 0:
+        raise ValueError("Pagination parameters must be greater than zero.")
+
     return query.offset(offset).limit(limit)
 
 

@@ -1,6 +1,9 @@
 from unittest import TestCase
+from unittest.mock import Mock
 
 from fastapi import Response
+from sqlalchemy.sql import select
+from sqlalchemy.sql.expression import Select
 
 from auto_rest.dependencies import apply_pagination_params
 
@@ -8,83 +11,49 @@ from auto_rest.dependencies import apply_pagination_params
 class TestApplyPaginationParams(TestCase):
     """Unit tests for the `apply_pagination_params` function."""
 
-    def test_full_list_returned_when_page_is_zero(self):
-        """Test that all items are returned when the page number is zero."""
+    def setUp(self) -> None:
+        """Set up test structures."""
 
-        items = [1, 2, 3, 4, 5]
-        pagination = {"page": 0, "per_page": 2}
-        response = Response()
+        self.response = Mock(spec=Response)  # Mocked Response object
+        self.query = select()  # Example SQLAlchemy query
 
-        result = apply_pagination_params(items, pagination, response)
+    def test_valid_pagination_params(self) -> None:
+        """Test pagination parameters are applied correctly."""
 
-        self.assertEqual(items, result)
-        self.assertEqual({'content-length': '0'}, dict(response.headers))
+        params = {"limit": 10, "offset": 20}
+        result_query = apply_pagination_params(self.query, params, self.response)
 
-    def test_pagination_with_valid_page_and_per_page(self):
-        """Test pagination returns the correct slice of items and sets headers."""
+        # Check the returned query is a SQLAlchemy Select object
+        self.assertIsInstance(result_query, Select)
 
-        items = [1, 2, 3, 4, 5]
-        pagination = {"page": 2, "per_page": 2}
-        response = Response()
+        # Assert the query contains the correct offset and limit
+        self.assertEqual(result_query._limit, 10)
+        self.assertEqual(result_query._offset, 20)
 
-        result = apply_pagination_params(items, pagination, response)
+    def test_missing_params(self) -> None:
+        """Test a ValueError is raised for missing parameters."""
 
-        self.assertEqual([3, 4], result)
-        self.assertEqual(response.headers["x-total-count"], "5")
-        self.assertEqual(response.headers["x-page"], "2")
-        self.assertEqual(response.headers["x-per-page"], "2")
-        self.assertEqual(response.headers["x-total-pages"], "3")
-
-    def test_pagination_with_last_page(self):
-        """Test pagination when the last page contains fewer items."""
-
-        items = [1, 2, 3, 4, 5]
-        pagination = {"page": 3, "per_page": 2}
-        response = Response()
-
-        result = apply_pagination_params(items, pagination, response)
-
-        self.assertEqual([5], result)
-        self.assertEqual(response.headers["x-total-count"], "5")
-        self.assertEqual(response.headers["x-page"], "3")
-        self.assertEqual(response.headers["x-per-page"], "2")
-        self.assertEqual(response.headers["x-total-pages"], "3")
-
-    def test_pagination_with_empty_list(self):
-        """Test pagination with an empty list of items."""
-
-        items = []
-        pagination = {"page": 1, "per_page": 2}
-        response = Response()
-
-        result = apply_pagination_params(items, pagination, response)
-
-        self.assertEqual([], result)
-        self.assertEqual(response.headers["x-total-count"], "0")
-        self.assertEqual(response.headers["x-page"], "1")
-        self.assertEqual(response.headers["x-per-page"], "2")
-        self.assertEqual(response.headers["x-total-pages"], "0")
-
-    def test_negative_page_number(self):
-        """Test behavior when the page number is negative."""
-
-        items = [1, 2, 3, 4, 5]
-        pagination = {"page": -1, "per_page": 2}
-        response = Response()
-
-        result = apply_pagination_params(items, pagination, response)
-
-        self.assertEqual([5], result)
-        self.assertEqual(response.headers["x-total-count"], "5")
-        self.assertEqual(response.headers["x-page"], "-1")
-        self.assertEqual(response.headers["x-per-page"], "2")
-        self.assertEqual(response.headers["x-total-pages"], "3")
-
-    def test_invalid_per_page_value(self):
-        """Test an error is raised for invalid `per_page` values (zero or negative)."""
-
+        params = {"limit": 10}  # Missing 'offset'
         with self.assertRaises(ValueError):
-            apply_pagination_params([1, 2, 3, 4, 5], {"page": 1, "per_page": 0}, Response())
+            apply_pagination_params(self.query, params, self.response)
 
+        params = {"offset": 20}  # Missing 'limit'
         with self.assertRaises(ValueError):
-            apply_pagination_params([1, 2, 3, 4, 5], {"page": 1, "per_page": -1}, Response())
+            apply_pagination_params(self.query, params, self.response)
+
+    def test_invalid_params(self) -> None:
+        """Test a ValueError is raise for invalid pagination values."""
+
+        params = {"limit": -5, "offset": -10}
+        with self.assertRaises(ValueError):
+            apply_pagination_params(self.query, params, self.response)
+
+    def test_zero_value_params(self) -> None:
+        """Test pagination parameters with zero values."""
+
+        params = {"limit": 0, "offset": 0}
+        result_query = apply_pagination_params(self.query, params, self.response)
+
+        # Assert the query has offset and limit set to zero
+        self.assertEqual(result_query._limit, 0)
+        self.assertEqual(result_query._offset, 0)
