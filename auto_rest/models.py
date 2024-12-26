@@ -1,4 +1,4 @@
-"""ORM layer using async SQLAlchemy to dynamically map database schemas and generate model interfaces."""
+"""Database layer used to dynamically map database schemas and generate model interfaces."""
 
 import asyncio
 import logging
