@@ -36,4 +36,4 @@ class TestCreateDbEngine(TestCase):
         """Test handling for an invalid database URL."""
 
         with self.assertRaises(Exception):
-            create_db_engine("invalid_url", pool_size=5, max_overflow=10, pool_timeout=30)
+            create_db_engine("invalid_url")

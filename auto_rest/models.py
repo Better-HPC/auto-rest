@@ -63,10 +63,10 @@ def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
     """Initialize a new database engine.
 
     Instantiates and returns an `Engine` or `AsyncEngine` instance depending
-    on whether the database URL indicates support for async operations.
+    on whether the database URL uses a driver with support for async operations.
 
     Args:
-        url: A fully qualified database connection URL.
+        url: A fully qualified database URL.
         **kwargs: Optional init parameters for the returned instance.
 
     Returns:
@@ -111,7 +111,6 @@ def create_db_metadata(engine: Engine | AsyncEngine) -> MetaData:
     """
 
     logger.info(f"Loading database schema for {engine.url}.")
-
     metadata = MetaData()
 
     try:
@@ -129,10 +128,10 @@ def create_db_metadata(engine: Engine | AsyncEngine) -> MetaData:
 
 
 def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
-    """Dynamically generate database models from the provided metadata.
+    """Dynamically generate database models from a metadata instance.
 
     Args:
-        metadata: Up-to-date database metadata.
+        metadata: An up-to-date reflection of database metadata.
 
     Returns:
         A dictionary mapping table names to database models.
@@ -158,27 +157,29 @@ def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
         raise
 
 
-def create_session_factory(engine: Engine | AsyncEngine):
-    """Factory function for a FastAPI dependency that generates new database sessions.
+def create_session_factory(engine: Engine | AsyncEngine, autocommit: bool = False, autoflush: bool = False):
+    """Create a factory function for generating database sessions.
+
+    The returned function is suitable for use as a FastAPI dependency.
 
     Args:
         engine: Database engine to use when generating new sessions.
+        autocommit: Whether to automatically commit changes to the database.
+        autoflush: Whether to automatically flush changes to the database.
 
     Returns:
         A function that yields new database session.
     """
 
     if isinstance(engine, AsyncEngine):
-        session_factory = async_sessionmaker(bind=engine, autocommit=False, autoflush=False)
-
-        async def get_db_session() -> AsyncSession:
-            async with session_factory() as session:
+        async_session_factory = async_sessionmaker(bind=engine, autocommit=autocommit, autoflush=autoflush)
+        async def session_iterator() -> AsyncSession:
+            async with async_session_factory() as session:
                 yield session
     else:
-        session_factory = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-
-        def get_db_session() -> Session:
+        session_factory = sessionmaker(bind=engine, autocommit=autocommit, autoflush=autoflush)
+        def session_iterator() -> Session:
             with session_factory() as session:
                 yield session
 
-    return get_db_session
+    return session_iterator
