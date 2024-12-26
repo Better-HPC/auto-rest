@@ -9,7 +9,7 @@ from starlette.responses import Response
 
 from .dependencies import *
 from .metadata import VERSION
-from .models import ModelBase
+from .models import create_session_factory, ModelBase
 
 __all__ = [
     "create_list_handler",
@@ -69,7 +69,7 @@ def create_list_handler(engine: Engine, model: ModelBase) -> callable:
 
     async def list_handler(
         response: Response,
-        db: Session = Depends(create_db_dependency(engine)),
+        db: Session = Depends(create_session_factory(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
         ordering_params: dict[str, int] = Depends(get_ordering_params),
     ):

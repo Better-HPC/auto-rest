@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
-from auto_rest.dependencies import create_db_dependency
+from auto_rest.models import create_session_factory
 
 
 class TestCreateDbDependency(unittest.TestCase):
@@ -20,7 +20,7 @@ class TestCreateDbDependency(unittest.TestCase):
     def test_dependency_returns_active_session(self) -> None:
         """Test the generated dependency yields an active session."""
 
-        db_dependency = create_db_dependency(self.test_engine)
+        db_dependency = create_session_factory(self.test_engine)
         session_generator = db_dependency()
 
         with next(session_generator) as session:
@@ -31,7 +31,7 @@ class TestCreateDbDependency(unittest.TestCase):
     def test_session_closes_after_use(self) -> None:
         """Test the session is properly closed after yielding."""
 
-        db_dependency = create_db_dependency(self.test_engine)
+        db_dependency = create_session_factory(self.test_engine)
         session_generator = db_dependency()
 
         with patch("sqlalchemy.orm.session.Session.close", autospec=True) as mock_close:

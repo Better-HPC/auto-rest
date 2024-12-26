@@ -1,45 +1,20 @@
 """Injectable dependencies and utility functions used for building FastAPI request handlers."""
 
-import logging
-from typing import Callable, Literal
+from typing import Literal
 
 from fastapi import Query
-from sqlalchemy import asc, desc, Engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import asc, desc
 from sqlalchemy.orm.query import Query as DBQuery
 from starlette.responses import Response
 
 from .models import ModelBase
 
 __all__ = [
-    "create_db_dependency",
     "apply_ordering_params",
     "apply_pagination_params",
     "get_ordering_params",
     "get_pagination_params",
 ]
-
-
-def create_db_dependency(engine: Engine) -> Callable[[], Session]:
-    """Factory function for a FastAPI dependency that generates new database sessions.
-
-    Args:
-        engine: Database engine to use when generating new sessions.
-
-    Returns:
-        A function that yields new database session.
-    """
-
-    session_factory = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-
-    def get_db_session() -> Session:
-        """Yield a new database session."""
-
-        logging.debug("Fetching database session.")
-        with session_factory() as session:
-            yield session
-
-    return get_db_session
 
 
 def get_pagination_params(

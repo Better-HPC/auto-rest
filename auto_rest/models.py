@@ -6,14 +6,15 @@ from pathlib import Path
 
 from sqlalchemy import create_engine, Engine, MetaData, URL
 from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.orm import declarative_base, Session, sessionmaker
 
 __all__ = [
     "create_db_engine",
     "create_db_metadata",
     "create_db_models",
     "create_db_url",
+    "create_session_factory",
     "ModelBase"
 ]
 
@@ -158,3 +159,36 @@ def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
     except Exception as e:  # pragma: no cover
         logger.error(f"Error generating models: {e}")
         raise
+
+
+def create_session_factory(engine):
+    """Factory function for a FastAPI dependency that generates new database sessions.
+
+    Args:
+        engine: Database engine to use when generating new sessions.
+
+    Returns:
+        A function that yields new database session.
+    """
+
+    if isinstance(engine, AsyncEngine):
+        session_factory = async_sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
+        async def get_db_session() -> AsyncSession:
+            """Yield a new database session."""
+
+            logging.debug("Fetching database session.")
+            async with session_factory() as session:
+                yield session
+
+    else:
+        session_factory = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
+        def get_db_session() -> Session:
+            """Yield a new database session."""
+
+            logging.debug("Fetching database session.")
+            with session_factory() as session:
+                yield session
+
+    return get_db_session
