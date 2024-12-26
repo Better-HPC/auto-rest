@@ -17,7 +17,7 @@ class TestApplyPaginationParams(TestCase):
         self.response = Mock(spec=Response)  # Mocked Response object
         self.query = select()  # Example SQLAlchemy query
 
-    def test_valid_pagination_params(self) -> None:
+    def test_valid_params(self) -> None:
         """Test pagination parameters are applied correctly."""
 
         params = {"limit": 10, "offset": 20}

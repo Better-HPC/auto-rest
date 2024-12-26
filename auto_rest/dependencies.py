@@ -92,8 +92,12 @@ def apply_ordering_params(query: Select, params: dict, response: Response) -> Se
         A copy of the query modified to return ordered values.
     """
 
-    order_by = params.get("order_by")
-    direction = params.get("direction")
+    try:
+        order_by = params["order_by"]
+        direction = params["direction"]
+
+    except KeyError:
+        raise ValueError("Pagination parameters must include values for `limit` and `offset`.")
 
     if not order_by:
         return query  # No ordering requested
