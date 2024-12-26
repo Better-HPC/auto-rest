@@ -1,4 +1,4 @@
-import unittest
+from unittest import TestCase
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -7,7 +7,7 @@ from auto_rest.handlers import version_handler
 from auto_rest.metadata import VERSION
 
 
-class TestWelcomeHandler(unittest.TestCase):
+class TestWelcomeHandler(TestCase):
     """Unit tests for the `version_handler` function."""
 
     @classmethod

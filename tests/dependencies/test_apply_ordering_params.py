@@ -1,4 +1,4 @@
-import unittest
+from unittest import TestCase
 
 from sqlalchemy import Column, create_engine, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
@@ -18,7 +18,7 @@ class MockModel(Base):
     name = Column(String)
 
 
-class TestApplyOrderingParams(unittest.TestCase):
+class TestApplyOrderingParams(TestCase):
     """Unit tests for the apply_ordering_params function."""
 
     @classmethod

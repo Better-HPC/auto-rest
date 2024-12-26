@@ -1,4 +1,4 @@
-import unittest
+from unittest import TestCase
 
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from auto_rest.dependencies import get_pagination_params
 
 
-class TestGetPaginationParams(unittest.TestCase):
+class TestGetPaginationParams(TestCase):
     """Unit tests for `get_pagination_params` function."""
 
     @classmethod
