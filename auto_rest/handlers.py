@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import Response
 
 from .dependencies import *
-from .metadata import VERSION
+from .dist import version
 from .models import create_session_factory, ModelBase
 
 __all__ = [
@@ -30,7 +30,7 @@ async def welcome_handler() -> dict:
 async def version_handler() -> dict:
     """Return the application version number in JSON format."""
 
-    return {"version": VERSION}
+    return {"version": version}
 
 
 def create_meta_handler(engine: Engine) -> callable:

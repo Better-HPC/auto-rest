@@ -9,7 +9,7 @@ from sqlalchemy import Engine
 from uvicorn.logging import DefaultFormatter
 
 from .handlers import *
-from .metadata import NAME, VERSION
+from .dist import name, version
 from .models import ModelBase
 
 __all__ = ["configure_logging", "create_app", "run_app"]
@@ -54,8 +54,8 @@ def create_app(engine: Engine, models: dict[str, ModelBase], enable_meta: bool =
     """
 
     app = FastAPI(
-        title=NAME.title(),
-        version=VERSION,
+        title=name.title(),
+        version=version,
         summary=f"A REST API generated dynamically from the '{engine.url.database}' database schema.",
         docs_url="/docs/" if enable_docs else None,
         redoc_url=None
