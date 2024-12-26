@@ -16,7 +16,7 @@ __all__ = [
 
 
 def get_pagination_params(
-    _limit_: int = Query(10, ge=1, description="The maximum number of records to return."),
+    _limit_: int = Query(10, ge=0, description="The maximum number of records to return."),
     _offset_: int = Query(0, ge=0, description="The starting index of the returned records."),
 ) -> dict[str, int]:
     """Extract pagination parameters from request query parameters.
