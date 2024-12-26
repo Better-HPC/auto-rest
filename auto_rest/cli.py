@@ -38,7 +38,7 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
 
     driver = parser.add_argument_group("database type")
     db_type = driver.add_mutually_exclusive_group(required=True)
-    db_type.add_argument("--sqlite", action="store_const", dest="db_driver", const="sqlite+aiosqlite", help="use a SQLite database driver.")
+    db_type.add_argument("--sqlite", action="store_const", dest="db_driver", const="sqlite", help="use a SQLite database driver.")
     db_type.add_argument("--psql", action="store_const", dest="db_driver", const="postgresql+asyncpg", help="use a PostgreSQL database driver.")
     db_type.add_argument("--mysql", action="store_const", dest="db_driver", const="mysql+asyncmy", help="use a MySQL database driver.")
     db_type.add_argument("--oracle", action="store_const", dest="db_driver", const="oracle+oracledb", help="use an Oracle database driver.")
