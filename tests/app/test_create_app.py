@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from auto_rest.app import create_app
-from auto_rest.metadata import NAME
+from auto_rest.dist import name
 
 
 class TestCreateApp(unittest.TestCase):
@@ -42,7 +42,7 @@ class TestCreateApp(unittest.TestCase):
     def test_app_title(self) -> None:
         """Test the application's title."""
 
-        self.assertEqual(NAME.title(), self.app.title)
+        self.assertEqual(name.title(), self.app.title)
 
     def test_root_handler(self) -> None:
         """Test the application has a root handler."""

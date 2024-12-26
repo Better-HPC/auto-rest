@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser
 
-from .metadata import SUMMARY, VERSION
+from .dist import summary, version
 
 __all__ = ["create_argument_parser"]
 
@@ -19,11 +19,11 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
 
     parser = ArgumentParser(
         prog="auto-rest",
-        description=SUMMARY,
+        description=summary,
         exit_on_error=exit_on_error
     )
 
-    parser.add_argument("--version", action="version", version=VERSION)
+    parser.add_argument("--version", action="version", version=version)
     parser.add_argument(
         "--log-level",
         default="INFO",

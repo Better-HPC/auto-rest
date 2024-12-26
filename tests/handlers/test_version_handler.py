@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from auto_rest.handlers import version_handler
-from auto_rest.metadata import VERSION
+from auto_rest.dist import version
 
 
 class TestWelcomeHandler(unittest.TestCase):
@@ -23,4 +23,4 @@ class TestWelcomeHandler(unittest.TestCase):
 
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual({"version": VERSION}, response.json())
+        self.assertEqual({"version": version}, response.json())
