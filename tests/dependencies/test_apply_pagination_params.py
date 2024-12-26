@@ -1,11 +1,11 @@
-import unittest
+from unittest import TestCase
 
 from fastapi import Response
 
 from auto_rest.dependencies import apply_pagination_params
 
 
-class TestApplyPaginationParams(unittest.TestCase):
+class TestApplyPaginationParams(TestCase):
     """Unit tests for the `apply_pagination_params` function."""
 
     def test_full_list_returned_when_page_is_zero(self):

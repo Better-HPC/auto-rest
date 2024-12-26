@@ -1,5 +1,5 @@
 import tempfile
-import unittest
+from unittest import TestCase
 from unittest.mock import MagicMock
 
 from fastapi import FastAPI
@@ -11,7 +11,7 @@ from auto_rest.app import create_app
 from auto_rest.dist import name
 
 
-class TestCreateApp(unittest.TestCase):
+class TestCreateApp(TestCase):
     """Unit tests for the `create_app` function."""
 
     @classmethod

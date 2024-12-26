@@ -1,10 +1,10 @@
 import logging
-import unittest
+from unittest import TestCase
 
 from auto_rest.app import configure_logging
 
 
-class TestConfigureLogging(unittest.TestCase):
+class TestConfigureLogging(TestCase):
     """Unit tests for the `configure_logging` function."""
 
     def test_log_level_debug(self) -> None:

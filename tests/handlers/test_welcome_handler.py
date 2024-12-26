@@ -1,4 +1,4 @@
-import unittest
+from unittest import TestCase
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from auto_rest.handlers import welcome_handler
 
 
-class TestWelcomeHandler(unittest.TestCase):
+class TestWelcomeHandler(TestCase):
     """Unit tests for the `welcome_handler` function."""
 
     @classmethod
