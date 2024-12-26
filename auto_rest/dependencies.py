@@ -4,10 +4,7 @@ from typing import Literal
 
 from fastapi import Query
 from sqlalchemy import asc, desc
-from sqlalchemy.orm.query import Query as DBQuery
 from starlette.responses import Response
-
-from .models import ModelBase
 
 __all__ = [
     "apply_ordering_params",
@@ -18,74 +15,45 @@ __all__ = [
 
 
 def get_pagination_params(
-    _page_: int = Query(0, description="Page number."),
-    _per_page_: int = Query(10, gt=0, description="Items per page."),
+    _limit_: int = Query(10, ge=1, description="The maximum number of records to return."),
+    _offset_: int = Query(0, ge=0, description="The starting index of the returned records."),
 ) -> dict[str, int]:
     """Extract pagination parameters from request query parameters.
 
     Args:
-        _page_: The page number.
-        _per_page_: The number of items per page.
+        _limit_: The maximum number of records to return.
+        _offset_: The starting index of the returned records.
 
     Returns:
-        dict: A dictionary containing the `page` and `per_page` values.
+        dict: A dictionary containing the `limit` and `offset` values.
     """
 
-    return {"page": _page_, "per_page": _per_page_}
+    return {"limit": _limit_, "offset": _offset_}
 
 
-def apply_pagination_params(
-    items: list[any],
-    pagination: dict[str, int],
-    response: Response,
-) -> list[any]:
-    """Paginate a list of items and set metadata in response headers.
+def apply_pagination_params(query, params: dict[str, int], response: Response):
+    """Apply pagination to a database query.
 
+    Returns a copy of the provided query with offset and limit parameters applied.
     Intended for use with parameters returned by the `get_pagination_params` dependency.
-    Pagination is disabled and all values are returned when the page number is zero.
-    Negative page numbers correspond to pages counted from the end.
 
     Args:
-        items: The list of items to paginate.
-        pagination: A dictionary containing the `page` and `per_page` parameters.
-        response: Optionally add pagination headers to an HTTP response object.
+        query: The database query to apply parameters to.
+        params: A dictionary containing parsed URL parameters.
+        response: The outgoing HTTP response object.
 
     Returns:
-        A slice of the original list containing the paginated items.
+        A copy of the query modified to only return the paginated values.
     """
 
-    page = pagination["page"]
-    per_page = pagination["per_page"]
-
-    if per_page <= 0:
-        raise ValueError('The `per_page` argument must be greater than 0.')
-
-    total_count = len(items)
-    total_pages = (total_count + per_page - 1) // per_page
-
-    # Calculate start and end indices
-    if page == 0:
-        return items
-
-    elif page > 0:
-        start = (page - 1) * per_page
-        end = start + per_page
-
-    else:
-        start = (total_pages + page) * per_page
-        end = start + per_page
-
-    # Add pagination metadata to response headers
-    response.headers["x-page"] = str(page)
-    response.headers["x-per-page"] = str(per_page)
-    response.headers["x-total-pages"] = str(total_pages)
-    response.headers["x-total-count"] = str(total_count)
-    return items[start:end]
+    limit = params["limit"]
+    offset = params["offset"]
+    return query.offset(offset).limit(limit)
 
 
 def get_ordering_params(
-    _order_by_: str | None = Query(None, description="Field to sort by"),
-    _direction_: Literal["asc", "desc"] = Query("asc", description="Sort direction must be 'asc' or 'desc'")
+    _order_by_: str | None = Query(None, description="Field name to sort by."),
+    _direction_: Literal["asc", "desc"] = Query("asc", description="Sort results in 'asc' or 'desc' order.")
 ) -> dict:
     """Extract ordering parameters from request query parameters.
 
@@ -100,33 +68,26 @@ def get_ordering_params(
     return {"order_by": _order_by_, "direction": _direction_}
 
 
-def apply_ordering_params(query: DBQuery, db_model: ModelBase, ordering_params: dict) -> DBQuery:
-    """Return a copy of a sqlalchemy query with ordering applied.
+def apply_ordering_params(query, params: dict, response: Response):
+    """Apply ordering to a database query.
 
+    Returns a copy of the provided query with ordering parameters applied.
     Intended for use with parameters returned by the `get_ordering_params` dependency.
-    If ordering is requested using a column name not found in the given table,
-    ordering is not applied and the function will exit silently.
 
     Args:
-        query: The sqlalchemy query.
-        db_model: The database model whose column is being sorted.
-        ordering_params: A dictionary containing the `order_by` and `direction` parameters.
+        query: The database query to apply parameters to.
+        params: A dictionary containing parsed URL parameters.
+        response: The outgoing HTTP response object.
 
     Returns:
-        An ordered database query
+        A copy of the query modified to return ordered values.
     """
 
-    order_by = ordering_params.get("order_by")
-    direction = ordering_params.get("direction")
+    order_by = params.get("order_by")
+    direction = params.get("direction")
 
     if not order_by:
         return query  # No ordering requested
 
-    try:
-        sort_field = getattr(db_model, order_by)
-
-    except AttributeError:
-        return query
-
     sort_func = desc if direction == "desc" else asc
-    return query.order_by(sort_func(sort_field))
+    return query.order_by(sort_func(order_by))

@@ -3,11 +3,12 @@
 import logging
 
 from fastapi import Depends
-from sqlalchemy import Engine
+from sqlalchemy import Engine, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from starlette.responses import Response
 
-from .dependencies import *
+from .dependencies import apply_ordering_params, apply_pagination_params, get_ordering_params, get_pagination_params
 from .dist import version
 from .models import create_session_factory, ModelBase
 
@@ -69,15 +70,17 @@ def create_list_handler(engine: Engine, model: ModelBase) -> callable:
 
     async def list_handler(
         response: Response,
-        db: Session = Depends(create_session_factory(engine)),
+        session: Session | AsyncSession = Depends(create_session_factory(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
         ordering_params: dict[str, int] = Depends(get_ordering_params),
     ):
-        logger.debug(f"Querying list of records from table '{model.__table__}'.")
-        query = db.query(model)
-        ordered_query = apply_ordering_params(query, model, ordering_params)
-        items = ordered_query.all()
+        query = select(model)
+        query = apply_pagination_params(query, pagination_params, response)
+        query = apply_ordering_params(query, ordering_params, response)
 
-        return apply_pagination_params(items, pagination_params, response)
+        if isinstance(session, AsyncSession):
+            return (await session.execute(query)).scalars().all()
+
+        return session.execute(query).scalars().all()
 
     return list_handler
