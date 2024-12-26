@@ -4,6 +4,7 @@ from typing import Literal
 
 from fastapi import Query
 from sqlalchemy import asc, desc
+from sqlalchemy.sql.selectable import Select
 from starlette.responses import Response
 
 __all__ = [
@@ -31,7 +32,7 @@ def get_pagination_params(
     return {"limit": _limit_, "offset": _offset_}
 
 
-def apply_pagination_params(query, params: dict[str, int], response: Response):
+def apply_pagination_params(query: Select, params: dict[str, int], response: Response) -> Select:
     """Apply pagination to a database query.
 
     Returns a copy of the provided query with offset and limit parameters applied.
@@ -68,7 +69,7 @@ def get_ordering_params(
     return {"order_by": _order_by_, "direction": _direction_}
 
 
-def apply_ordering_params(query, params: dict, response: Response):
+def apply_ordering_params(query: Select, params: dict, response: Response) -> Select:
     """Apply ordering to a database query.
 
     Returns a copy of the provided query with ordering parameters applied.
