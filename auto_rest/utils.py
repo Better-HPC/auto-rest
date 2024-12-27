@@ -53,10 +53,15 @@ def apply_pagination_params(query: Select, params: dict[str, int], response: Res
     if limit < 0 or offset < 0:
         raise ValueError("Pagination parameters must be greater than zero.")
 
-    if limit == 0:
+    elif limit == 0:
+        response.headers["X-Pagination-Applied"] = "false"
         return query
 
-    return query.offset(offset).limit(limit)
+    else:
+        response.headers["X-Pagination-Applied"] = "true"
+        response.headers["X-Pagination-Limit"] = str(limit)
+        response.headers["X-Pagination-Offset"] = str(offset)
+        return query.offset(offset).limit(limit)
 
 
 def get_ordering_params(
@@ -93,8 +98,14 @@ def apply_ordering_params(query: Select, params: dict, response: Response) -> Se
 
     order_by = params.get("order_by")
     direction = params.get("direction", "asc")
+
     if not order_by:
+        response.headers["X-Order-Applied"] = "false"
         return query
+
+    response.headers["X-Order-Applied"] = "true"
+    response.headers["X-Order-By"] = order_by
+    response.headers["X-Order-Direction"] = direction
 
     if direction == 'asc':
         return query.order_by(asc(order_by))

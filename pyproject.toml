@@ -9,6 +9,7 @@ readme = "README.md"
 description = "Automatically map database schemas and deploy per-table REST API endpoints."
 authors = ["Better HPC LLC"]
 keywords = ["Better", "HPC", "automatic", "rest", "api"]
+license = "GPL-3.0-only"
 classifiers = [
     "Environment :: Web Environment",
     "Intended Audience :: Developers",

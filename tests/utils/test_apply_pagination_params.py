@@ -1,5 +1,4 @@
 from unittest import TestCase
-from unittest.mock import Mock
 
 from fastapi import Response
 from sqlalchemy.sql import select
@@ -14,8 +13,8 @@ class TestApplyPaginationParams(TestCase):
     def setUp(self) -> None:
         """Set up test structures."""
 
-        self.response = Mock(spec=Response)  # Mocked Response object
-        self.query = select()  # Example SQLAlchemy query
+        self.response = Response()
+        self.query = select()
 
     def test_valid_params(self) -> None:
         """Test pagination parameters are applied when provided."""
@@ -26,32 +25,52 @@ class TestApplyPaginationParams(TestCase):
         # Check the returned query is a SQLAlchemy Select object
         self.assertIsInstance(result_query, Select)
 
-        # Assert the query contains the correct offset and limit
+        # Validate the query contains the correct offset and limit
         self.assertEqual(10, result_query._limit)
         self.assertEqual(20, result_query._offset)
+
+        # Validate response headers
+        self.assertEqual("true", self.response.headers.get("X-Pagination-Applied"))
+        self.assertEqual("10", self.response.headers.get("X-Pagination-Limit"))
+        self.assertEqual("20", self.response.headers.get("X-Pagination-Offset"))
 
     def test_missing_params(self) -> None:
         """Test pagination is not applied when parameters are not provided."""
 
         result_query = apply_pagination_params(self.query, {}, self.response)
+
         self.assertEqual(None, result_query._limit)
         self.assertEqual(None, result_query._offset)
 
+        self.assertEqual("false", self.response.headers.get("X-Pagination-Applied"))
+        self.assertEqual(None, self.response.headers.get("X-Pagination-Limit"))
+        self.assertEqual(None, self.response.headers.get("X-Pagination-Offset"))
+
     def test_missing_limit_param(self) -> None:
-        """Test pagination is not applied when the limit parameters is not provided."""
+        """Test pagination is not applied when the limit parameter is not provided."""
 
         params = {"offset": 10}
         result_query = apply_pagination_params(self.query, params, self.response)
+
         self.assertEqual(None, result_query._limit)
         self.assertEqual(None, result_query._offset)
 
+        self.assertEqual("false", self.response.headers.get("X-Pagination-Applied"))
+        self.assertEqual(None, self.response.headers.get("X-Pagination-Limit"))
+        self.assertEqual(None, self.response.headers.get("X-Pagination-Offset"))
+
     def test_zero_limit_param(self) -> None:
-        """Test setting an offset of zero does not apply pagination."""
+        """Test setting a limit of zero does not apply pagination."""
 
         params = {"limit": 0, "offset": 20}
         result_query = apply_pagination_params(self.query, params, self.response)
+
         self.assertEqual(None, result_query._limit)
         self.assertEqual(None, result_query._offset)
+
+        self.assertEqual("false", self.response.headers.get("X-Pagination-Applied"))
+        self.assertEqual(None, self.response.headers.get("X-Pagination-Limit"))
+        self.assertEqual(None, self.response.headers.get("X-Pagination-Offset"))
 
     def test_negative_limit_param(self) -> None:
         """Test a ValueError is raised for a negative pagination limit."""
@@ -65,16 +84,26 @@ class TestApplyPaginationParams(TestCase):
 
         params = {"limit": 10}
         result_query = apply_pagination_params(self.query, params, self.response)
+
         self.assertEqual(10, result_query._limit)
         self.assertEqual(0, result_query._offset)
 
-    def test_zero_offset_params(self) -> None:
+        self.assertEqual("true", self.response.headers.get("X-Pagination-Applied"))
+        self.assertEqual("10", self.response.headers.get("X-Pagination-Limit"))
+        self.assertEqual("0", self.response.headers.get("X-Pagination-Offset"))
+
+    def test_zero_offset_param(self) -> None:
         """Test setting a pagination offset of zero."""
 
         params = {"limit": 10, "offset": 0}
         result_query = apply_pagination_params(self.query, params, self.response)
+
         self.assertEqual(10, result_query._limit)
         self.assertEqual(0, result_query._offset)
+
+        self.assertEqual("true", self.response.headers.get("X-Pagination-Applied"))
+        self.assertEqual("10", self.response.headers.get("X-Pagination-Limit"))
+        self.assertEqual("0", self.response.headers.get("X-Pagination-Offset"))
 
     def test_negative_offset_param(self) -> None:
         """Test a `ValueError` is raised for a negative pagination offset."""
