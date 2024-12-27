@@ -29,7 +29,7 @@ def create_db_url(
     database: str | None = None,
     username: str | None = None,
     password: str | None = None,
-) -> str:
+) -> URL:
     """Create a database URL from the provided parameters.
 
     Args:
@@ -47,7 +47,7 @@ def create_db_url(
     # Handle special case where SQLite uses file paths
     if "sqlite" in driver:
         path = Path(host).resolve()
-        return f"{driver}:///{path}"
+        return URL.create(drivername=driver, database=str(path))
 
     return URL.create(
         drivername=driver,
@@ -56,10 +56,10 @@ def create_db_url(
         host=host,
         port=port,
         database=database,
-    ).render_as_string(hide_password=False)
+    )
 
 
-def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
+def create_db_engine(url: URL, **kwargs) -> Engine | AsyncEngine:
     """Initialize a new database engine.
 
     Instantiates and returns an `Engine` or `AsyncEngine` instance depending
@@ -73,7 +73,7 @@ def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
         A SQLAlchemy `Engine` or `AsyncEngine` instance.
     """
 
-    logger.info(f"Connecting to database at {url} ({kwargs}).")
+    logger.info(f"Building database engine for {url}.")
 
     try:
         engine = create_async_engine(url, **kwargs)
@@ -110,7 +110,7 @@ def create_db_metadata(engine: Engine | AsyncEngine) -> MetaData:
         A MetaData object reflecting the schema of the database.
     """
 
-    logger.info(f"Loading database schema for {engine.url}.")
+    logger.info(f"Loading database schema.")
     metadata = MetaData()
 
     try:
@@ -137,6 +137,7 @@ def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
         A dictionary mapping table names to database models.
     """
 
+    logger.info(f"Building database models.")
     models = {}
 
     try:
@@ -149,7 +150,7 @@ def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
                 {"__table__": table},
             )
 
-        logger.info(f"Successfully generated {len(models)} models.")
+        logger.debug(f"Successfully generated {len(models)} models.")
         return models
 
     except Exception as e:  # pragma: no cover
@@ -173,11 +174,13 @@ def create_session_factory(engine: Engine | AsyncEngine, autocommit: bool = Fals
 
     if isinstance(engine, AsyncEngine):
         async_session_factory = async_sessionmaker(bind=engine, autocommit=autocommit, autoflush=autoflush)
+
         async def session_iterator() -> AsyncSession:
             async with async_session_factory() as session:
                 yield session
     else:
         session_factory = sessionmaker(bind=engine, autocommit=autocommit, autoflush=autoflush)
+
         def session_iterator() -> Session:
             with session_factory() as session:
                 yield session

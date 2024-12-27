@@ -10,105 +10,65 @@ class TestCreateDbUrl(TestCase):
     def test_create_url_with_all_params(self) -> None:
         """Test creating a database URL with all parameters provided."""
 
-        result = create_db_url(
-            driver="postgresql",
-            host="localhost",
-            port=5432,
-            database="test_db",
-            username="user",
-            password="password"
-        )
+        driver = "postgresql"
+        host = "localhost"
+        port = 5432
+        database = "mydb"
+        username = "user"
+        password = "pass"
 
-        expected_url = "postgresql://user:password@localhost:5432/test_db"
-        self.assertEqual(expected_url, result)
+        result = create_db_url(driver=driver, host=host, port=port, database=database, username=username, password=password)
 
-    def test_create_url_without_password(self) -> None:
-        """Test creating a database URL without a password."""
+        self.assertEqual(driver, result.drivername)
+        self.assertEqual(host, result.host)
+        self.assertEqual(port, result.port)
+        self.assertEqual(database, result.database)
+        self.assertEqual(username, result.username)
+        self.assertEqual(password, result.password)
 
-        result = create_db_url(
-            driver="postgresql",
-            host="localhost",
-            port=5432,
-            database="test_db",
-            username="user",
-            password=None
-        )
+    def test_create_url_without_optional_params(self) -> None:
+        """Test creating a database URL without optional parameters."""
 
-        expected_url = "postgresql://user@localhost:5432/test_db"
-        self.assertEqual(expected_url, result)
+        driver = "mysql"
+        host = "127.0.0.1"
 
-    def test_create_url_without_username_and_password(self) -> None:
-        """Test creating a database URL without a username and password."""
+        result = create_db_url(driver=driver, host=host)
 
-        result = create_db_url(
-            driver="postgresql",
-            host="localhost",
-            port=5432,
-            database="test_db",
-            username=None,
-            password=None
-        )
-
-        expected_url = "postgresql://localhost:5432/test_db"
-        self.assertEqual(expected_url, result)
-
-    def test_create_url_without_port(self) -> None:
-        """Test creating a database URL without a port."""
-
-        result = create_db_url(
-            driver="postgresql",
-            host="localhost",
-            port=None,
-            database="test_db",
-            username="user",
-            password="password"
-        )
-
-        expected_url = "postgresql://user:password@localhost/test_db"
-        self.assertEqual(expected_url, result)
-
-    def test_create_url_without_database(self) -> None:
-        """Test creating a database URL without a database name."""
-
-        result = create_db_url(
-            driver="postgresql",
-            host="localhost",
-            port=5432,
-            database=None,
-            username="user",
-            password="password"
-        )
-
-        expected_url = "postgresql://user:password@localhost:5432"
-        self.assertEqual(expected_url, result)
+        self.assertEqual(driver, result.drivername)
+        self.assertEqual(host, result.host)
+        self.assertIsNone(result.port)
+        self.assertIsNone(result.database)
+        self.assertIsNone(result.username)
+        self.assertIsNone(result.password)
 
     def test_create_sqlite_url_with_relative_path(self) -> None:
         """Test creating a SQLite URL with a relative file path."""
 
+        driver = "sqlite"
         path = Path("path/to/database.db")
         self.assertFalse(path.is_absolute())
 
-        result = create_db_url(
-            driver="sqlite",
-            host=str(path),  # Relative path
-            port=None,
-            database=None,
-            username=None,
-            password=None
-        )
-        expected_url = f"sqlite:///{path.resolve()}"
-        self.assertEqual(expected_url, result)
+        result = create_db_url(driver=driver, host=str(path))
+
+        self.assertEqual(driver, result.drivername)
+        self.assertIsNone(result.host)
+        self.assertIsNone(result.port)
+        self.assertEqual(str(path.resolve()), result.database)
+        self.assertIsNone(result.username)
+        self.assertIsNone(result.password)
 
     def test_create_sqlite_url_with_absolute_path(self) -> None:
         """Test creating a SQLite URL with an absolute file path."""
 
-        result = create_db_url(
-            driver="sqlite",
-            host="/absolute/path/to/database.db",  # Absolute path
-            port=None,
-            database=None,
-            username=None,
-            password=None
-        )
-        expected_url = "sqlite:////absolute/path/to/database.db"
-        self.assertEqual(expected_url, result)
+        driver = "sqlite"
+        path = Path("/absolute/path/to/database.db")
+        self.assertTrue(path.is_absolute())
+
+        result = create_db_url(driver=driver, host=str(path))
+
+        self.assertEqual(driver, result.drivername)
+        self.assertIsNone(result.host)
+        self.assertIsNone(result.port)
+        self.assertEqual(str(path), result.database)
+        self.assertIsNone(result.username)
+        self.assertIsNone(result.password)

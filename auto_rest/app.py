@@ -53,6 +53,8 @@ def create_app(engine: Engine, models: dict[str, ModelBase], enable_meta: bool =
         A new FastAPI application.
     """
 
+    logging.info('Building API application.')
+
     app = FastAPI(
         title=name.title(),
         version=version,
@@ -65,11 +67,11 @@ def create_app(engine: Engine, models: dict[str, ModelBase], enable_meta: bool =
     app.add_api_route("/version/", version_handler, methods=["GET"], tags=["Application Info"])
 
     if enable_meta:
-        logger.debug(f"Adding meta API route.")
+        logger.debug(f"Adding API route for '/meta/'.")
         app.add_api_route(f"/meta/", create_meta_handler(engine), methods=["GET"], tags=["Application Info"])
 
     for model_name, model_class in models.items():
-        logger.debug(f"Adding API routes for table '{model_name}'.")
+        logger.debug(f"Adding API route for '/db/{model_name}/'.")
         app.add_api_route(f"/db/{model_name}/", create_list_handler(engine, model_class), methods=["GET"], tags=["Database Operations"])
 
     return app
@@ -85,5 +87,5 @@ def run_app(app: FastAPI, server_host: str, server_port: int, log_level: str) ->
         log_level: The desired server logging level.
     """
 
-    logger.info("Launching API server...")
+    logger.info("Launching API server.")
     uvicorn.run(app, host=server_host, port=server_port, log_level=log_level.lower())
