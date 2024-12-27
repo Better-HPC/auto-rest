@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from starlette.responses import Response
 
-from .dependencies import apply_ordering_params, apply_pagination_params, get_ordering_params, get_pagination_params
+from .utils import apply_ordering_params, apply_pagination_params, get_ordering_params, get_pagination_params
 from .dist import version
 from .models import create_session_factory, ModelBase
 

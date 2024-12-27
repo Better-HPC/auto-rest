@@ -3,7 +3,7 @@ from unittest import TestCase
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
-from auto_rest.dependencies import get_pagination_params
+from auto_rest.utils import get_pagination_params
 
 
 class TestGetPaginationParams(TestCase):

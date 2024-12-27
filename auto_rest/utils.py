@@ -36,7 +36,7 @@ def apply_pagination_params(query: Select, params: dict[str, int], response: Res
     """Apply pagination to a database query.
 
     Returns a copy of the provided query with offset and limit parameters applied.
-    Intended for use with parameters returned by the `get_pagination_params` dependency.
+    Compatible with parameters returned by the `get_pagination_params` dependency.
 
     Args:
         query: The database query to apply parameters to.
@@ -47,15 +47,14 @@ def apply_pagination_params(query: Select, params: dict[str, int], response: Res
         A copy of the query modified to only return the paginated values.
     """
 
-    try:
-        limit = params["limit"]
-        offset = params["offset"]
-
-    except KeyError:
-        raise ValueError("Pagination parameters must include values for `limit` and `offset`.")
+    limit = params.get("limit", 0)
+    offset = params.get("offset", 0)
 
     if limit < 0 or offset < 0:
         raise ValueError("Pagination parameters must be greater than zero.")
+
+    if limit == 0:
+        return query
 
     return query.offset(offset).limit(limit)
 
@@ -92,15 +91,15 @@ def apply_ordering_params(query: Select, params: dict, response: Response) -> Se
         A copy of the query modified to return ordered values.
     """
 
-    try:
-        order_by = params["order_by"]
-        direction = params["direction"]
-
-    except KeyError:
-        raise ValueError("Pagination parameters must include values for `limit` and `offset`.")
-
+    order_by = params.get("order_by")
+    direction = params.get("direction", "asc")
     if not order_by:
-        return query  # No ordering requested
+        return query
 
-    sort_func = desc if direction == "desc" else asc
-    return query.order_by(sort_func(order_by))
+    if direction == 'asc':
+        return query.order_by(asc(order_by))
+
+    if direction == 'desc':
+        return query.order_by(desc(order_by))
+
+    raise ValueError("Ordering parameter must be 'asc' or 'desc'.")
