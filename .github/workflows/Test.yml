@@ -4,30 +4,20 @@ on:
   workflow_call:
 
 env:
-  POSTGRES_HOST: localhost
-  POSTGRES_DB: testdb
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: postgres
+  TEST_PORT: 5000
+  TEST_DB: auto_rest
+  TEST_USER: ar_user
+  TEST_PASSWORD: ar_password
 
 jobs:
-  tests:
-    name: Tests
+  unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
         python-version: [ "3.10", "3.11", "3.12", "3.13" ]
-
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
-          POSTGRES_USER: ${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-        ports:
-          - 5432:5432
 
     steps:
       - name: Checkout repository
@@ -59,10 +49,55 @@ jobs:
         env:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
+  comp-tests:
+    name: Compatibility Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        dmbs: [ 'sqlite', 'psql' ]
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: ${{ env.TEST_DB }}
+          POSTGRES_USER: ${{ env.TEST_USER }}
+          POSTGRES_PASSWORD: ${{ env.TEST_PASSWORD }}
+        ports:
+          - ${{ env.TEST_PORT }}:5432
+
+    steps:
+      - name: Fetch image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: auto-rest-docker
+          path: /tmp
+
+      - name: Load image
+        run: docker load --input /tmp/auto-rest.tar
+
+      - name: Setup SQLite
+        if: matrix.dbms == 'sqlite'
+        run: |
+          touch test.db
+          docker run auto-rest --sqlite --db-name ./test.db
+
+      - name: Setup SQLite
+        if: matrix.dbms == 'psql'
+        run: |
+          docker run auto-rest --psql \
+            --db-host localhost \
+            --db-port ${{ env.TEST_PORT }} \
+            --db-name ${{ env.TEST_DB }} \
+            --db-user ${{ env.TEST_USER }} \
+            --db-user ${{ env.TEST_PASSWORD }}
+
   report-test-status:
     name: Report Test Status
     runs-on: ubuntu-latest
-    needs: [ tests ]
+    needs: [ unit-tests ]
     if: always()
 
     steps:
