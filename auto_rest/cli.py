@@ -1,8 +1,8 @@
-"""Utilities for parsing and formatting command line arguments."""
+"""Defines the application command line interface and argument parser."""
 
 from argparse import ArgumentParser
 
-from .metadata import SUMMARY, VERSION
+from .dist import summary, version
 
 __all__ = ["create_argument_parser"]
 
@@ -19,11 +19,11 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
 
     parser = ArgumentParser(
         prog="auto-rest",
-        description=SUMMARY,
+        description=summary,
         exit_on_error=exit_on_error
     )
 
-    parser.add_argument("--version", action="version", version=VERSION)
+    parser.add_argument("--version", action="version", version=version)
     parser.add_argument(
         "--log-level",
         default="INFO",
@@ -33,28 +33,29 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     )
 
     features = parser.add_argument_group(title="API features")
+    features.add_argument("--enable-docs", action="store_true", help="enable the 'docs' endpoint.")
     features.add_argument("--enable-meta", action="store_true", help="enable the 'meta' endpoint.")
 
     driver = parser.add_argument_group("database type")
     db_type = driver.add_mutually_exclusive_group(required=True)
-    db_type.add_argument("--sqlite", action="store_const", dest="db_driver", const="sqlite", help="use a SQLite database driver.")
+    db_type.add_argument("--sqlite", action="store_const", dest="db_driver", const="sqlite+aiosqlite", help="use a SQLite database driver.")
     db_type.add_argument("--psql", action="store_const", dest="db_driver", const="postgresql+asyncpg", help="use a PostgreSQL database driver.")
     db_type.add_argument("--mysql", action="store_const", dest="db_driver", const="mysql+asyncmy", help="use a MySQL database driver.")
     db_type.add_argument("--oracle", action="store_const", dest="db_driver", const="oracle+oracledb", help="use an Oracle database driver.")
     db_type.add_argument("--mssql", action="store_const", dest="db_driver", const="mssql+aiomysql", help="use a Microsoft database driver.")
-    db_type.add_argument("--driver", action="store", nargs=1, dest="db_driver", help="use a custom database driver.")
+    db_type.add_argument("--driver", action="store", dest="db_driver", help="use a custom database driver.")
 
     database = parser.add_argument_group("database location")
-    database.add_argument("--db-host", required=True, help="database address to connect to.")
+    database.add_argument("--db-host", help="database address to connect to.")
     database.add_argument("--db-port", type=int, help="database port to connect to.")
-    database.add_argument("--db-name", help="database name to connect to.")
+    database.add_argument("--db-name", required=True, help="database name or file path to connect to.")
     database.add_argument("--db-user", help="username to authenticate with.")
     database.add_argument("--db-pass", help="password to authenticate with.")
 
     connection = parser.add_argument_group(title="database connection")
-    connection.add_argument("--pool-min", type=int, default=50, help="minimum number of maintained database connections.")
-    connection.add_argument("--pool-max", type=int, default=100, help="max number of allowed database connections.")
-    connection.add_argument("--pool-out", type=int, default=30, help="seconds to wait on connection before timing out.")
+    connection.add_argument("--pool-min", nargs="?", type=int, help="minimum number of maintained database connections.")
+    connection.add_argument("--pool-max", nargs="?", type=int, help="max number of allowed database connections.")
+    connection.add_argument("--pool-out", nargs="?", type=int, help="seconds to wait on connection before timing out.")
 
     server = parser.add_argument_group(title="server settings")
     server.add_argument("--server-host", default="127.0.0.1", help="API server host address.")

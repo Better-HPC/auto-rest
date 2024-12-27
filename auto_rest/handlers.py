@@ -3,13 +3,14 @@
 import logging
 
 from fastapi import Depends
-from sqlalchemy import Engine
+from sqlalchemy import Engine, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from starlette.responses import Response
 
-from .dependencies import *
-from .metadata import VERSION
-from .models import ModelBase
+from .utils import apply_ordering_params, apply_pagination_params, get_ordering_params, get_pagination_params
+from .dist import version
+from .models import create_session_factory, ModelBase
 
 __all__ = [
     "create_list_handler",
@@ -24,20 +25,20 @@ logger = logging.getLogger(__name__)
 async def welcome_handler() -> dict:
     """Return a welcome message in JSON format pointing users to the docs."""
 
-    return {"message": "Welcome to AutoRest! See the /docs/ endpoint to get started."}
+    return {"message": "Welcome to Auto-Rest!"}
 
 
 async def version_handler() -> dict:
     """Return the application version number in JSON format."""
 
-    return {"version": VERSION}
+    return {"version": version}
 
 
-def create_meta_handler(conn_pool: Engine) -> callable:
+def create_meta_handler(engine: Engine) -> callable:
     """Create a function that returns a dictionary of metadata related to a database.
 
     Args:
-        conn_pool: A database connection pool to pull metadata from.
+        engine: Database engine to pull metadata from.
 
     Returns:
         An async function that returns a dictionary of database metadata.
@@ -45,23 +46,23 @@ def create_meta_handler(conn_pool: Engine) -> callable:
 
     async def meta_handler() -> dict:
         return {
-            "dialect": conn_pool.dialect.name,
-            "driver": conn_pool.dialect.driver,
-            "database": conn_pool.url.database,
-            "host": conn_pool.url.host,
-            "port": conn_pool.url.port,
-            "username": conn_pool.url.username,
+            "dialect": engine.dialect.name,
+            "driver": engine.dialect.driver,
+            "database": engine.url.database,
+            "host": engine.url.host,
+            "port": engine.url.port,
+            "username": engine.url.username,
         }
 
     return meta_handler
 
 
-def create_list_handler(conn_pool: Engine, db_model: ModelBase) -> callable:
+def create_list_handler(engine: Engine, model: ModelBase) -> callable:
     """Create a function that returns a list of records from the given database model.
 
     Args:
-        conn_pool: Connection pool to use for database interactions.
-        db_model: The database ORM object to use for database manipulations.
+        engine: Database engine to use when executing queries.
+        model: The database ORM object to use for database manipulations.
 
     Returns:
         An async function that returns a list of records from the given database model.
@@ -69,15 +70,17 @@ def create_list_handler(conn_pool: Engine, db_model: ModelBase) -> callable:
 
     async def list_handler(
         response: Response,
-        db: Session = Depends(create_db_dependency(conn_pool)),
+        session: Session | AsyncSession = Depends(create_session_factory(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
         ordering_params: dict[str, int] = Depends(get_ordering_params),
     ):
-        logger.debug(f"Querying list of records from table '{db_model.__table__}'.")
-        query = db.query(db_model)
-        ordered_query = apply_ordering_params(query, db_model, ordering_params)
-        items = ordered_query.all()
+        query = select(model)
+        query = apply_pagination_params(query, pagination_params, response)
+        query = apply_ordering_params(query, ordering_params, response)
 
-        return apply_pagination_params(items, pagination_params, response)
+        if isinstance(session, AsyncSession):
+            return (await session.execute(query)).scalars().all()
+
+        return session.execute(query).scalars().all()
 
     return list_handler

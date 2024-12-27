@@ -1,34 +1,48 @@
-import unittest
+import tempfile
+from unittest import TestCase
 from unittest.mock import MagicMock
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy import URL, Engine
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from auto_rest.app import create_app
-from auto_rest.metadata import NAME
+from auto_rest.dist import name
 
 
-class TestCreateApp(unittest.TestCase):
+class TestCreateApp(TestCase):
     """Unit tests for the `create_app` function."""
 
     @classmethod
     def setUpClass(cls) -> None:
         """Set up shared resources for test cases."""
 
-        cls.mock_engine = MagicMock(spec=Engine)
-        cls.mock_engine.url = MagicMock(spec=URL)
+        # Create a temporary SQLite database
+        cls.temp_file = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        cls.engine = create_engine(f"sqlite:///{cls.temp_file.name}", echo=True)
+        cls.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=cls.engine)
+
+        # Mock models for database tables
         cls.mock_models = {
             "user": MagicMock(),
             "post": MagicMock()
         }
-        cls.app: FastAPI = create_app(cls.mock_engine, cls.mock_models)
+
+        # Create an new FastAPI app using default options
+        cls.app: FastAPI = create_app(cls.engine, cls.mock_models)
         cls.client = TestClient(cls.app)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        """Clean up the temporary database file."""
+
+        cls.temp_file.close()
 
     def test_app_title(self) -> None:
         """Test the application's title."""
 
-        self.assertEqual(NAME.title(), self.app.title)
+        self.assertEqual(name.title(), self.app.title)
 
     def test_root_handler(self) -> None:
         """Test the application has a root handler."""
@@ -40,6 +54,38 @@ class TestCreateApp(unittest.TestCase):
         """Test the application has a version endpoint handler."""
 
         response = self.client.get("/version")
+        self.assertEqual(200, response.status_code)
+
+    def test_docs_endpoint_disabled(self) -> None:
+        """Test the application has no `/docs` endpoint by default."""
+
+        default_app = create_app(self.engine, self.mock_models)
+        default_client = TestClient(default_app)
+        response = default_client.get("/docs")
+        self.assertEqual(404, response.status_code)
+
+    def test_docs_endpoint_enabled(self) -> None:
+        """Test the application has a `/docs` endpoint when enabled."""
+
+        default_app = create_app(self.engine, self.mock_models, enable_docs=True)
+        default_client = TestClient(default_app)
+        response = default_client.get("/docs")
+        self.assertEqual(200, response.status_code)
+
+    def test_meta_endpoint_disabled(self) -> None:
+        """Test the application has no `/meta` endpoint by default."""
+
+        default_app = create_app(self.engine, self.mock_models)
+        default_client = TestClient(default_app)
+        response = default_client.get("/meta")
+        self.assertEqual(404, response.status_code)
+
+    def test_meta_endpoint_enabled(self) -> None:
+        """Test the application has a `/meta` endpoint when enabled."""
+
+        default_app = create_app(self.engine, self.mock_models, enable_meta=True)
+        default_client = TestClient(default_app)
+        response = default_client.get("/meta")
         self.assertEqual(200, response.status_code)
 
     def test_dynamic_routes(self) -> None:

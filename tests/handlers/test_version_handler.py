@@ -1,13 +1,13 @@
-import unittest
+from unittest import TestCase
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from auto_rest.handlers import version_handler
-from auto_rest.metadata import VERSION
+from auto_rest.dist import version
 
 
-class TestWelcomeHandler(unittest.TestCase):
+class TestWelcomeHandler(TestCase):
     """Unit tests for the `version_handler` function."""
 
     @classmethod
@@ -22,5 +22,5 @@ class TestWelcomeHandler(unittest.TestCase):
         """Test the version handler returns the correct version number."""
 
         response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual({"version": VERSION}, response.json())
+        self.assertEqual(200, response.status_code)
+        self.assertEqual({"version": version}, response.json())
