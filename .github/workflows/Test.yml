@@ -83,6 +83,8 @@ jobs:
         run: |
           touch test.db
           docker run -d auto-rest --sqlite --db-name ./test.db
+          
+          sleep 15
 
       - name: Setup PostgreSQL
         if: matrix.dbms == 'postgres'
@@ -93,6 +95,8 @@ jobs:
             --db-name ${{ env.TEST_DB }} \
             --db-user ${{ env.TEST_USER }} \
             --db-user ${{ env.TEST_PASSWORD }}
+          
+          sleep 15
 
       - name: Query API
         run: curl localhost:8081
