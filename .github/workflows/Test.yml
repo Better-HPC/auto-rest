@@ -56,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dmbs: [ 'sqlite', 'psql' ]
+        dbms: [ sqlite, postgres ]
 
     services:
       postgres:
@@ -84,8 +84,8 @@ jobs:
           touch test.db
           docker run auto-rest --sqlite --db-name ./test.db
 
-      - name: Setup SQLite
-        if: matrix.dbms == 'psql'
+      - name: Setup PostgreSQL
+        if: matrix.dbms == 'postgres'
         run: |
           docker run auto-rest --psql \
             --db-host localhost \
@@ -97,7 +97,7 @@ jobs:
   report-test-status:
     name: Report Test Status
     runs-on: ubuntu-latest
-    needs: [ unit-tests ]
+    needs: [ unit-tests, comp-tests ]
     if: always()
 
     steps:
