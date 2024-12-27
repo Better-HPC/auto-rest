@@ -22,14 +22,14 @@ class TestGetPaginationParams(TestCase):
         cls.client = TestClient(app)
 
     def test_default_params(self) -> None:
-        """Test default values for pagination parameters."""
+        """Test default parameter values."""
 
         response = self.client.get("/pagination")
         self.assertEqual(200, response.status_code)
         self.assertEqual({'limit': 10, 'offset': 0}, response.json())
 
-    def test_custom_pagination(self) -> None:
-        """Test valid custom pagination values."""
+    def test_valid_params(self) -> None:
+        """Test valid custom parameter values."""
 
         response = self.client.get("/pagination", params={"_limit_": 2, "_offset_": 20})
         self.assertEqual(200, response.status_code)

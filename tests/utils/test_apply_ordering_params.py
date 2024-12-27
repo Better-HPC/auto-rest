@@ -67,7 +67,7 @@ class TestApplyOrderingParams(TestCase):
 
     @skip("This test requires implementing additional testing structures.")
     def test_invalid_order_by_param(self):
-        """Test a ValueError is raised for an invalid `order_by` parameter."""
+        """Test a `ValueError` is raised for an invalid `order_by` parameter."""
 
         self.fail()
 

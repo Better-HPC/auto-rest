@@ -21,19 +21,26 @@ class TestGetOrderingParams(TestCase):
 
         cls.client = TestClient(app)
 
-    def test_default_ordering(self) -> None:
-        """Test the default sorting direction when `order_by` is not provided."""
+    def test_default_params(self) -> None:
+        """Test default parameter values."""
 
         response = self.client.get("/ordering")
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json(), {"order_by": None, "direction": "asc"})
 
-    def test_valid_ordering_params(self) -> None:
-        """Test a valid `order_by` field and sort direction."""
+    def test_valid_params(self) -> None:
+        """Test valid custom parameter values."""
 
         response = self.client.get("/ordering", params={"_order_by_": "name", "_direction_": "desc"})
         self.assertEqual(200, response.status_code)
         self.assertEqual({"order_by": "name", "direction": "desc"}, response.json())
+
+    def test_empty_order_by_field(self) -> None:
+        """Test an empty `order_by` field is handled properly."""
+
+        response = self.client.get("/ordering", params={"_order_by_": ""})
+        self.assertEqual(200, response.status_code)
+        self.assertEqual({"order_by": "", "direction": "asc"}, response.json())
 
     def test_case_sensitive_sort_direction(self) -> None:
         """Test case sensitivity for the sort direction input."""
@@ -48,17 +55,3 @@ class TestGetOrderingParams(TestCase):
         response = self.client.get("/ordering", params={"_order_by_": "id", "_direction_": "invalid"})
         self.assertEqual(422, response.status_code)
         self.assertIn("Input should be 'asc' or 'desc'", str(response.json()))
-
-    def test_only_order_by_provided(self) -> None:
-        """Test `order_by` provided without explicitly setting `direction`."""
-
-        response = self.client.get("/ordering", params={"_order_by_": "updated_at"})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(response.json(), {"order_by": "updated_at", "direction": "asc"})
-
-    def test_empty_order_by_field(self) -> None:
-        """Test empty `order_by` field is handled properly."""
-
-        response = self.client.get("/ordering", params={"_order_by_": ""})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(response.json(), {"order_by": "", "direction": "asc"})
