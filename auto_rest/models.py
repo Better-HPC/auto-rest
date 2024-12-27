@@ -73,7 +73,7 @@ def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
         A SQLAlchemy `Engine` or `AsyncEngine` instance.
     """
 
-    logger.info(f"Establishing database connection...")
+    logger.info(f"Building database engine...")
 
     try:
         engine = create_async_engine(url, **kwargs)
