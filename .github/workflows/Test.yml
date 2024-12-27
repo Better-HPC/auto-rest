@@ -82,17 +82,20 @@ jobs:
         if: matrix.dbms == 'sqlite'
         run: |
           touch test.db
-          docker run auto-rest --sqlite --db-name ./test.db
+          docker run -d auto-rest --sqlite --db-name ./test.db
 
       - name: Setup PostgreSQL
         if: matrix.dbms == 'postgres'
         run: |
-          docker run auto-rest --psql \
+          docker run -d auto-rest --psql \
             --db-host localhost \
             --db-port ${{ env.TEST_PORT }} \
             --db-name ${{ env.TEST_DB }} \
             --db-user ${{ env.TEST_USER }} \
             --db-user ${{ env.TEST_PASSWORD }}
+
+      - name: Query API
+        run: curl localhost:8081
 
   report-test-status:
     name: Report Test Status
