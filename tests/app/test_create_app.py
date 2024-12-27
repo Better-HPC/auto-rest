@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from auto_rest.app import create_app
-from auto_rest.dist import name
+from auto_rest.dist import name, version
 
 
 class TestCreateApp(TestCase):
@@ -16,7 +16,7 @@ class TestCreateApp(TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        """Set up shared resources for test cases."""
+        """Set up a temprary SQLite database."""
 
         # Create a temporary SQLite database
         cls.temp_file = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
@@ -29,7 +29,7 @@ class TestCreateApp(TestCase):
             "post": MagicMock()
         }
 
-        # Create an new FastAPI app using default options
+        # Create a new FastAPI app using default options
         cls.app: FastAPI = create_app(cls.engine, cls.mock_models)
         cls.client = TestClient(cls.app)
 
@@ -39,10 +39,11 @@ class TestCreateApp(TestCase):
 
         cls.temp_file.close()
 
-    def test_app_title(self) -> None:
-        """Test the application's title."""
+    def test_app_meta(self) -> None:
+        """Test the application's metadata attributes."""
 
         self.assertEqual(name.title(), self.app.title)
+        self.assertEqual(version, self.app.version)
 
     def test_root_handler(self) -> None:
         """Test the application has a root handler."""

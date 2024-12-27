@@ -17,7 +17,7 @@ class TestApplyPaginationParams(TestCase):
         self.query = select()
 
     def test_valid_params(self) -> None:
-        """Test pagination parameters are applied when provided."""
+        """Test pagination parameters are applied correctly."""
 
         params = {"limit": 10, "offset": 20}
         result_query = apply_pagination_params(self.query, params, self.response)
@@ -47,7 +47,7 @@ class TestApplyPaginationParams(TestCase):
         self.assertEqual(None, self.response.headers.get("X-Pagination-Offset"))
 
     def test_missing_limit_param(self) -> None:
-        """Test pagination is not applied when the limit parameter is not provided."""
+        """Test pagination is not applied when the `limit` parameter is not provided."""
 
         params = {"offset": 10}
         result_query = apply_pagination_params(self.query, params, self.response)
@@ -60,7 +60,7 @@ class TestApplyPaginationParams(TestCase):
         self.assertEqual(None, self.response.headers.get("X-Pagination-Offset"))
 
     def test_zero_limit_param(self) -> None:
-        """Test setting a limit of zero does not apply pagination."""
+        """Test pagination is not applied when the `limit` parameter is zero."""
 
         params = {"limit": 0, "offset": 20}
         result_query = apply_pagination_params(self.query, params, self.response)
@@ -73,7 +73,7 @@ class TestApplyPaginationParams(TestCase):
         self.assertEqual(None, self.response.headers.get("X-Pagination-Offset"))
 
     def test_negative_limit_param(self) -> None:
-        """Test a ValueError is raised for a negative pagination limit."""
+        """Test a `ValueError` is raised for a negative pagination limit."""
 
         params = {"limit": -5, "offset": 20}
         with self.assertRaises(ValueError):

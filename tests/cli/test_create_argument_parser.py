@@ -97,7 +97,7 @@ class TestCreateArgumentParser(TestCase):
         self.assertEqual(20, args.pool_max)
         self.assertEqual(30, args.pool_out)
 
-    def test_enabled_docs_flag(self) -> None:
+    def test_enable_docs_flag(self) -> None:
         """Test the `--enable-docs` flag behavior."""
 
         # Default should be False
@@ -108,7 +108,7 @@ class TestCreateArgumentParser(TestCase):
         args = self.parser.parse_args(["--sqlite", "--db-name", "default", "--enable-docs"])
         self.assertTrue(args.enable_docs)
 
-    def test_enabled_meta_flag(self) -> None:
+    def test_enable_meta_flag(self) -> None:
         """Test the `--enable-meta` flag behavior."""
 
         # Default should be False
