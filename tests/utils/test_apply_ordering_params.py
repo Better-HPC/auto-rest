@@ -1,5 +1,4 @@
 from unittest import skip, TestCase
-from unittest.mock import Mock
 
 from fastapi import Response
 from sqlalchemy.sql import select
@@ -15,7 +14,7 @@ class TestApplyOrderingParams(TestCase):
     def setUpClass(cls) -> None:
         """Set up common test variables."""
 
-        cls.response = Mock(spec=Response)
+        cls.response = Response()
         cls.query = select()
 
     def test_valid_params_ascending(self) -> None:
