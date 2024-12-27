@@ -5,7 +5,7 @@ from fastapi import Response
 from sqlalchemy.sql import select
 from sqlalchemy.sql.expression import Select
 
-from auto_rest.dependencies import apply_pagination_params
+from auto_rest.utils import apply_pagination_params
 
 
 class TestApplyPaginationParams(TestCase):
@@ -18,7 +18,7 @@ class TestApplyPaginationParams(TestCase):
         self.query = select()  # Example SQLAlchemy query
 
     def test_valid_params(self) -> None:
-        """Test pagination parameters are applied correctly."""
+        """Test pagination parameters are applied when provided."""
 
         params = {"limit": 10, "offset": 20}
         result_query = apply_pagination_params(self.query, params, self.response)
@@ -31,29 +31,54 @@ class TestApplyPaginationParams(TestCase):
         self.assertEqual(result_query._offset, 20)
 
     def test_missing_params(self) -> None:
-        """Test a ValueError is raised for missing parameters."""
+        """Test pagination is not applied when parameters are not provided."""
 
-        params = {"limit": 10}  # Missing 'offset'
-        with self.assertRaises(ValueError):
-            apply_pagination_params(self.query, params, self.response)
+        result_query = apply_pagination_params(self.query, {}, self.response)
+        self.assertEqual(result_query._limit, None)
+        self.assertEqual(result_query._offset, None)
 
-        params = {"offset": 20}  # Missing 'limit'
-        with self.assertRaises(ValueError):
-            apply_pagination_params(self.query, params, self.response)
+    def test_missing_limit_param(self) -> None:
+        """Test pagination is not applied when the limit parameters is not provided."""
 
-    def test_invalid_params(self) -> None:
-        """Test a ValueError is raise for invalid pagination values."""
-
-        params = {"limit": -5, "offset": -10}
-        with self.assertRaises(ValueError):
-            apply_pagination_params(self.query, params, self.response)
-
-    def test_zero_value_params(self) -> None:
-        """Test pagination parameters with zero values."""
-
-        params = {"limit": 0, "offset": 0}
+        params = {"offset": 10}
         result_query = apply_pagination_params(self.query, params, self.response)
+        self.assertEqual(result_query._limit, None)
+        self.assertEqual(result_query._offset, None)
 
-        # Assert the query has offset and limit set to zero
-        self.assertEqual(result_query._limit, 0)
+    def test_zero_limit_param(self) -> None:
+        """Test setting a limit offset of zero does not apply pagination."""
+
+        params = {"limit": 0, "offset": 20}
+        result_query = apply_pagination_params(self.query, params, self.response)
+        self.assertEqual(result_query._limit, None)
+        self.assertEqual(result_query._offset, None)
+
+    def test_negative_limit_param(self) -> None:
+        """Test a ValueError is raised for a negative pagination limit."""
+
+        params = {"limit": -5, "offset": 20}
+        with self.assertRaises(ValueError):
+            apply_pagination_params(self.query, params, self.response)
+
+    def test_missing_offset_param(self) -> None:
+        """Test the offset parameter defaults to zero."""
+
+        params = {"limit": 10}
+        result_query = apply_pagination_params(self.query, params, self.response)
+        self.assertEqual(result_query._limit, 10)
         self.assertEqual(result_query._offset, 0)
+
+    def test_zero_offset_params(self) -> None:
+        """Test setting a pagination offset of zero."""
+
+        params = {"limit": 10, "offset": 0}
+        result_query = apply_pagination_params(self.query, params, self.response)
+        self.assertEqual(result_query._limit, 10)
+        self.assertEqual(result_query._offset, 0)
+
+    def test_negative_offset_param(self) -> None:
+        """Test a ValueError is raised for a negative pagination offset."""
+
+        params = {"limit": 10, "offset": -10}
+        with self.assertRaises(ValueError):
+            apply_pagination_params(self.query, params, self.response)

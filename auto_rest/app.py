@@ -65,6 +65,7 @@ def create_app(engine: Engine, models: dict[str, ModelBase], enable_meta: bool =
     app.add_api_route("/version/", version_handler, methods=["GET"], tags=["Application Info"])
 
     if enable_meta:
+        logger.debug(f"Adding meta API route.")
         app.add_api_route(f"/meta/", create_meta_handler(engine), methods=["GET"], tags=["Application Info"])
 
     for model_name, model_class in models.items():
