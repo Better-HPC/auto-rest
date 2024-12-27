@@ -53,7 +53,7 @@ def create_app(engine: Engine, models: dict[str, ModelBase], enable_meta: bool =
         A new FastAPI application.
     """
 
-    logging.info('Building API application...')
+    logging.info('Building API application.')
 
     app = FastAPI(
         title=name.title(),
@@ -87,5 +87,5 @@ def run_app(app: FastAPI, server_host: str, server_port: int, log_level: str) ->
         log_level: The desired server logging level.
     """
 
-    logger.info("Launching API server...")
+    logger.info("Launching API server.")
     uvicorn.run(app, host=server_host, port=server_port, log_level=log_level.lower())
