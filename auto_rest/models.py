@@ -24,9 +24,9 @@ ModelBase = declarative_base()
 
 def create_db_url(
     driver: str,
-    host: str,
+    database: str,
+    host: str | None = None,
     port: int | None = None,
-    database: str | None = None,
     username: str | None = None,
     password: str | None = None,
 ) -> URL:
@@ -34,9 +34,9 @@ def create_db_url(
 
     Args:
         driver: The sqlalchemy compatible database driver.
+        database: The database name or file path (for SQLite).
         host: The database server hostname or IP address.
         port: The database server port number.
-        database: The database name.
         username: The username to authenticate as.
         password: The password for the database user.
 
@@ -46,7 +46,7 @@ def create_db_url(
 
     # Handle special case where SQLite uses file paths
     if "sqlite" in driver:
-        path = Path(host).resolve()
+        path = Path(database).resolve()
         return URL.create(drivername=driver, database=str(path))
 
     return URL.create(
