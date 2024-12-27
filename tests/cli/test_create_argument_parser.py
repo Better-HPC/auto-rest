@@ -40,7 +40,7 @@ class TestCreateArgumentParser(TestCase):
 
         # Test valid database driver options
         cli_flags = ["sqlite", "psql", "mysql", "oracle", "mssql"]
-        db_drivers = ["sqlite", "postgresql+asyncpg", "mysql+asyncmy", "oracle+oracledb", "mssql+aiomysql"]
+        db_drivers = ["sqlite+aiosqlite", "postgresql+asyncpg", "mysql+asyncmy", "oracle+oracledb", "mssql+aiomysql"]
 
         for flag, driver in zip(cli_flags, db_drivers):
             args = self.parser.parse_args([f"--{flag}", "--db-name", "default"])
