@@ -1,4 +1,4 @@
-"""Utilities for parsing and formatting command line arguments."""
+"""Defines the application command line interface and argument parser."""
 
 from argparse import ArgumentParser
 
