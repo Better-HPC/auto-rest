@@ -1,4 +1,4 @@
-"""Factory functions for building a FastAPI application."""
+"""Factory functions for building FastAPI application instances."""
 
 import logging
 from typing import Literal
@@ -9,7 +9,7 @@ from sqlalchemy import Engine
 from uvicorn.logging import DefaultFormatter
 
 from .handlers import *
-from .metadata import NAME, VERSION
+from .dist import name, version
 from .models import ModelBase
 
 __all__ = ["configure_logging", "create_app", "run_app"]
@@ -40,22 +40,25 @@ def configure_logging(level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITI
     )
 
 
-def create_app(conn: Engine, models: dict[str, ModelBase], enable_meta: bool = False, enable_docs: bool = False) -> FastAPI:
+def create_app(engine: Engine, models: dict[str, ModelBase], enable_meta: bool = False, enable_docs: bool = False) -> FastAPI:
     """Initialize a new FastAPI Application.
 
     Args:
-        conn: The database connection to use in the app.
+        engine: The database engine to use in the app.
         models: Mapping of database model names to ORM classes.
         enable_meta: Add a `meta` API endpoint with DB metadata.
+        enable_docs: Add a `docs` API endpoint with API documentation.
 
     Returns:
         A new FastAPI application.
     """
 
+    logging.info('Building API application.')
+
     app = FastAPI(
-        title=NAME.title(),
-        version=VERSION,
-        summary=f"A REST API generated dynamically from the '{conn.url.database}' database schema.",
+        title=name.title(),
+        version=version,
+        summary=f"A REST API generated dynamically from the '{engine.url.database}' database schema.",
         docs_url="/docs/" if enable_docs else None,
         redoc_url=None
     )
@@ -64,11 +67,12 @@ def create_app(conn: Engine, models: dict[str, ModelBase], enable_meta: bool = F
     app.add_api_route("/version/", version_handler, methods=["GET"], tags=["Application Info"])
 
     if enable_meta:
-        app.add_api_route(f"/meta/", create_meta_handler(conn), methods=["GET"], tags=["Application Info"])
+        logger.debug(f"Adding API route for '/meta/'.")
+        app.add_api_route(f"/meta/", create_meta_handler(engine), methods=["GET"], tags=["Application Info"])
 
     for model_name, model_class in models.items():
-        logger.debug(f"Adding API routes for table '{model_name}'.")
-        app.add_api_route(f"/db/{model_name}/", create_list_handler(conn, model_class), methods=["GET"], tags=["Database Operations"])
+        logger.debug(f"Adding API route for '/db/{model_name}/'.")
+        app.add_api_route(f"/db/{model_name}/", create_list_handler(engine, model_class), methods=["GET"], tags=["Database Operations"])
 
     return app
 
@@ -83,5 +87,5 @@ def run_app(app: FastAPI, server_host: str, server_port: int, log_level: str) ->
         log_level: The desired server logging level.
     """
 
-    logger.info("Launching API server...")
+    logger.info("Launching API server.")
     uvicorn.run(app, host=server_host, port=server_port, log_level=log_level.lower())

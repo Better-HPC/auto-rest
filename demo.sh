@@ -67,4 +67,4 @@ else
   echo "Example database '$DB_NAME' already exists. Skipping creation."
 fi
 
-auto-rest --enable-meta --sqlite --db-host /demo.db
+auto-rest --enable-meta --enable-docs --sqlite --db-name demo.db

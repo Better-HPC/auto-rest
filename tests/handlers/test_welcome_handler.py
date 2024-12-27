@@ -1,4 +1,4 @@
-import unittest
+from unittest import TestCase
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from auto_rest.handlers import welcome_handler
 
 
-class TestWelcomeHandler(unittest.TestCase):
+class TestWelcomeHandler(TestCase):
     """Unit tests for the `welcome_handler` function."""
 
     @classmethod
@@ -21,5 +21,5 @@ class TestWelcomeHandler(unittest.TestCase):
         """Test the welcome handler returns the correct JSON message."""
 
         response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(200, response.status_code)
         self.assertEqual({"message": "Welcome to Auto-Rest!"}, response.json())
