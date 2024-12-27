@@ -46,9 +46,9 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     db_type.add_argument("--driver", action="store", dest="db_driver", help="use a custom database driver.")
 
     database = parser.add_argument_group("database location")
-    database.add_argument("--db-host", required=True, help="database address to connect to.")
+    database.add_argument("--db-host", help="database address to connect to.")
     database.add_argument("--db-port", type=int, help="database port to connect to.")
-    database.add_argument("--db-name", help="database name to connect to.")
+    database.add_argument("--db-name", required=True, help="database name or file path to connect to.")
     database.add_argument("--db-user", help="username to authenticate with.")
     database.add_argument("--db-pass", help="password to authenticate with.")
 

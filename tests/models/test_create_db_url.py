@@ -20,9 +20,9 @@ class TestCreateDbUrl(TestCase):
         result = create_db_url(driver=driver, host=host, port=port, database=database, username=username, password=password)
 
         self.assertEqual(driver, result.drivername)
+        self.assertEqual(database, result.database)
         self.assertEqual(host, result.host)
         self.assertEqual(port, result.port)
-        self.assertEqual(database, result.database)
         self.assertEqual(username, result.username)
         self.assertEqual(password, result.password)
 
@@ -30,14 +30,14 @@ class TestCreateDbUrl(TestCase):
         """Test creating a database URL without optional parameters."""
 
         driver = "mysql"
-        host = "127.0.0.1"
+        database = "default"
 
-        result = create_db_url(driver=driver, host=host)
+        result = create_db_url(driver=driver, database=database)
 
         self.assertEqual(driver, result.drivername)
-        self.assertEqual(host, result.host)
+        self.assertEqual(database, result.database)
+        self.assertIsNone(result.host)
         self.assertIsNone(result.port)
-        self.assertIsNone(result.database)
         self.assertIsNone(result.username)
         self.assertIsNone(result.password)
 
@@ -48,12 +48,12 @@ class TestCreateDbUrl(TestCase):
         path = Path("path/to/database.db")
         self.assertFalse(path.is_absolute())
 
-        result = create_db_url(driver=driver, host=str(path))
+        result = create_db_url(driver=driver, database=str(path))
 
         self.assertEqual(driver, result.drivername)
+        self.assertEqual(str(path.resolve()), result.database)
         self.assertIsNone(result.host)
         self.assertIsNone(result.port)
-        self.assertEqual(str(path.resolve()), result.database)
         self.assertIsNone(result.username)
         self.assertIsNone(result.password)
 
@@ -64,11 +64,11 @@ class TestCreateDbUrl(TestCase):
         path = Path("/absolute/path/to/database.db")
         self.assertTrue(path.is_absolute())
 
-        result = create_db_url(driver=driver, host=str(path))
+        result = create_db_url(driver=driver, database=str(path))
 
         self.assertEqual(driver, result.drivername)
+        self.assertEqual(str(path), result.database)
         self.assertIsNone(result.host)
         self.assertIsNone(result.port)
-        self.assertEqual(str(path), result.database)
         self.assertIsNone(result.username)
         self.assertIsNone(result.password)
