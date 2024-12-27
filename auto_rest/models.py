@@ -73,7 +73,7 @@ def create_db_engine(url: str, **kwargs) -> Engine | AsyncEngine:
         A SQLAlchemy `Engine` or `AsyncEngine` instance.
     """
 
-    logger.info(f"Connecting to database at {url} ({kwargs}).")
+    logger.info(f"Establishing database connection...")
 
     try:
         engine = create_async_engine(url, **kwargs)
@@ -110,7 +110,7 @@ def create_db_metadata(engine: Engine | AsyncEngine) -> MetaData:
         A MetaData object reflecting the schema of the database.
     """
 
-    logger.info(f"Loading database schema for {engine.url}.")
+    logger.info(f"Loading database schema...")
     metadata = MetaData()
 
     try:
@@ -137,6 +137,7 @@ def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
         A dictionary mapping table names to database models.
     """
 
+    logger.info(f"Building database models...")
     models = {}
 
     try:
@@ -149,7 +150,7 @@ def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
                 {"__table__": table},
             )
 
-        logger.info(f"Successfully generated {len(models)} models.")
+        logger.debug(f"Successfully generated {len(models)} models.")
         return models
 
     except Exception as e:  # pragma: no cover
