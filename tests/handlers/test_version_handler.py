@@ -22,5 +22,5 @@ class TestWelcomeHandler(TestCase):
         """Test the version handler returns the correct version number."""
 
         response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(200, response.status_code)
         self.assertEqual({"version": version}, response.json())

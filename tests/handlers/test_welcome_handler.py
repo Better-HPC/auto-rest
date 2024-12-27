@@ -21,5 +21,5 @@ class TestWelcomeHandler(TestCase):
         """Test the welcome handler returns the correct JSON message."""
 
         response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(200, response.status_code)
         self.assertEqual({"message": "Welcome to Auto-Rest!"}, response.json())

@@ -16,20 +16,20 @@ class TestCreateArgumentParser(TestCase):
         """Test the parser is created with the correct program name."""
 
         self.assertIsInstance(self.parser, ArgumentParser)
-        self.assertEqual(self.parser.prog, "auto-rest")
+        self.assertEqual("auto-rest", self.parser.prog)
 
     def test_log_level(self) -> None:
         """Test only valid log levels are accepted and default value is correct."""
 
         # Validate the default log level
         args = self.parser.parse_args(["--sqlite", "--db-host", "localhost"])
-        self.assertEqual(args.log_level, "INFO")
+        self.assertEqual("INFO", args.log_level)
 
         # Test valid logging levels
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR"]
         for level in valid_levels:
             args = self.parser.parse_args(["--sqlite", "--db-host", "localhost", "--log-level", level])
-            self.assertEqual(args.log_level, level)
+            self.assertEqual(level, args.log_level)
 
         # Test an invalid logging level
         with self.assertRaises(ArgumentError):
@@ -44,31 +44,31 @@ class TestCreateArgumentParser(TestCase):
 
         for flag, driver in zip(cli_flags, db_drivers):
             args = self.parser.parse_args([f"--{flag}", "--db-host", "localhost"])
-            self.assertEqual(args.db_driver, driver)
+            self.assertEqual(driver, args.db_driver)
 
         # Test custom driver
         args = self.parser.parse_args(["--driver", "custom-driver", "--db-host", "localhost"])
-        self.assertEqual(args.db_driver, "custom-driver")
+        self.assertEqual("custom-driver", args.db_driver)
 
     def test_db_settings(self) -> None:
-        """Test the database-related arguments and default values."""
+        """Test database-related arguments and default values."""
 
         # Test required database host
         args = self.parser.parse_args(["--sqlite", "--db-host", "localhost"])
-        self.assertEqual(args.db_host, "localhost")
+        self.assertEqual("localhost", args.db_host)
 
         # Test default database port
         args = self.parser.parse_args(["--sqlite", "--db-host", "localhost"])
-        self.assertEqual(args.db_port, None)
+        self.assertEqual(None, args.db_port)
 
         # Test optional db-name, user, and password
         args = self.parser.parse_args(["--sqlite", "--db-host", "localhost", "--db-name", "testdb", "--db-user", "user", "--db-pass", "password"])
-        self.assertEqual(args.db_name, "testdb")
-        self.assertEqual(args.db_user, "user")
-        self.assertEqual(args.db_pass, "password")
+        self.assertEqual("testdb", args.db_name)
+        self.assertEqual("user", args.db_user)
+        self.assertEqual("password", args.db_pass)
 
     def test_pool_settings(self) -> None:
-        """Test the database connection pool settings and defaults."""
+        """Test database connection pool settings and defaults."""
 
         # Test default pool settings (None should be default)
         args = self.parser.parse_args(["--sqlite", "--db-host", "localhost"])
@@ -78,9 +78,9 @@ class TestCreateArgumentParser(TestCase):
 
         # Test valid pool settings
         args = self.parser.parse_args(["--sqlite", "--db-host", "localhost", "--pool-min", "5", "--pool-max", "20", "--pool-out", "30"])
-        self.assertEqual(args.pool_min, 5)
-        self.assertEqual(args.pool_max, 20)
-        self.assertEqual(args.pool_out, 30)
+        self.assertEqual(5, args.pool_min)
+        self.assertEqual(20, args.pool_max)
+        self.assertEqual(30, args.pool_out)
 
     def test_enabled_docs_flag(self) -> None:
         """Test the `--enable-docs` flag behavior."""
@@ -105,14 +105,14 @@ class TestCreateArgumentParser(TestCase):
         self.assertTrue(args.enable_meta)
 
     def test_server_settings(self) -> None:
-        """Test server-related settings with default values."""
+        """Test server related settings and default values."""
 
         # Test default server host and port
         args = self.parser.parse_args(["--sqlite", "--db-host", "localhost"])
-        self.assertEqual(args.server_host, "127.0.0.1")
-        self.assertEqual(args.server_port, 8081)
+        self.assertEqual("127.0.0.1", args.server_host)
+        self.assertEqual(8081, args.server_port)
 
         # Test custom server host and port
         args = self.parser.parse_args(["--sqlite", "--db-host", "localhost", "--server-host", "0.0.0.0", "--server-port", "9090"])
-        self.assertEqual(args.server_host, "0.0.0.0")
-        self.assertEqual(args.server_port, 9090)
+        self.assertEqual("0.0.0.0", args.server_host)
+        self.assertEqual(9090, args.server_port)

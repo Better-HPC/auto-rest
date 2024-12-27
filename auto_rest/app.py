@@ -1,4 +1,4 @@
-"""Factory functions for building a FastAPI application."""
+"""Factory functions for building FastAPI application instances."""
 
 import logging
 from typing import Literal

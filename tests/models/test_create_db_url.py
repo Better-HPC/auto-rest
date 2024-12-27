@@ -97,7 +97,7 @@ class TestCreateDbUrl(TestCase):
             password=None
         )
         expected_url = f"sqlite:///{path.resolve()}"
-        self.assertEqual(result, expected_url)
+        self.assertEqual(expected_url, result)
 
     def test_create_sqlite_url_with_absolute_path(self) -> None:
         """Test creating a SQLite URL with an absolute file path."""
@@ -111,4 +111,4 @@ class TestCreateDbUrl(TestCase):
             password=None
         )
         expected_url = "sqlite:////absolute/path/to/database.db"
-        self.assertEqual(result, expected_url)
+        self.assertEqual(expected_url, result)

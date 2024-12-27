@@ -41,7 +41,7 @@ class TestCreateDbMetadata(TestCase):
 
         metadata = create_db_metadata(sync_engine)
         self.assertIsInstance(metadata, MetaData)
-        self.assertEqual(len(metadata.tables), 2)
+        self.assertEqual(2, len(metadata.tables))
 
     def test_synchronous_metadata_empty_database(self) -> None:
         """Test metadata mapping with a synchronous engine against an empty database."""
@@ -49,7 +49,7 @@ class TestCreateDbMetadata(TestCase):
         sync_engine = create_engine("sqlite:///:memory:")
         metadata = create_db_metadata(sync_engine)
         self.assertIsInstance(metadata, MetaData)
-        self.assertEqual(len(metadata.tables), 0)
+        self.assertEqual(0, len(metadata.tables))
 
     def test_asynchronous_metadata(self) -> None:
         """Test metadata mapping with an asynchronous engine."""
@@ -59,7 +59,7 @@ class TestCreateDbMetadata(TestCase):
 
         metadata = create_db_metadata(async_engine)
         self.assertIsInstance(metadata, MetaData)
-        self.assertEqual(len(metadata.tables), 2)
+        self.assertEqual(2, len(metadata.tables))
 
     def test_asynchronous_metadata_empty_database(self) -> None:
         """Test metadata mapping with an asynchronous engine against an empty database."""
@@ -67,4 +67,4 @@ class TestCreateDbMetadata(TestCase):
         async_engine = create_async_engine("sqlite+aiosqlite:///:memory:")
         metadata = create_db_metadata(async_engine)
         self.assertIsInstance(metadata, MetaData)
-        self.assertEqual(len(metadata.tables), 0)
+        self.assertEqual(0, len(metadata.tables))

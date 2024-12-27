@@ -26,7 +26,7 @@ class TestApplyOrderingParams(TestCase):
         self.assertIsInstance(result_query, Select)
 
         order_clause = result_query._order_by_clauses[0]
-        self.assertEqual(str(order_clause), str(asc("column_name")))
+        self.assertEqual(str(asc("column_name")), str(order_clause))
 
     def test_valid_params_descending(self) -> None:
         """Test parameters are applied correctly for descending order."""
@@ -36,7 +36,7 @@ class TestApplyOrderingParams(TestCase):
         self.assertIsInstance(result_query, Select)
 
         order_clause = result_query._order_by_clauses[0]
-        self.assertEqual(str(order_clause), str(desc("column_name")))
+        self.assertEqual(str(desc("column_name")), str(order_clause))
 
     def test_missing_params(self) -> None:
         """Test ordering is not applied when parameters are not provided."""
@@ -45,7 +45,7 @@ class TestApplyOrderingParams(TestCase):
         self.assertFalse(result_query._order_by_clauses)
 
     def test_missing_order_by_param(self):
-        """Test ordering is not applied when the order_by parameter is not provided."""
+        """Test ordering is not applied when the `order_by` parameter is not provided."""
 
         params = {"direction": "desc"}
         result_query = apply_ordering_params(self.query, params, self.response)
@@ -53,21 +53,21 @@ class TestApplyOrderingParams(TestCase):
 
     @skip("This test requires implementing additional testing structures.")
     def test_invalid_order_by_param(self):
-        """Test a ValueError is raised for an invalid order_by parameter."""
+        """Test a ValueError is raised for an invalid `order_by` parameter."""
 
         self.fail()
 
     def test_missing_direction_param(self) -> None:
-        """Test the direction parameter defaults to ascending."""
+        """Test the `direction` parameter defaults to ascending."""
 
         params = {"order_by": "column_name"}
         result_query = apply_ordering_params(self.query, params, self.response)
 
         order_clause = result_query._order_by_clauses[0]
-        self.assertEqual(str(order_clause), str(asc("column_name")))
+        self.assertEqual(str(asc("column_name")), str(order_clause))
 
     def test_invalid_direction_param(self) -> None:
-        """Test a ValueError is raised for an invalid direction parameter."""
+        """Test a ValueError is raised for an invalid `direction` parameter."""
 
         params = {"order_by": "column_name", "direction": "invalid"}
         with self.assertRaises(ValueError):

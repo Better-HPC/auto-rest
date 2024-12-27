@@ -1,4 +1,4 @@
-"""Database layer used to dynamically map database schemas and generate model interfaces."""
+"""Database utilities used to map database schemas and generate model interfaces."""
 
 import asyncio
 import logging
