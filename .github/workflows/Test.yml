@@ -63,20 +63,20 @@ jobs:
           - 5432:5432
 
     steps:
-      - name: Fetch package artifact
+      - name: Fetch image artifact
         uses: actions/download-artifact@v4
         with:
-          name: auto-rest-python
-          path: /tmp/dist
+          name: auto-rest-docker
+          path: /tmp
 
-      - name: Install package
-        run: pip install /tmp/dist/*.whl
+      - name: Load image
+        run: docker load --input /tmp/auto-rest.tar
 
       - name: Setup SQLite
         if: matrix.dbms == 'sqlite'
         run: |
           touch test.db
-          auto-rest \
+          docker run -d -p 8081:8081 auto-rest \
             --sqlite \
             --db-name ./test.db \
             --server-host 0.0.0.0 \
@@ -87,7 +87,7 @@ jobs:
       - name: Setup PostgreSQL
         if: matrix.dbms == 'psql'
         run: |
-          auto-rest \
+          docker run -p 8081:8081 auto-rest \
             --psql \
             --db-host localhost \
             --db-port 5432 \
