@@ -44,7 +44,7 @@ jobs:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
   comp-tests:
-    name: Compatibility Tests
+    name: Compatibility
     runs-on: ubuntu-latest
 
     strategy:
@@ -87,7 +87,7 @@ jobs:
       - name: Setup PostgreSQL
         if: matrix.dbms == 'postgres'
         run: |
-          docker run -d -p 8081:8081 auto-rest 
+          docker run -d -p 8081:8081 auto-rest \
             --psql \
             --db-host localhost \
             --db-port 5432 \
