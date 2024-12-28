@@ -60,7 +60,7 @@ jobs:
           POSTGRES_USER: ar_user
           POSTGRES_PASSWORD: ar_password
         ports:
-          - 5000:5432
+          - 5432:5432
 
     steps:
       - name: Fetch image artifact
@@ -76,18 +76,27 @@ jobs:
         if: matrix.dbms == 'sqlite'
         run: |
           touch test.db
-          docker run -d -p 8081:8081 auto-rest --server-host 0.0.0.0 --sqlite --db-name ./test.db
+          docker run -d -p 8081:8081 auto-rest \
+            --sqlite \
+            --db-name ./test.db \
+            --server-host 0.0.0.0 \
+            --server-port 8081
+          
           sleep 5
 
       - name: Setup PostgreSQL
         if: matrix.dbms == 'postgres'
         run: |
-          docker run -d -p 8081:8081 auto-rest --server-host 0.0.0.0 --psql \
+          docker run -d -p 8081:8081 auto-rest 
+            --psql \
             --db-host localhost \
-            --db-port 5000 \
+            --db-port 5432 \
             --db-name auto_rest \
             --db-user ar_user \
-            --db-user ar_password
+            --db-user ar_password \
+            --server-host 0.0.0.0 \
+            --server-port 8081
+          
           sleep 5
 
       - name: Query API
