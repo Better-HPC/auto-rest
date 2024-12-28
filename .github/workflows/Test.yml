@@ -93,7 +93,7 @@ jobs:
             --db-port 5432 \
             --db-name auto_rest \
             --db-user ar_user \
-            --db-user ar_password \
+            --db-pass ar_password \
             --server-host 0.0.0.0 \
             --server-port 8081
           
