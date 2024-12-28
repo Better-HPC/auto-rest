@@ -50,7 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dbms: [ sqlite, postgres ]
+        dbms: [ sqlite, psql ]
 
     services:
       postgres:
@@ -85,7 +85,7 @@ jobs:
           sleep 5
 
       - name: Setup PostgreSQL
-        if: matrix.dbms == 'postgres'
+        if: matrix.dbms == 'psql'
         run: |
           docker run -d -p 8081:8081 auto-rest \
             --psql \
@@ -99,7 +99,7 @@ jobs:
           
           sleep 5
 
-      - name: Query API
+      - name: Check API is running
         run: curl localhost:8081
 
   report-test-status:
