@@ -67,10 +67,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: auto-rest-python
-          path: /tmp
+          path: /tmp/dist
 
       - name: Install package
-        run: pip install /tmp/dist
+        run: pip install /tmp/dist/*.whl
 
       - name: Setup SQLite
         if: matrix.dbms == 'sqlite'
