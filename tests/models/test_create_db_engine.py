@@ -1,6 +1,7 @@
 import tempfile
 from unittest import TestCase
 
+from sqlalchemy import URL
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -23,14 +24,20 @@ class TestCreateDbEngine(TestCase):
     def test_create_sync_engine(self) -> None:
         """Test creating an engine with a synchronous driver."""
 
-        engine = create_db_engine(f"sqlite:///{self.temp_file.name}")
+        url = URL.create(drivername="sqlite", database=self.temp_file.name)
+        engine = create_db_engine(url)
+
         self.assertIsInstance(engine, Engine)
+        self.assertEqual(url, engine.url)
 
     def test_create_async_cengine(self) -> None:
         """Test creating an engine with an asynchronous driver."""
 
-        engine = create_db_engine(f"sqlite+aiosqlite:///{self.temp_file.name}")
+        url = URL.create(drivername="sqlite+aiosqlite", database=self.temp_file.name)
+        engine = create_db_engine(url)
+
         self.assertIsInstance(engine, AsyncEngine)
+        self.assertEqual(url, engine.url)
 
     def test_invalid_url(self) -> None:
         """Test handling for an invalid database URL."""
