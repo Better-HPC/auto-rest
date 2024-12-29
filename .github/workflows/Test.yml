@@ -87,15 +87,16 @@ jobs:
       - name: Setup PostgreSQL
         if: matrix.dbms == 'psql'
         run: |
-          docker run -p 8081:8081 auto-rest \
-            --psql \
-            --db-host localhost \
-            --db-port 5432 \
-            --db-name auto_rest \
-            --db-user ar_user \
-            --db-pass ar_password \
-            --server-host 0.0.0.0 \
-            --server-port 8081
+          docker run -p 8081:8081 \
+            auto-rest \
+              --psql \
+              --db-host host.docker.internal \
+              --db-port 5432 \
+              --db-name auto_rest \
+              --db-user ar_user \
+              --db-pass ar_password \
+              --server-host 0.0.0.0 \
+              --server-port 8081
           
           sleep 5
 
