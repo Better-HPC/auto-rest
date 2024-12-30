@@ -1,0 +1,65 @@
+site_name: Auto-REST Documentation
+
+theme:
+  name: material
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - content.code.copy
+    - search.suggest
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            allow_inspection: false
+            show_bases: false
+            show_source: false
+            show_root_heading: false
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - tables
+  - toc:
+      permalink: true
+extra:
+  generator: false
+nav:
+  - Introduction: index.md
+  - Getting Started:
+      - getting_started/install.md
+      - getting_started/deploying.md
+  - Contributing: contributing.md
+copyright: Copyright &copy; 2025 Better HPC

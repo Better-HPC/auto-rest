@@ -65,7 +65,7 @@ def apply_pagination_params(query: Select, params: dict[str, int], response: Res
 
 
 def get_ordering_params(
-    _order_by_: str | None = Query(None, description="Field name to sort by."),
+    _order_by_: str | None = Query(None, description="The field name to sort by."),
     _direction_: Literal["asc", "desc"] = Query("asc", description="Sort results in 'asc' or 'desc' order.")
 ) -> dict:
     """Extract ordering parameters from request query parameters.
