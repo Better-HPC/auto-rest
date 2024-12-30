@@ -60,7 +60,7 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
 
     # Add table level endpoint for listing records
     list_handler = create_list_records_handler(engine, model)
-    router.add_api_route("/", list_handler, methods=["GET"], tags=[f"{model.__table__}"])
+    router.add_api_route("/", list_handler, methods=["GET"], tags=[f"{model.__name__}"])
 
     # Determine the path for per-record endpoints
     pk_columns = model.__table__.primary_key.columns
@@ -72,7 +72,7 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
 
     # Add GET opperation against single record
     get_record_handler = create_get_record_handler(engine, model)
-    router.add_api_route(f"/{path_params}/", get_record_handler, methods=["GET"], tags=[f"{model.__table__}"])
+    router.add_api_route(f"/{path_params}/", get_record_handler, methods=["GET"], tags=[f"{model.__name__}"])
 
     return router
 
