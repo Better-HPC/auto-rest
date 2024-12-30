@@ -5,10 +5,9 @@ from unittest.mock import MagicMock
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from auto_rest.app import create_app
-from auto_rest.dist import name, version
+from auto_rest.dist import version
 
 
 class TestCreateApp(TestCase):
@@ -16,17 +15,22 @@ class TestCreateApp(TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        """Set up a temprary SQLite database."""
+        """Set up a temporary SQLite database."""
 
         # Create a temporary SQLite database
         cls.temp_file = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
         cls.engine = create_engine(f"sqlite:///{cls.temp_file.name}", echo=True)
-        cls.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=cls.engine)
 
         # Mock models for database tables
         cls.mock_models = {
-            "user": MagicMock(),
-            "post": MagicMock()
+            "user": MagicMock(
+                __name__="User",
+                __table__=MagicMock(
+                    primary_key=MagicMock(
+                        columns=[MagicMock(name="id")]
+                    )
+                )
+            )
         }
 
         # Create a new FastAPI app using default options
@@ -42,7 +46,7 @@ class TestCreateApp(TestCase):
     def test_app_meta(self) -> None:
         """Test the application's metadata attributes."""
 
-        self.assertEqual(name.title(), self.app.title)
+        self.assertEqual("Auto-REST", self.app.title)
         self.assertEqual(version, self.app.version)
 
     def test_root_handler(self) -> None:

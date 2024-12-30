@@ -4,15 +4,21 @@ import logging
 from typing import Literal
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from sqlalchemy import Engine
+from sqlalchemy.ext.asyncio import AsyncEngine
 from uvicorn.logging import DefaultFormatter
 
 from .handlers import *
-from .dist import name, version
+from .dist import version
 from .models import ModelBase
 
-__all__ = ["configure_logging", "create_app", "run_app"]
+__all__ = [
+    "configure_logging",
+    "create_app",
+    "create_router",
+    "run_app",
+]
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +46,39 @@ def configure_logging(level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITI
     )
 
 
-def create_app(engine: Engine, models: dict[str, ModelBase], enable_meta: bool = False, enable_docs: bool = False) -> FastAPI:
+def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
+    """Create an API router with endpoint handlers for the given database model.
+
+    Args:
+        engine: The SQLAlchemy engine connected to the database.
+        model: The ORM model class representing a database table.
+
+    Returns:
+        An APIRouter instance with routes for database operations on the model.
+    """
+
+    router = APIRouter()
+
+    # Add table level endpoint for listing records
+    list_handler = create_list_records_handler(engine, model)
+    router.add_api_route("/", list_handler, methods=["GET"], tags=[f"{model.__name__}"])
+
+    # Determine the path for per-record endpoints
+    pk_columns = model.__table__.primary_key.columns
+    path_params = '/'.join(f'{{{col.name}}}' for col in pk_columns)
+
+    # Per-record endpoints are only added for tables with primary keys
+    if not pk_columns:
+        return router
+
+    # Add GET operation against single record
+    get_record_handler = create_get_record_handler(engine, model)
+    router.add_api_route(f"/{path_params}/", get_record_handler, methods=["GET"], tags=[f"{model.__name__}"])
+
+    return router
+
+
+def create_app(engine: Engine | AsyncEngine, models: dict[str, ModelBase], enable_meta: bool = False, enable_docs: bool = False) -> FastAPI:
     """Initialize a new FastAPI Application.
 
     Args:
@@ -56,23 +94,26 @@ def create_app(engine: Engine, models: dict[str, ModelBase], enable_meta: bool =
     logging.info('Building API application.')
 
     app = FastAPI(
-        title=name.title(),
+        title="Auto-REST",
         version=version,
         summary=f"A REST API generated dynamically from the '{engine.url.database}' database schema.",
         docs_url="/docs/" if enable_docs else None,
         redoc_url=None
     )
 
+    # Add top level API routes
     app.add_api_route("/", welcome_handler, methods=["GET"], include_in_schema=False)
-    app.add_api_route("/version/", version_handler, methods=["GET"], tags=["Application Info"])
-
+    app.add_api_route("/version/", version_handler, methods=["GET"], tags=["Application Metadata"])
     if enable_meta:
-        logger.debug(f"Adding API route for '/meta/'.")
-        app.add_api_route(f"/meta/", create_meta_handler(engine), methods=["GET"], tags=["Application Info"])
+        app.add_api_route(f"/meta/", create_meta_handler(engine), methods=["GET"], tags=["Application Metadata"])
 
+    # Add routes for each table
     for model_name, model_class in models.items():
-        logger.debug(f"Adding API route for '/db/{model_name}/'.")
-        app.add_api_route(f"/db/{model_name}/", create_list_handler(engine, model_class), methods=["GET"], tags=["Database Operations"])
+        route = f"/db/{model_name}"
+        router = create_router(engine, model_class)
+
+        logging.debug(f"Adding API route for '{route}'.")
+        app.include_router(router, prefix=route)
 
     return app
 

@@ -2,18 +2,19 @@
 
 import logging
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException, Response
 from sqlalchemy import Engine, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
-from starlette.responses import Response
+from starlette.requests import Request
 
-from .utils import apply_ordering_params, apply_pagination_params, get_ordering_params, get_pagination_params
 from .dist import version
 from .models import create_session_factory, ModelBase
+from .utils import *
 
 __all__ = [
-    "create_list_handler",
+    "create_get_record_handler",
+    "create_list_records_handler",
     "create_meta_handler",
     "welcome_handler",
     "version_handler"
@@ -57,7 +58,7 @@ def create_meta_handler(engine: Engine) -> callable:
     return meta_handler
 
 
-def create_list_handler(engine: Engine, model: ModelBase) -> callable:
+def create_list_records_handler(engine: Engine, model: ModelBase) -> callable:
     """Create a function that returns a list of records from the given database model.
 
     Args:
@@ -68,7 +69,7 @@ def create_list_handler(engine: Engine, model: ModelBase) -> callable:
         An async function that returns a list of records from the given database model.
     """
 
-    async def list_handler(
+    async def list_records(
         response: Response,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
@@ -83,4 +84,38 @@ def create_list_handler(engine: Engine, model: ModelBase) -> callable:
 
         return session.execute(query).scalars().all()
 
-    return list_handler
+    return list_records
+
+
+def create_get_record_handler(engine: Engine, model: ModelBase) -> callable:
+    """Create a function that returns a single records from the given database model.
+
+    The returned record is identified by the primary key value(s) passed in
+    the request path parameters. If the record is not found, a 404 error is raised.
+
+    Args:
+        engine: Database engine to use when executing queries.
+        model: The database ORM object to use for database manipulations.
+
+    Returns:
+        An async function that returns a single record from the given database model.
+    """
+
+    async def get_record(
+        request: Request,
+        session: Session | AsyncSession = Depends(create_session_factory(engine)),
+    ):
+
+        query = select(model).filter_by(**request.path_params)
+        if isinstance(session, AsyncSession):
+            result = await session.execute(query)
+
+        else:
+            result = session.execute(query)
+
+        if not (record := result.scalar_one_or_none()):
+            raise HTTPException(status_code=404, detail="Record not found")
+
+        return record
+
+    return get_record
