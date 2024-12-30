@@ -56,10 +56,6 @@ markdown_extensions:
       permalink: true
 extra:
   generator: false
-extra_javascript:
-  - assets/js/mathjax.js
-  - https://polyfill.io/v3/polyfill.min.js?features=es6
-  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 nav:
   - Introduction: index.md
   - Getting Started:
