@@ -71,7 +71,7 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
     if not pk_columns:
         return router
 
-    # Add GET opperation against single record
+    # Add GET operation against single record
     get_record_handler = create_get_record_handler(engine, model)
     router.add_api_route(f"/{path_params}/", get_record_handler, methods=["GET"], tags=[f"{model.__name__}"])
 
