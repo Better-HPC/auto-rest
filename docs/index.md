@@ -5,8 +5,8 @@ hide:
 
 # Auto REST
 
-AutoRest is a command line tool for deploying dynamically generated REST APIs against relational databases.
-The application automatically maps existing database schemas and deploys a customized API server with per-table endpoints.
+The `auto-rest` utility is a command line tool for automatically mapping database schemas and deploying dynamically generated REST APIs.
+Designed primarily for development, but with production environments in mind, the application provides a simple method for quickly deploying 
 
 Application features include:
 

@@ -1,7 +1,7 @@
 # Install and Setup
 
 Auto-REST is built in Python and can be installed directly from the Python Package Index (PyPI).
-The `pipx` package manager is recommended standalone installations, which isolates the package in its own environment.
+The `pipx` package manager is recommended for standalone installations, which isolates the package in its own environment.
 Alternatively, the standard `pip` utility can be used to install Auto-REST as a dependency within an existing project.
 
 === "pipx (standalone)"

@@ -21,17 +21,18 @@ same terms, ensuring the continued openness and accessibility of the project.
 ## Common Developer Tasks
 
 Instructions are provided below for common tasks performed during development.
+All commands are assumed to be run from within the root project directory.
 
 ### Environment Setup
 
-This project uses the [Poetry](https://python-poetry.org/) utility to manage project dependencies.
+Auto-REST uses the [Poetry](https://python-poetry.org/) utility to manage project dependencies.
 To create a new project environment, point poetry at the desired Python interpreter.
 
 ```shell
 poetry env use python3.14
-````
+```
 
-Poetry will automatically activate the new environment.
+Poetry will automatically build and activate the new environment.
 To confirm the current environment, use the `list` command.
 
 ```shell
@@ -40,21 +41,21 @@ poetry env list
 
 From within the activated environment, install the project dependencies.
 
-```shqll
+```shell
 poetry install
 ```
 
 ### Running Tests
 
 All contributions are required to pass the application test suite.
-To run the application tests, start by installing the test dependencies:
+To run the tests, start by installing the test dependencies:
 
 ```shell
 poetry install --with tests
 ```
 
-The `coverage` tool tracks test coverage, helping to maintain code quality by identifying untested areas.
-To run tests with coverage, use the following command:
+The `coverage` tool is used to track application test coverage and helps to maintain code quality by identifying untested areas.
+To run tests with coverage, use the following commands:
 
 ```shell
 coverage run -m unittest discover
@@ -70,7 +71,7 @@ poetry install --with docs
 ```
 
 The `mkdocs` utility a static site generator that simplifies building and deploying project documentation. 
-The following command will automatically compile the HTML documentation and launch it with a local server.
+Running the following command will automatically compile the HTML documentation and launch it with a local server.
 
 ```shell
 mkdocs serve
