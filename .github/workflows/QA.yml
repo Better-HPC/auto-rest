@@ -58,7 +58,7 @@ jobs:
         run: poetry install --with docs
 
       - name: Test documentation builds
-        run: mkdocs build --strict --clean --verbose
+        run: poetry run mkdocs build --strict --clean --verbose
 
   report-qa-status:
     name: Report QA Status
