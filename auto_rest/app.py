@@ -58,18 +58,21 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
 
     router = APIRouter()
 
-    list_handler = create_list_handler(engine, model)
-    router.add_api_route("/", list_handler, methods=["GET"])
+    # Add table level endpoint for listing records
+    list_handler = create_list_records_handler(engine, model)
+    router.add_api_route("/", list_handler, methods=["GET"], tags=[f"{model.__table__}"])
+
+    # Determine the path for per-record endpoints
+    pk_columns = model.__table__.primary_key.columns
+    path_params = '/'.join(f'{{{col.name}}}' for col in pk_columns)
 
     # Per-record endpoints are only added for tables with primary keys
-    pk_columns = model.__table__.primary_key.columns
     if not pk_columns:
         return router
 
-    path_params = '/'.join(f'{{{col.name}}}' for col in pk_columns)
-
-    retrieve_handler = create_retrieve_handler(engine, model)
-    router.add_api_route(f"/{path_params}/", retrieve_handler, methods=["GET"])
+    # Add GET opperation against single record
+    get_record_handler = create_get_record_handler(engine, model)
+    router.add_api_route(f"/{path_params}/", get_record_handler, methods=["GET"], tags=[f"{model.__table__}"])
 
     return router
 
@@ -97,19 +100,18 @@ def create_app(engine: Engine | AsyncEngine, models: dict[str, ModelBase], enabl
         redoc_url=None
     )
 
+    # Add top level API routes
     app.add_api_route("/", welcome_handler, methods=["GET"], include_in_schema=False)
-    app.add_api_route("/version/", version_handler, methods=["GET"], tags=["Application Info"])
-
-    # Add endpoint for application metadata
+    app.add_api_route("/version/", version_handler, methods=["GET"], tags=["Application Metadata"])
     if enable_meta:
-        app.add_api_route(f"/meta/", create_meta_handler(engine), methods=["GET"], tags=["Application Info"])
+        app.add_api_route(f"/meta/", create_meta_handler(engine), methods=["GET"], tags=["Application Metadata"])
 
     # Add routes for each table
     for model_name, model_class in models.items():
         route = f"/db/{model_name}"
         router = create_router(engine, model_class)
 
-        logging.debug(f"API route for '{route}'.")
+        logging.debug(f"Adding API route for '{route}'.")
         app.include_router(router, prefix=route)
 
     return app
