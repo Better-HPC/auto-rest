@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from uvicorn.logging import DefaultFormatter
 
 from .handlers import *
+from .dist import version
 from .models import ModelBase
 
 __all__ = [
@@ -93,8 +94,8 @@ def create_app(engine: Engine | AsyncEngine, models: dict[str, ModelBase], enabl
     logging.info('Building API application.')
 
     app = FastAPI(
-        title="Dynamically Generated Rest API",
-        version="1.0.0",
+        title="Auto-REST",
+        version=version,
         summary=f"A REST API generated dynamically from the '{engine.url.database}' database schema.",
         docs_url="/docs/" if enable_docs else None,
         redoc_url=None

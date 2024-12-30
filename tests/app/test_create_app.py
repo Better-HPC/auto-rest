@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 
 from auto_rest.app import create_app
-from auto_rest.dist import name, version
+from auto_rest.dist import version
 
 
 class TestCreateApp(TestCase):
@@ -23,8 +23,14 @@ class TestCreateApp(TestCase):
 
         # Mock models for database tables
         cls.mock_models = {
-            "user": MagicMock(),
-            "post": MagicMock()
+            "user": MagicMock(
+                __name__="User",
+                __table__=MagicMock(
+                    primary_key=MagicMock(
+                        columns=[MagicMock(name="id")]
+                    )
+                )
+            )
         }
 
         # Create a new FastAPI app using default options
@@ -40,7 +46,7 @@ class TestCreateApp(TestCase):
     def test_app_meta(self) -> None:
         """Test the application's metadata attributes."""
 
-        self.assertEqual(name.title(), self.app.title)
+        self.assertEqual("Auto-REST", self.app.title)
         self.assertEqual(version, self.app.version)
 
     def test_root_handler(self) -> None:
