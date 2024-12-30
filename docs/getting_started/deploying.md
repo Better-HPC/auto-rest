@@ -1,24 +1,27 @@
 # Deploying an API
 
-The following instructions outline how to deploy an API server using the `auto-rest` command.
-For a full list of application arguments, see the application help text (`auto-rest --help`).
+The following instructions provide a general overview of the `auto-rest` utility.
+For a full list of application options, see the application help text (`auto-rest --help`).
 
 ## Launching an API
 
 Deploying an API server requires specifying the database type and connection settings.
-Using the provided values, Auto-REST will automatically connect to the database, map the database schema, and deploy an
-API server with dynamically generated endpoints.
+Using the provided arguments, the `auto-rest` utility will automatically build and deploy an API server on the default port `8081`.
 
-!!! example
+Auto-REST supports most common database systems out-of-the-box.
+User's can extend this support to additional database systems using third party database drivers.
+See the [installation instructions](install.md) for details on installing custom drivers.
+
+!!! example "Example: Launching an API"
 
     === "SQLite"
     
         The `--sqlite` flag enables support for SQLite.
         Unlike traditional database systems, SQLite is file based and requires fewer conenction settings.
-        The file path to the database should be specified using the `--db-host` option.
+        The file path to the database should be specified using the `--db-name` option.
     
         ```bash
-        auto-rest --sqlite --db-host my_database.db
+        auto-rest --sqlite --db-name my_database.db
         ```
     
     === "PostgreSQL"
@@ -58,15 +61,15 @@ API server with dynamically generated endpoints.
         auto-rest --mssql --db-host localhost --db-port 1433 --db-name my_database
         ```
 
-The generated API server is launched on port 8081 by default, but can be customized to any valid port value.
+    === "Custom Driver"
 
-!!! example
+        The following example uses the `postgresql+asyncpg` database driver for PostgreSQL.
 
-    ```bash
-    auto-rest ... --server-port 8888
-    ```
+        ```bash
+        auto-rest --driver postgresql+asyncpg --db-host localhost --db-port 5432 --db-name my_database
+        ```
 
-## Enabling Extra Endpoints
+## Enabling Optional Endpoints
 
 Certain API endpoints are disabled by default and are only included in the generated API upon request.
 The following table lists optional endpoints and the corresponding CLI flag.
@@ -76,33 +79,21 @@ The following table lists optional endpoints and the corresponding CLI flag.
 | `/docs/` | `--enable-docs` | Displays HTML documentation for all available endpoints.            |
 | `/meta/` | `--enable-meta` | Returns meta data concerning the database used to generate the API. |
 
-## Using Custom Drivers
-
-Auto-REST supports custom database drivers in addition to the built-in ones (SQLite, PostgreSQL, MySQL, Oracle, and
-Microsoft SQL Server).
-To use a custom database driver, specify the driver with the `--driver` flag.
-The driver argument must be a qualified driver name and be supported by SQAlchemy.
-See the [installation instructions](install.md) for details on installing alternative drivers.
-
-!!! example
-
-    The following example uses the `postgresql+asyncpg` database driver for PostgreSQL.
-
-    ```bash
-    auto-rest --driver postgresql+asyncpg --db-host localhost --db-port 1234 --db-name my_database
-    ```
-
 ## Scaling the Connection Pool
 
 Auto-REST maintains a pool of active database connections at all times.
 This minimizes application latency and improves overall performance.
-However, the default pool size may not be suitable for all use cases and can be customized.
+The size of this pool is determined at application launch using the `--pool-min` and `--pool-max` arguments.
 
-!!! example
+!!! note
 
-    The following example maintains a minimum of 10 active database connections while allowing up to 50 connections total.
-    Connection requests will time out after 30 seconds.
+    Pool connection settings have no effect on SQLite databases due to their file-based architecture.
+    This is a design feature of SQLite databases in general, and not a function of the `auto-rest` utility.
+
+!!! example "Example: Custom Connection Pool Scaling"
+
+    The following example maintains a minimum of 10 active database connections and a maximum of 50 connections total.
 
     ```bash
-    auto-rest --psql --db-host localhost --db-port 5432 --db-name my_database --pool-min 10 --pool-max 50 --pool-out 30
+    auto-rest ... --pool-min 10 --pool-max 50
     ```

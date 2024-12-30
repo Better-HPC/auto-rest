@@ -20,6 +20,8 @@ Alternatively, the standard `pip` utility can be used to install Auto-REST as a 
 
 Auto-REST includes drivers for most common database systems by default.
 However, additional drivers can be installed to support other database types or as alternatives to the prepackaged drivers.
+Auto-REST supports any driver compatible with the SQLAlchemy Python framework, including synchronous and asynchronous drivers.
+
 To add a new driver, install the driver package into the same environment where Auto-REST is installed.
 
 === "pipx (standalone)"
