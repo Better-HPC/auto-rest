@@ -22,13 +22,13 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-async def welcome_handler() -> dict:
+async def welcome_handler() -> dict[str, int | str]:
     """Return a welcome message in JSON format pointing users to the docs."""
 
     return {"message": "Welcome to Auto-Rest!"}
 
 
-async def version_handler() -> dict:
+async def version_handler() -> dict[str, int | str]:
     """Return the application version number in JSON format."""
 
     return {"version": version}
@@ -73,7 +73,7 @@ def create_list_handler(engine: Engine, model: ModelBase) -> callable:
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
         ordering_params: dict[str, int] = Depends(get_ordering_params),
-    ):
+    ) -> dict[str, int | str]:
         query = select(model)
         query = apply_pagination_params(query, pagination_params, response)
         query = apply_ordering_params(query, ordering_params, response)
