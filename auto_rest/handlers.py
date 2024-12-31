@@ -15,9 +15,13 @@ from .params import *
 from .queries import *
 
 __all__ = [
+    "create_delete_record_handler",
     "create_get_record_handler",
     "create_list_records_handler",
     "create_meta_handler",
+    "create_patch_record_handler",
+    "create_post_record_handler",
+    "create_put_record_handler",
     "welcome_handler",
     "version_handler"
 ]
@@ -212,6 +216,7 @@ def create_delete_record_handler(engine: Engine, model: ModelBase) -> callable:
         result = await execute_session_query(session, query)
 
         record = get_record_or_404(result)
-        await delete_session_record(record, session)
+        await delete_session_record(session, record)
+        await commit_session(session)
 
     return delete_record
