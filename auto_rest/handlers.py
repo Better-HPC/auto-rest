@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 from .dist import version
-from .models import create_session_factory, ModelBase
+from .models import *
 from .utils import *
 
 __all__ = [
@@ -74,7 +74,7 @@ def create_list_records_handler(engine: Engine, model: ModelBase) -> callable:
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
         ordering_params: dict[str, int] = Depends(get_ordering_params),
-    ):
+    ) -> list[create_db_interface(model)]:
         query = select(model)
         query = apply_pagination_params(query, pagination_params, response)
         query = apply_ordering_params(query, ordering_params, response)
@@ -104,7 +104,7 @@ def create_get_record_handler(engine: Engine, model: ModelBase) -> callable:
     async def get_record(
         request: Request,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
-    ):
+    ) -> create_db_interface(model):
 
         query = select(model).filter_by(**request.path_params)
         if isinstance(session, AsyncSession):
