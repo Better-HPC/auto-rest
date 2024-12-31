@@ -7,10 +7,11 @@ import uvicorn
 from fastapi import APIRouter, FastAPI
 from sqlalchemy import Engine
 from sqlalchemy.ext.asyncio import AsyncEngine
+from starlette import status
 from uvicorn.logging import DefaultFormatter
 
-from .handlers import *
 from .dist import version
+from .handlers import *
 from .handlers import create_post_record_handler
 from .models import ModelBase
 
@@ -60,24 +61,39 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
 
     router = APIRouter()
 
-    # Add table level endpoint for listing records
+    # Add GET support against the table
     list_handler = create_list_records_handler(engine, model)
-    router.add_api_route("/", list_handler, methods=["GET"], tags=[f"{model.__name__}"])
+    router.add_api_route(
+        path="/",
+        methods=["GET"],
+        endpoint=list_handler,
+        status_code=status.HTTP_200_OK,
+        tags=[model.__name__]
+    )
 
+    # Add POST support against the table
     post_handler = create_post_record_handler(engine, model)
-    router.add_api_route("/", post_handler, methods=["POST"], tags=[f"{model.__name__}"])
-
-    # Determine the path for per-record endpoints
-    pk_columns = model.__table__.primary_key.columns
-    path_params = '/'.join(f'{{{col.name}}}' for col in pk_columns)
+    router.add_api_route(
+        path="/",
+        methods=["POST"],
+        endpoint=post_handler,
+        status_code=status.HTTP_201_CREATED,
+        tags=[model.__name__]
+    )
 
     # Per-record endpoints are only added for tables with primary keys
-    if not pk_columns:
-        return router
+    if pk_columns := model.__table__.primary_key.columns:
+        path_params = '/'.join(f'{{{col.name}}}' for col in pk_columns)
 
-    # Add GET operation against single record
-    get_record_handler = create_get_record_handler(engine, model)
-    router.add_api_route(f"/{path_params}/", get_record_handler, methods=["GET"], tags=[f"{model.__name__}"])
+        # Add GET support against a single record
+        get_record_handler = create_get_record_handler(engine, model)
+        router.add_api_route(
+            path=f"/{path_params}/",
+            methods=["GET"],
+            endpoint=get_record_handler,
+            status_code=status.HTTP_200_OK,
+            tags=[model.__name__]
+        )
 
     return router
 
