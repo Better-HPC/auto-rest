@@ -71,6 +71,7 @@ def create_list_records_handler(engine: Engine, model: ModelBase) -> callable:
         pagination_params: dict[str, int] = Depends(get_pagination_params),
         ordering_params: dict[str, int] = Depends(get_ordering_params),
     ) -> list[create_db_interface(model)]:
+
         query = select(model)
         query = apply_pagination_params(query, pagination_params, response)
         query = apply_ordering_params(query, ordering_params, response)
@@ -98,6 +99,7 @@ def create_get_record_handler(engine: Engine, model: ModelBase) -> callable:
         request: Request,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> create_db_interface(model):
+
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
         return get_record_or_404(result)
@@ -123,6 +125,7 @@ def create_post_record_handler(engine: Engine, model: ModelBase) -> callable:
         data: interface,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> interface:
+
         query = insert(model).values(**data.dict())
         result = await execute_session_query(session, query)
         await commit_session(session)
@@ -212,6 +215,7 @@ def create_delete_record_handler(engine: Engine, model: ModelBase) -> callable:
         request: Request,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> None:
+
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
 

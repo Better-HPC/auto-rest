@@ -47,12 +47,13 @@ def configure_logging(level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITI
     )
 
 
-def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
+def create_router(engine: Engine | AsyncEngine, model: ModelBase, writable: bool = False) -> APIRouter:
     """Create an API router with endpoint handlers for the given database model.
 
     Args:
         engine: The SQLAlchemy engine connected to the database.
         model: The ORM model class representing a database table.
+        writable: Whether to add support for write operations (POST, PUT, PATCH, DELETE).
 
     Returns:
         An APIRouter instance with routes for database operations on the model.
@@ -61,24 +62,23 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
     router = APIRouter()
 
     # Add GET support against the table
-    list_handler = create_list_records_handler(engine, model)
     router.add_api_route(
         path="/",
         methods=["GET"],
-        endpoint=list_handler,
+        endpoint=create_list_records_handler(engine, model),
         status_code=status.HTTP_200_OK,
         tags=[model.__name__]
     )
 
     # Add POST support against the table
-    post_handler = create_post_record_handler(engine, model)
-    router.add_api_route(
-        path="/",
-        methods=["POST"],
-        endpoint=post_handler,
-        status_code=status.HTTP_201_CREATED,
-        tags=[model.__name__]
-    )
+    if writable:
+        router.add_api_route(
+            path="/",
+            methods=["POST"],
+            endpoint=create_post_record_handler(engine, model),
+            status_code=status.HTTP_201_CREATED,
+            tags=[model.__name__]
+        )
 
     # Per-record endpoints are only added for tables with primary keys
     if pk_columns := model.__table__.primary_key.columns:
@@ -92,6 +92,8 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
             status_code=status.HTTP_200_OK,
             tags=[model.__name__]
         )
+
+    if pk_columns and writable:
 
         # Add PUT support against a single record
         router.add_api_route(
@@ -123,7 +125,13 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
     return router
 
 
-def create_app(engine: Engine | AsyncEngine, models: dict[str, ModelBase], enable_meta: bool = False, enable_docs: bool = False) -> FastAPI:
+def create_app(
+    engine: Engine | AsyncEngine,
+    models: dict[str, ModelBase],
+    enable_meta: bool = False,
+    enable_docs: bool = False,
+    enable_write: bool = False,
+) -> FastAPI:
     """Initialize a new FastAPI Application.
 
     Args:
@@ -131,12 +139,16 @@ def create_app(engine: Engine | AsyncEngine, models: dict[str, ModelBase], enabl
         models: Mapping of database model names to ORM classes.
         enable_meta: Add a `meta` API endpoint with DB metadata.
         enable_docs: Add a `docs` API endpoint with API documentation.
+        enable_write: Add support for write operations.
 
     Returns:
         A new FastAPI application.
     """
 
     logging.info('Building API application.')
+
+    if enable_docs:
+        logging.info("Enabling '/docs/' endpoint.")
 
     app = FastAPI(
         title="Auto-REST",
@@ -149,16 +161,16 @@ def create_app(engine: Engine | AsyncEngine, models: dict[str, ModelBase], enabl
     # Add top level API routes
     app.add_api_route("/", welcome_handler, methods=["GET"], include_in_schema=False)
     app.add_api_route("/version/", version_handler, methods=["GET"], tags=["Application Metadata"])
+
     if enable_meta:
+        logging.info("Enabling '/meta/' endpoint.")
         app.add_api_route(f"/meta/", create_meta_handler(engine), methods=["GET"], tags=["Application Metadata"])
 
     # Add routes for each table
     for model_name, model_class in models.items():
-        route = f"/db/{model_name}"
-        router = create_router(engine, model_class)
-
-        logging.debug(f"Adding API route for '{route}'.")
-        app.include_router(router, prefix=route)
+        logging.debug(f"Adding endpoints for '{model_name}'.")
+        router = create_router(engine, model_class, writable=enable_write)
+        app.include_router(router, prefix=f"/db/{model_name}")
 
     return app
 
