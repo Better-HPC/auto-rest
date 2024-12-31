@@ -3,7 +3,7 @@
 import logging
 
 from fastapi import Depends, HTTPException, Response
-from sqlalchemy import Engine, select
+from sqlalchemy import Engine, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from starlette.requests import Request
@@ -119,3 +119,32 @@ def create_get_record_handler(engine: Engine, model: ModelBase) -> callable:
         return record
 
     return get_record
+
+
+def create_post_record_handler(engine: Engine, model: ModelBase) -> callable:
+    """Create a function to handle POST requests for creating a new record in the database.
+
+    Args:
+        engine: Database engine to use when executing queries.
+        model: The database ORM object to use for database manipulations.
+
+    Returns:
+        An async function to handle POST requests and create a new record.
+    """
+
+    async def post_record(
+        data: create_db_interface(model),
+        session: Session | AsyncSession = Depends(create_session_factory(engine)),
+    ):
+        stmt = insert(model).values(**data.dict())
+        if isinstance(session, AsyncSession):
+            await session.execute(stmt)
+            await session.commit()
+
+        else:
+            session.execute(stmt)
+            session.commit()
+
+        return {"message": "Record created successfully"}
+
+    return post_record

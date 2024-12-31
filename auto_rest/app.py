@@ -11,6 +11,7 @@ from uvicorn.logging import DefaultFormatter
 
 from .handlers import *
 from .dist import version
+from .handlers import create_post_record_handler
 from .models import ModelBase
 
 __all__ = [
@@ -62,6 +63,9 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
     # Add table level endpoint for listing records
     list_handler = create_list_records_handler(engine, model)
     router.add_api_route("/", list_handler, methods=["GET"], tags=[f"{model.__name__}"])
+
+    post_handler = create_post_record_handler(engine, model)
+    router.add_api_route("/", post_handler, methods=["POST"], tags=[f"{model.__name__}"])
 
     # Determine the path for per-record endpoints
     pk_columns = model.__table__.primary_key.columns
