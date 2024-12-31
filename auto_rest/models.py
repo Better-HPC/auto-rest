@@ -4,6 +4,8 @@ import asyncio
 import logging
 from pathlib import Path
 
+import pydantic
+from pydantic.main import ModelT
 from sqlalchemy import create_engine, Engine, MetaData, URL
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncEngine, AsyncSession, create_async_engine
@@ -12,6 +14,7 @@ from sqlalchemy.orm import declarative_base, Session, sessionmaker
 __all__ = [
     "create_db_url",
     "create_db_engine",
+    "create_db_interface",
     "create_db_metadata",
     "create_db_models",
     "create_session_factory",
@@ -156,6 +159,21 @@ def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
     except Exception as e:  # pragma: no cover
         logger.error(f"Error generating models: {e}")
         raise
+
+
+def create_db_interface(model: ModelBase) -> type[ModelT]:
+    """Creates a Pydantic model interface for the given SQLAlchemy model.
+
+    Args:
+        model: A SQLAlchemy model with a defined table schema.
+
+    Returns:
+        A Pydantic model class with the same structure as the provided SQLAlchemy model.
+    """
+
+    # Dynamic Pydantic models require a map of column names to their type and default value
+    columns = {col.name: (col.type.python_type, col.default) for col in model.__table__.columns}
+    return pydantic.create_model(model.__name__, **columns)
 
 
 def create_session_factory(engine: Engine | AsyncEngine, autocommit: bool = False, autoflush: bool = False):
