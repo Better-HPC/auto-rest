@@ -3,8 +3,9 @@
 import logging
 
 from fastapi import Depends, Response
+from pydantic import create_model
 from sqlalchemy import Engine, insert, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.orm import Session
 from starlette import status
 from starlette.requests import Request
@@ -22,20 +23,20 @@ __all__ = [
     "create_patch_record_handler",
     "create_post_record_handler",
     "create_put_record_handler",
+    "version_handler",
     "welcome_handler",
-    "version_handler"
 ]
 
 logger = logging.getLogger(__name__)
 
 
-async def welcome_handler():
+async def welcome_handler() -> dict[str, str]:
     """Return a welcome message in JSON format pointing users to the docs."""
 
     return {"message": "Welcome to Auto-Rest!"}
 
 
-async def version_handler():
+async def version_handler() -> create_model("Version", version=(str, version)):
     """Return the application version number in JSON format."""
 
     return {"version": version}
@@ -51,7 +52,16 @@ def create_meta_handler(engine: Engine) -> callable:
         An async function that returns a dictionary of database metadata.
     """
 
-    async def meta_handler() -> dict:
+    interface = create_model("Meta",
+        dialect=(str, "postgresql"),
+        driver=(str, "asyncpg"),
+        database=(str, "default"),
+        host=(str | None, "localhost"),
+        port=(int | None, 5432),
+        username=(str | None, "postgres"),
+    )
+
+    async def meta_handler() -> interface:
         return {
             "dialect": engine.dialect.name,
             "driver": engine.dialect.driver,
@@ -64,14 +74,23 @@ def create_meta_handler(engine: Engine) -> callable:
     return meta_handler
 
 
-def create_list_records_handler(engine: Engine, model: ModelBase) -> callable:
+def create_list_records_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
+    """Create a function that returns a list of records from the database.
+
+    Args:
+        engine: Database engine to use when executing queries.
+        model: The database ORM object to use for database manipulations.
+
+    Returns:
+        An async function that returns a list of records from the given database model.
+    """
+
     async def list_records(
         response: Response,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
         ordering_params: dict[str, int] = Depends(get_ordering_params),
     ) -> list[create_db_interface(model)]:
-
         query = select(model)
         query = apply_pagination_params(query, pagination_params, response)
         query = apply_ordering_params(query, ordering_params, response)
@@ -81,8 +100,8 @@ def create_list_records_handler(engine: Engine, model: ModelBase) -> callable:
     return list_records
 
 
-def create_get_record_handler(engine: Engine, model: ModelBase) -> callable:
-    """Create a function that returns a single records from the given database model.
+def create_get_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
+    """Create a function for handling GET requests against a single record in the database.
 
     The returned record is identified by the primary key value(s) passed in
     the request path parameters. If the record is not found, a 404 error is raised.
@@ -99,7 +118,6 @@ def create_get_record_handler(engine: Engine, model: ModelBase) -> callable:
         request: Request,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> create_db_interface(model):
-
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
         return get_record_or_404(result)
@@ -107,7 +125,7 @@ def create_get_record_handler(engine: Engine, model: ModelBase) -> callable:
     return get_record
 
 
-def create_post_record_handler(engine: Engine, model: ModelBase) -> callable:
+def create_post_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
     """Create a function to handle POST requests for creating a new record in the database.
 
     Args:
@@ -125,7 +143,6 @@ def create_post_record_handler(engine: Engine, model: ModelBase) -> callable:
         data: interface,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> interface:
-
         query = insert(model).values(**data.dict())
         result = await execute_session_query(session, query)
         await commit_session(session)
@@ -136,7 +153,7 @@ def create_post_record_handler(engine: Engine, model: ModelBase) -> callable:
     return post_record
 
 
-def create_put_record_handler(engine: Engine, model: ModelBase) -> callable:
+def create_put_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
     """Create a function to handle PUT requests for updating a record in the database.
 
     Args:
@@ -168,7 +185,7 @@ def create_put_record_handler(engine: Engine, model: ModelBase) -> callable:
     return put_record
 
 
-def create_patch_record_handler(engine: Engine, model: ModelBase) -> callable:
+def create_patch_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
     """Create a function to handle PATCH requests for partially updating a record in the database.
 
     Args:
@@ -200,8 +217,8 @@ def create_patch_record_handler(engine: Engine, model: ModelBase) -> callable:
     return patch_record
 
 
-def create_delete_record_handler(engine: Engine, model: ModelBase) -> callable:
-    """Create a function to handle DELETE requests for deleting a record in the database.
+def create_delete_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
+    """Create a function to handle DELETE requests for a single record in the database.
 
     Args:
         engine: Database engine to use when executing queries.
@@ -215,7 +232,6 @@ def create_delete_record_handler(engine: Engine, model: ModelBase) -> callable:
         request: Request,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> None:
-
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
 

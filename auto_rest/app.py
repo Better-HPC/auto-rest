@@ -18,7 +18,7 @@ __all__ = [
     "configure_logging",
     "create_app",
     "create_router",
-    "run_app",
+    "run_app"
 ]
 
 logger = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase, writable: bool
 
     # Per-record endpoints are only added for tables with primary keys
     if pk_columns := model.__table__.primary_key.columns:
-        path_params = '/'.join(f'{{{col.name}}}' for col in pk_columns)
+        path_params = "/".join(f"{{{col.name}}}" for col in pk_columns)
 
         # Add GET support against a single record
         router.add_api_route(
@@ -145,7 +145,7 @@ def create_app(
         A new FastAPI application.
     """
 
-    logging.info('Building API application.')
+    logging.info("Building API application.")
 
     if enable_docs:
         logging.info("Enabling '/docs/' endpoint.")

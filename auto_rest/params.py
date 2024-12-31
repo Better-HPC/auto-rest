@@ -107,10 +107,10 @@ def apply_ordering_params(query: Select, params: dict, response: Response) -> Se
     response.headers["X-Order-By"] = order_by
     response.headers["X-Order-Direction"] = direction
 
-    if direction == 'asc':
+    if direction == "asc":
         return query.order_by(asc(order_by))
 
-    if direction == 'desc':
+    if direction == "desc":
         return query.order_by(desc(order_by))
 
     raise ValueError("Ordering parameter must be 'asc' or 'desc'.")

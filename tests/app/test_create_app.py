@@ -18,7 +18,7 @@ class TestCreateApp(TestCase):
         """Set up a temporary SQLite database."""
 
         # Create a temporary SQLite database
-        cls.temp_file = tempfile.NamedTemporaryFile(suffix='.db', delete=False)
+        cls.temp_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
         cls.engine = create_engine(f"sqlite:///{cls.temp_file.name}", echo=True)
 
         # Mock models for database tables

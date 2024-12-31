@@ -44,7 +44,7 @@ def run_application(
     pool_out: int | None,
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
 ) -> None:
-    """Map a database schema and launch an API server.
+    """Run an Auto-REST API server.
 
     This function accepts the same arguments as the CLI and is functionally
     equivalent as launching an API server from the command line.
