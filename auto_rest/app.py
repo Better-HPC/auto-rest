@@ -12,7 +12,6 @@ from uvicorn.logging import DefaultFormatter
 
 from .dist import version
 from .handlers import *
-from .handlers import create_post_record_handler
 from .models import ModelBase
 
 __all__ = [
@@ -86,11 +85,37 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
         path_params = '/'.join(f'{{{col.name}}}' for col in pk_columns)
 
         # Add GET support against a single record
-        get_record_handler = create_get_record_handler(engine, model)
         router.add_api_route(
             path=f"/{path_params}/",
             methods=["GET"],
-            endpoint=get_record_handler,
+            endpoint=create_get_record_handler(engine, model),
+            status_code=status.HTTP_200_OK,
+            tags=[model.__name__]
+        )
+
+        # Add PUT support against a single record
+        router.add_api_route(
+            path=f"/{path_params}/",
+            methods=["PUT"],
+            endpoint=create_put_record_handler(engine, model),
+            status_code=status.HTTP_200_OK,
+            tags=[model.__name__]
+        )
+
+        # Add PATCH support against a single record
+        router.add_api_route(
+            path=f"/{path_params}/",
+            methods=["PATCH"],
+            endpoint=create_patch_record_handler(engine, model),
+            status_code=status.HTTP_200_OK,
+            tags=[model.__name__]
+        )
+
+        # Add DELETE support against a single record
+        router.add_api_route(
+            path=f"/{path_params}/",
+            methods=["DELETE"],
+            endpoint=create_delete_record_handler(engine, model),
             status_code=status.HTTP_200_OK,
             tags=[model.__name__]
         )
