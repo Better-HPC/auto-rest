@@ -4,7 +4,7 @@ from fastapi import Response
 from sqlalchemy.sql import select
 from sqlalchemy.sql.expression import asc, desc, Select
 
-from auto_rest.utils import apply_ordering_params
+from auto_rest.params import apply_ordering_params
 
 
 class TestApplyOrderingParams(TestCase):

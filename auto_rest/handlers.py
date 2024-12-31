@@ -2,7 +2,7 @@
 
 import logging
 
-from fastapi import Depends, HTTPException, Response
+from fastapi import Depends, Response
 from sqlalchemy import Engine, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
@@ -11,7 +11,8 @@ from starlette.requests import Request
 
 from .dist import version
 from .models import *
-from .utils import *
+from .params import *
+from .queries import *
 
 __all__ = [
     "create_get_record_handler",
@@ -60,16 +61,6 @@ def create_meta_handler(engine: Engine) -> callable:
 
 
 def create_list_records_handler(engine: Engine, model: ModelBase) -> callable:
-    """Create a function that returns a list of records from the given database model.
-
-    Args:
-        engine: Database engine to use when executing queries.
-        model: The database ORM object to use for database manipulations.
-
-    Returns:
-        An async function that returns a list of records from the given database model.
-    """
-
     async def list_records(
         response: Response,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
@@ -79,11 +70,8 @@ def create_list_records_handler(engine: Engine, model: ModelBase) -> callable:
         query = select(model)
         query = apply_pagination_params(query, pagination_params, response)
         query = apply_ordering_params(query, ordering_params, response)
-
-        if isinstance(session, AsyncSession):
-            return (await session.execute(query)).scalars().all()
-
-        return session.execute(query).scalars().all()
+        result = await execute_session_query(session, query)
+        return result.scalars().all()
 
     return list_records
 
@@ -106,18 +94,9 @@ def create_get_record_handler(engine: Engine, model: ModelBase) -> callable:
         request: Request,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> create_db_interface(model):
-
         query = select(model).filter_by(**request.path_params)
-        if isinstance(session, AsyncSession):
-            result = await session.execute(query)
-
-        else:
-            result = session.execute(query)
-
-        if not (record := result.scalar_one_or_none()):
-            raise HTTPException(status_code=status.HTTP_201_CREATED, detail="Record not found")
-
-        return record
+        result = await execute_session_query(session, query)
+        return get_record_or_404(result)
 
     return get_record
 
@@ -140,16 +119,99 @@ def create_post_record_handler(engine: Engine, model: ModelBase) -> callable:
         data: interface,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> interface:
-        stmt = insert(model).values(**data.dict())
-        if isinstance(session, AsyncSession):
-            result = await session.execute(stmt)
-            await session.commit()
-
-        else:
-            result = session.execute(stmt)
-            session.commit()
+        query = insert(model).values(**data.dict())
+        result = await execute_session_query(session, query)
+        await commit_session(session)
 
         response.status_code = status.HTTP_201_CREATED
         return result.fetchone()
 
     return post_record
+
+
+def create_put_record_handler(engine: Engine, model: ModelBase) -> callable:
+    """Create a function to handle PUT requests for updating a record in the database.
+
+    Args:
+        engine: Database engine to use when executing queries.
+        model: The database ORM object to use for database manipulations.
+
+    Returns:
+        An async function to handle PUT requests and update a record.
+    """
+
+    interface = create_db_interface(model)
+
+    async def put_record(
+        request: Request,
+        data: interface,
+        session: Session | AsyncSession = Depends(create_session_factory(engine)),
+    ) -> interface:
+
+        query = select(model).filter_by(**request.path_params)
+        result = await execute_session_query(session, query)
+
+        record = get_record_or_404(result)
+        for key, value in data.dict().items():
+            setattr(record, key, value)
+
+        await commit_session(session)
+        return record
+
+    return put_record
+
+
+def create_patch_record_handler(engine: Engine, model: ModelBase) -> callable:
+    """Create a function to handle PATCH requests for partially updating a record in the database.
+
+    Args:
+        engine: Database engine to use when executing queries.
+        model: The database ORM object to use for database manipulations.
+
+    Returns:
+        An async function to handle PATCH requests and partially update a record.
+    """
+
+    interface = create_db_interface(model)
+
+    async def patch_record(
+        request: Request,
+        data: interface,
+        session: Session | AsyncSession = Depends(create_session_factory(engine)),
+    ) -> interface:
+
+        query = select(model).filter_by(**request.path_params)
+        result = await execute_session_query(session, query)
+
+        record = get_record_or_404(result)
+        for key, value in data.dict(exclude_unset=True).items():
+            setattr(record, key, value)
+
+        await commit_session(session)
+        return record
+
+    return patch_record
+
+
+def create_delete_record_handler(engine: Engine, model: ModelBase) -> callable:
+    """Create a function to handle DELETE requests for deleting a record in the database.
+
+    Args:
+        engine: Database engine to use when executing queries.
+        model: The database ORM object to use for database manipulations.
+
+    Returns:
+        An async function to handle DELETE requests and delete a record.
+    """
+
+    async def delete_record(
+        request: Request,
+        session: Session | AsyncSession = Depends(create_session_factory(engine)),
+    ) -> None:
+        query = select(model).filter_by(**request.path_params)
+        result = await execute_session_query(session, query)
+
+        record = get_record_or_404(result)
+        await delete_session_record(record, session)
+
+    return delete_record
