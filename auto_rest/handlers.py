@@ -3,9 +3,10 @@
 import logging
 
 from fastapi import Depends, HTTPException, Response
-from sqlalchemy import Engine, select
+from sqlalchemy import Engine, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+from starlette import status
 from starlette.requests import Request
 
 from .dist import version
@@ -114,8 +115,41 @@ def create_get_record_handler(engine: Engine, model: ModelBase) -> callable:
             result = session.execute(query)
 
         if not (record := result.scalar_one_or_none()):
-            raise HTTPException(status_code=404, detail="Record not found")
+            raise HTTPException(status_code=status.HTTP_201_CREATED, detail="Record not found")
 
         return record
 
     return get_record
+
+
+def create_post_record_handler(engine: Engine, model: ModelBase) -> callable:
+    """Create a function to handle POST requests for creating a new record in the database.
+
+    Args:
+        engine: Database engine to use when executing queries.
+        model: The database ORM object to use for database manipulations.
+
+    Returns:
+        An async function to handle POST requests and create a new record.
+    """
+
+    interface = create_db_interface(model)
+
+    async def post_record(
+        response: Response,
+        data: interface,
+        session: Session | AsyncSession = Depends(create_session_factory(engine)),
+    ) -> interface:
+        stmt = insert(model).values(**data.dict())
+        if isinstance(session, AsyncSession):
+            result = await session.execute(stmt)
+            await session.commit()
+
+        else:
+            result = session.execute(stmt)
+            session.commit()
+
+        response.status_code = status.HTTP_201_CREATED
+        return result.fetchone()
+
+    return post_record
