@@ -14,7 +14,7 @@ class TestCreateDbEngine(TestCase):
     def setUp(self) -> None:
         """Set up a temporary SQLite database file for testing."""
 
-        self.temp_file = tempfile.NamedTemporaryFile(suffix='.db')
+        self.temp_file = tempfile.NamedTemporaryFile(suffix=".db")
 
     def tearDown(self) -> None:
         """Clean up the temporary database file after tests."""

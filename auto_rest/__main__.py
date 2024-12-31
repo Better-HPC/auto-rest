@@ -38,12 +38,13 @@ def run_application(
     server_port: int,
     enable_docs: bool,
     enable_meta: bool,
+    enable_write: bool,
     pool_min: int | None,
     pool_max: int | None,
     pool_out: int | None,
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
 ) -> None:
-    """Map a database schema and launch an API server.
+    """Run an Auto-REST API server.
 
     This function accepts the same arguments as the CLI and is functionally
     equivalent as launching an API server from the command line.
@@ -59,6 +60,7 @@ def run_application(
         server_port: The API server port number.
         enable_docs: Whether to enable the 'docs' API endpoint.
         enable_meta: Whether to enable the 'meta' API endpoint.
+        enable_write: Whether to enable writable operations.
         pool_min: Minimum number of maintained database connections.
         pool_max: Maximum number of allowed database connections.
         pool_out: Timeout in seconds to wait for a database connection before timing out.
@@ -78,5 +80,5 @@ def run_application(
     db_models = create_db_models(db_meta)
 
     # Build and launch the app
-    app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs)
+    app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs, enable_write=enable_write)
     run_app(app, server_host, server_port, log_level=log_level)

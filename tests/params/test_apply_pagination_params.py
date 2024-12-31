@@ -4,7 +4,7 @@ from fastapi import Response
 from sqlalchemy.sql import select
 from sqlalchemy.sql.expression import Select
 
-from auto_rest.utils import apply_pagination_params
+from auto_rest.params import apply_pagination_params
 
 
 class TestApplyPaginationParams(TestCase):

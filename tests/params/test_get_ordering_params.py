@@ -3,7 +3,7 @@ from unittest import TestCase
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
 
-from auto_rest.utils import get_ordering_params
+from auto_rest.params import get_ordering_params
 
 
 class TestGetOrderingParams(TestCase):
