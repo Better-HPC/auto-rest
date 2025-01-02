@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from sqlalchemy import Column, create_engine, INTEGER, MetaData, Table, VARCHAR
+from sqlalchemy import Column, INTEGER, MetaData, Table, VARCHAR
 
 from auto_rest.models import create_db_models
 
@@ -12,7 +12,6 @@ class TestCreateDbModels(TestCase):
     def setUpClass(cls) -> None:
         """Set up an in-memory SQLite database with test tables."""
 
-        cls.engine = create_engine("sqlite:///:memory:")
         cls.metadata = MetaData()
 
         cls.test_table1 = Table(
@@ -28,14 +27,6 @@ class TestCreateDbModels(TestCase):
             Column("id", INTEGER, primary_key=True),
             Column("description", VARCHAR(100)),
         )
-
-        cls.metadata.create_all(cls.engine)
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        """Clean up testing resources."""
-
-        cls.engine.dispose()
 
     def test_models_are_created(self) -> None:
         """Test models are generated for each table."""

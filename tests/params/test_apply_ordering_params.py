@@ -54,7 +54,7 @@ class TestApplyOrderingParams(TestCase):
         self.assertEqual(None, self.response.headers.get("X-Order-By"))
         self.assertEqual(None, self.response.headers.get("X-Order-Direction"))
 
-    def test_missing_order_by_param(self):
+    def test_missing_order_by_param(self) -> None:
         """Test ordering is not applied when the `order_by` parameter is not provided."""
 
         params = {"direction": "desc"}
@@ -66,7 +66,7 @@ class TestApplyOrderingParams(TestCase):
         self.assertEqual(None, self.response.headers.get("X-Order-Direction"))
 
     @skip("This test requires implementing additional testing structures.")
-    def test_invalid_order_by_param(self):
+    def test_invalid_order_by_param(self) -> None:
         """Test a `ValueError` is raised for an invalid `order_by` parameter."""
 
         self.fail()

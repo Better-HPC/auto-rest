@@ -35,7 +35,7 @@ class TestCreateArgumentParser(TestCase):
         with self.assertRaises(ArgumentError):
             self.parser.parse_args(["--sqlite", "--db-name", "default", "--log-level", "INVALID"])
 
-    def test_db_driver_selection(self) -> None:
+    def test_db_driver(self) -> None:
         """Test mutually exclusive arguments for database driver selection."""
 
         # Test valid database driver options
@@ -49,6 +49,28 @@ class TestCreateArgumentParser(TestCase):
         # Test custom driver
         args = self.parser.parse_args(["--driver", "custom-driver", "--db-name", "default"])
         self.assertEqual("custom-driver", args.db_driver)
+
+    def test_enable_docs_flag(self) -> None:
+        """Test the `--enable-docs` flag behavior."""
+
+        # Default should be False
+        args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
+        self.assertFalse(args.enable_docs)
+
+        # Test enabling docs
+        args = self.parser.parse_args(["--sqlite", "--db-name", "default", "--enable-docs"])
+        self.assertTrue(args.enable_docs)
+
+    def test_enable_meta_flag(self) -> None:
+        """Test the `--enable-meta` flag behavior."""
+
+        # Default should be False
+        args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
+        self.assertFalse(args.enable_meta)
+
+        # Test enabling meta
+        args = self.parser.parse_args(["--sqlite", "--db-name", "default", "--enable-meta"])
+        self.assertTrue(args.enable_meta)
 
     def test_db_settings(self) -> None:
         """Test database-related arguments and default values."""
@@ -96,28 +118,6 @@ class TestCreateArgumentParser(TestCase):
         self.assertEqual(5, args.pool_min)
         self.assertEqual(20, args.pool_max)
         self.assertEqual(30, args.pool_out)
-
-    def test_enable_docs_flag(self) -> None:
-        """Test the `--enable-docs` flag behavior."""
-
-        # Default should be False
-        args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
-        self.assertFalse(args.enable_docs)
-
-        # Test enabling docs
-        args = self.parser.parse_args(["--sqlite", "--db-name", "default", "--enable-docs"])
-        self.assertTrue(args.enable_docs)
-
-    def test_enable_meta_flag(self) -> None:
-        """Test the `--enable-meta` flag behavior."""
-
-        # Default should be False
-        args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
-        self.assertFalse(args.enable_meta)
-
-        # Test enabling meta
-        args = self.parser.parse_args(["--sqlite", "--db-name", "default", "--enable-meta"])
-        self.assertTrue(args.enable_meta)
 
     def test_server_settings(self) -> None:
         """Test server related settings and default values."""
