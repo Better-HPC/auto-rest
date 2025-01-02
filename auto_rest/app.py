@@ -47,19 +47,26 @@ def configure_logging(level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITI
     )
 
 
-def create_router(engine: Engine | AsyncEngine, model: ModelBase, writable: bool = False) -> APIRouter:
+def create_router(engine: Engine | AsyncEngine, model: ModelBase) -> APIRouter:
     """Create an API router with endpoint handlers for the given database model.
 
     Args:
         engine: The SQLAlchemy engine connected to the database.
         model: The ORM model class representing a database table.
-        writable: Whether to add support for write operations (POST, PUT, PATCH, DELETE).
 
     Returns:
         An APIRouter instance with routes for database operations on the model.
     """
 
     router = APIRouter()
+
+    # Construct per-record endpoint paths from primary keys
+    pk_columns = model.__table__.primary_key.columns
+    path_params = "/".join(f"{{{col.name}}}" for col in pk_columns)
+
+    # This should never happen, but is handled here just in case
+    if not pk_columns:  # pragma: no cover
+        raise RuntimeError(f"No primary key columns found for table {model.__tablename__}.")
 
     # Add GET support against the table
     router.add_api_route(
@@ -71,56 +78,49 @@ def create_router(engine: Engine | AsyncEngine, model: ModelBase, writable: bool
     )
 
     # Add POST support against the table
-    if writable:
-        router.add_api_route(
-            path="/",
-            methods=["POST"],
-            endpoint=create_post_record_handler(engine, model),
-            status_code=status.HTTP_201_CREATED,
-            tags=[model.__name__]
-        )
+    router.add_api_route(
+        path="/",
+        methods=["POST"],
+        endpoint=create_post_record_handler(engine, model),
+        status_code=status.HTTP_201_CREATED,
+        tags=[model.__name__]
+    )
 
-    # Per-record endpoints are only added for tables with primary keys
-    if pk_columns := model.__table__.primary_key.columns:
-        path_params = "/".join(f"{{{col.name}}}" for col in pk_columns)
+    # Add GET support against a single record
+    router.add_api_route(
+        path=f"/{path_params}/",
+        methods=["GET"],
+        endpoint=create_get_record_handler(engine, model),
+        status_code=status.HTTP_200_OK,
+        tags=[model.__name__]
+    )
 
-        # Add GET support against a single record
-        router.add_api_route(
-            path=f"/{path_params}/",
-            methods=["GET"],
-            endpoint=create_get_record_handler(engine, model),
-            status_code=status.HTTP_200_OK,
-            tags=[model.__name__]
-        )
+    # Add PUT support against a single record
+    router.add_api_route(
+        path=f"/{path_params}/",
+        methods=["PUT"],
+        endpoint=create_put_record_handler(engine, model),
+        status_code=status.HTTP_200_OK,
+        tags=[model.__name__]
+    )
 
-    if pk_columns and writable:
+    # Add PATCH support against a single record
+    router.add_api_route(
+        path=f"/{path_params}/",
+        methods=["PATCH"],
+        endpoint=create_patch_record_handler(engine, model),
+        status_code=status.HTTP_200_OK,
+        tags=[model.__name__]
+    )
 
-        # Add PUT support against a single record
-        router.add_api_route(
-            path=f"/{path_params}/",
-            methods=["PUT"],
-            endpoint=create_put_record_handler(engine, model),
-            status_code=status.HTTP_200_OK,
-            tags=[model.__name__]
-        )
-
-        # Add PATCH support against a single record
-        router.add_api_route(
-            path=f"/{path_params}/",
-            methods=["PATCH"],
-            endpoint=create_patch_record_handler(engine, model),
-            status_code=status.HTTP_200_OK,
-            tags=[model.__name__]
-        )
-
-        # Add DELETE support against a single record
-        router.add_api_route(
-            path=f"/{path_params}/",
-            methods=["DELETE"],
-            endpoint=create_delete_record_handler(engine, model),
-            status_code=status.HTTP_200_OK,
-            tags=[model.__name__]
-        )
+    # Add DELETE support against a single record
+    router.add_api_route(
+        path=f"/{path_params}/",
+        methods=["DELETE"],
+        endpoint=create_delete_record_handler(engine, model),
+        status_code=status.HTTP_200_OK,
+        tags=[model.__name__]
+    )
 
     return router
 
@@ -130,7 +130,6 @@ def create_app(
     models: dict[str, ModelBase],
     enable_meta: bool = False,
     enable_docs: bool = False,
-    enable_write: bool = False,
 ) -> FastAPI:
     """Initialize a new FastAPI Application.
 
@@ -139,7 +138,6 @@ def create_app(
         models: Mapping of database model names to ORM classes.
         enable_meta: Add a `meta` API endpoint with DB metadata.
         enable_docs: Add a `docs` API endpoint with API documentation.
-        enable_write: Add support for write operations.
 
     Returns:
         A new FastAPI application.
@@ -169,7 +167,7 @@ def create_app(
     # Add routes for each table
     for model_name, model_class in models.items():
         logging.debug(f"Adding endpoints for '{model_name}'.")
-        router = create_router(engine, model_class, writable=enable_write)
+        router = create_router(engine, model_class)
         app.include_router(router, prefix=f"/db/{model_name}")
 
     return app
