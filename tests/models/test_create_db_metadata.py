@@ -1,7 +1,7 @@
 import asyncio
 from unittest import TestCase
 
-from sqlalchemy import Column, create_engine, Engine, INTEGER, MetaData, Table, VARCHAR
+from sqlalchemy import Column, create_engine, Engine, INTEGER, MetaData, Table
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from auto_rest.models import create_db_metadata
@@ -43,6 +43,8 @@ class TestCreateDbMetadata(TestCase):
         self.assertIsInstance(metadata, MetaData)
         self.assertEqual(2, len(metadata.tables))
 
+        engine.dispose()
+
     def test_synchronous_metadata_empty_database(self) -> None:
         """Test metadata mapping with a synchronous engine against an empty database."""
 
@@ -51,6 +53,8 @@ class TestCreateDbMetadata(TestCase):
         metadata = create_db_metadata(engine)
         self.assertIsInstance(metadata, MetaData)
         self.assertEqual(0, len(metadata.tables))
+
+        engine.dispose()
 
     def test_asynchronous_metadata(self) -> None:
         """Test metadata mapping with an asynchronous engine."""
@@ -62,6 +66,8 @@ class TestCreateDbMetadata(TestCase):
         self.assertIsInstance(metadata, MetaData)
         self.assertEqual(2, len(metadata.tables))
 
+        asyncio.run(async_engine.dispose())
+
     def test_asynchronous_metadata_empty_database(self) -> None:
         """Test metadata mapping with an asynchronous engine against an empty database."""
 
@@ -70,3 +76,5 @@ class TestCreateDbMetadata(TestCase):
         metadata = create_db_metadata(async_engine)
         self.assertIsInstance(metadata, MetaData)
         self.assertEqual(0, len(metadata.tables))
+
+        asyncio.run(async_engine.dispose())
