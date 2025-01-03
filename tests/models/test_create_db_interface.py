@@ -44,10 +44,10 @@ class TestCreateDbInterface(unittest.TestCase):
     def test_field_defaults(self) -> None:
         """Test interface fields have the correct default values."""
 
-        self.assertIsNone(self.interface.__fields__["id"].default)
-        self.assertIsNone(self.interface.__fields__["title"].default)
-        self.assertEqual(self.interface.__fields__["rating"].default.arg, 5)
+        self.assertIsNone(self.interface.model_fields["id"].default)
+        self.assertIsNone(self.interface.model_fields["title"].default)
+        self.assertEqual(self.interface.model_fields["rating"].default.arg, 5)
 
-        default_created_at = self.interface.__fields__["created_at"].default.arg
+        default_created_at = self.interface.model_fields["created_at"].default.arg
         self.assertTrue(callable(default_created_at))
         self.assertEqual(date.today(), default_created_at(None))

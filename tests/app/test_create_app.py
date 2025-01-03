@@ -32,7 +32,7 @@ class TestCreateApp(TestCase):
     def setUpClass(cls) -> None:
         """Set up a temporary SQLite database."""
 
-        cls.engine = create_engine(f"sqlite:///:memory:", echo=True)
+        cls.engine = create_engine("sqlite:///:memory:")
         Base.metadata.create_all(bind=cls.engine)
 
         cls.mock_models = {
