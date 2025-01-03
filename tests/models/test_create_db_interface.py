@@ -27,7 +27,7 @@ class TestCreateDbInterface(unittest.TestCase):
 
         cls.interface = create_db_interface(DummyOrmModel)
 
-    def test_interface_fields(self):
+    def test_interface_fields(self) -> None:
         """Test the generated Pydantic model has the correct fields."""
 
         self.assertTrue(issubclass(self.interface, pydantic.BaseModel))

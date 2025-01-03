@@ -3,8 +3,8 @@
 import logging
 from typing import Literal
 
-from .app import *
-from .cli import *
+from auto_rest.app import *
+from auto_rest.cli import *
 from .models import *
 
 __all__ = ["main", "run_application"]
@@ -38,7 +38,6 @@ def run_application(
     server_port: int,
     enable_docs: bool,
     enable_meta: bool,
-    enable_write: bool,
     pool_min: int | None,
     pool_max: int | None,
     pool_out: int | None,
@@ -60,7 +59,6 @@ def run_application(
         server_port: The API server port number.
         enable_docs: Whether to enable the 'docs' API endpoint.
         enable_meta: Whether to enable the 'meta' API endpoint.
-        enable_write: Whether to enable writable operations.
         pool_min: Minimum number of maintained database connections.
         pool_max: Maximum number of allowed database connections.
         pool_out: Timeout in seconds to wait for a database connection before timing out.
@@ -80,5 +78,5 @@ def run_application(
     db_models = create_db_models(db_meta)
 
     # Build and launch the app
-    app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs, enable_write=enable_write)
+    app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs)
     run_app(app, server_host, server_port, log_level=log_level)

@@ -1,13 +1,28 @@
-import tempfile
 from unittest import TestCase
-from unittest.mock import MagicMock
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import Column, create_engine, INTEGER
+from sqlalchemy.orm import declarative_base
 
 from auto_rest.app import create_app
 from auto_rest.dist import version
+
+Base = declarative_base()
+
+
+class MockTestTable1(Base):
+    """ORM model for a mock table called `test_table1`."""
+
+    __tablename__ = "test_table1"
+    col1 = Column(INTEGER, primary_key=True)
+
+
+class MockTestTable2(Base):
+    """ORM model for a mock table called `test_table2`."""
+
+    __tablename__ = "test_table2"
+    col2 = Column(INTEGER, primary_key=True)
 
 
 class TestCreateApp(TestCase):
@@ -17,46 +32,32 @@ class TestCreateApp(TestCase):
     def setUpClass(cls) -> None:
         """Set up a temporary SQLite database."""
 
-        # Create a temporary SQLite database
-        cls.temp_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-        cls.engine = create_engine(f"sqlite:///{cls.temp_file.name}", echo=True)
+        cls.engine = create_engine(f"sqlite:///:memory:", echo=True)
+        Base.metadata.create_all(bind=cls.engine)
 
-        # Mock models for database tables
         cls.mock_models = {
-            "user": MagicMock(
-                __name__="User",
-                __table__=MagicMock(
-                    primary_key=MagicMock(
-                        columns=[MagicMock(name="id")]
-                    )
-                )
-            )
+            "test_table1": MockTestTable1,
+            "test_table2": MockTestTable2,
         }
 
         # Create a new FastAPI app using default options
         cls.app: FastAPI = create_app(cls.engine, cls.mock_models)
         cls.client = TestClient(cls.app)
 
-    @classmethod
-    def tearDownClass(cls) -> None:
-        """Clean up the temporary database file."""
-
-        cls.temp_file.close()
-
-    def test_app_meta(self) -> None:
+    def test_app_metadata(self) -> None:
         """Test the application's metadata attributes."""
 
         self.assertEqual("Auto-REST", self.app.title)
         self.assertEqual(version, self.app.version)
 
-    def test_root_handler(self) -> None:
-        """Test the application has a root handler."""
+    def test_has_root_endpoint(self) -> None:
+        """Test the application has a root endpoint."""
 
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
 
-    def test_version_handler(self) -> None:
-        """Test the application has a version endpoint handler."""
+    def test_has_version_endpoint(self) -> None:
+        """Test the application has a version endpoint."""
 
         response = self.client.get("/version")
         self.assertEqual(200, response.status_code)
@@ -66,6 +67,7 @@ class TestCreateApp(TestCase):
 
         default_app = create_app(self.engine, self.mock_models)
         default_client = TestClient(default_app)
+
         response = default_client.get("/docs")
         self.assertEqual(404, response.status_code)
 
@@ -74,6 +76,7 @@ class TestCreateApp(TestCase):
 
         default_app = create_app(self.engine, self.mock_models, enable_docs=True)
         default_client = TestClient(default_app)
+
         response = default_client.get("/docs")
         self.assertEqual(200, response.status_code)
 
@@ -82,6 +85,7 @@ class TestCreateApp(TestCase):
 
         default_app = create_app(self.engine, self.mock_models)
         default_client = TestClient(default_app)
+
         response = default_client.get("/meta")
         self.assertEqual(404, response.status_code)
 
@@ -90,10 +94,11 @@ class TestCreateApp(TestCase):
 
         default_app = create_app(self.engine, self.mock_models, enable_meta=True)
         default_client = TestClient(default_app)
+
         response = default_client.get("/meta")
         self.assertEqual(200, response.status_code)
 
-    def test_dynamic_routes(self) -> None:
+    def test_has_dynamic_routes(self) -> None:
         """Test dynamically created routes exist for each model."""
 
         for model_name in self.mock_models:
@@ -101,8 +106,8 @@ class TestCreateApp(TestCase):
             route_exists = any(route.path == route_path for route in self.app.routes)
             self.assertTrue(route_exists, f"Route {route_path} does not exist.")
 
-    def test_invalid_route(self) -> None:
-        """Test accessing an invalid route."""
+    def test_invalid_route_494(self) -> None:
+        """Test accessing an invalid route returns a 404."""
 
         response = self.client.get("/invalid")
         self.assertEqual(404, response.status_code)
