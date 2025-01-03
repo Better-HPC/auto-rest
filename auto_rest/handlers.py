@@ -7,7 +7,6 @@ from pydantic import create_model
 from sqlalchemy import Engine, insert, select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.orm import Session
-from starlette import status
 from starlette.requests import Request
 
 from .dist import version
@@ -86,11 +85,24 @@ def create_list_records_handler(engine: Engine | AsyncEngine, model: ModelBase) 
     """
 
     async def list_records(
+        request: Request,
         response: Response,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
         ordering_params: dict[str, int] = Depends(get_ordering_params),
     ) -> list[create_db_interface(model)]:
+        """Fetch a list of records, applying filtering, pagination, and ordering parameters.
+
+        Header values summarizing the applied operations are attached to the provided response object.
+        
+        Args:
+            request: The incoming HTTP request.
+            response: The outgoing HTTP response.
+            session: The database session to use.
+            pagination_params: Pagination parameters parsed from URL query params.
+            ordering_params: Ordering parameters parsed from URL query params.
+        """
+
         query = select(model)
         query = apply_pagination_params(query, pagination_params, response)
         query = apply_ordering_params(query, ordering_params, response)
@@ -102,9 +114,6 @@ def create_list_records_handler(engine: Engine | AsyncEngine, model: ModelBase) 
 
 def create_get_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
     """Create a function for handling GET requests against a single record in the database.
-
-    The returned record is identified by the primary key value(s) passed in
-    the request path parameters. If the record is not found, a 404 error is raised.
 
     Args:
         engine: Database engine to use when executing queries.
@@ -118,6 +127,19 @@ def create_get_record_handler(engine: Engine | AsyncEngine, model: ModelBase) ->
         request: Request,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> create_db_interface(model):
+        """Fetch a single record from the database.
+
+        Path parameters from the incoming request are used as primary key values for
+        the handled record.
+
+        Args:
+            request: The incoming HTTP request.
+            session: The database session to use.
+
+        Returns:
+            The requested record values.
+        """
+
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
         return get_record_or_404(result)
@@ -139,15 +161,24 @@ def create_post_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -
     interface = create_db_interface(model)
 
     async def post_record(
-        response: Response,
+        request: Request,
         data: interface,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> interface:
+        """Create a new record in the database.
+        
+        Args:
+            request: The incoming HTTP request.
+            data: Key value pairs representing record field values.
+            session: The database session to use.
+
+        Returns:
+            A copy of the new record values.
+        """
+
         query = insert(model).values(**data.dict())
         result = await execute_session_query(session, query)
         await commit_session(session)
-
-        response.status_code = status.HTTP_201_CREATED
         return result.fetchone()
 
     return post_record
@@ -171,6 +202,19 @@ def create_put_record_handler(engine: Engine | AsyncEngine, model: ModelBase) ->
         data: interface,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> interface:
+        """Replace record values in the database with the provided data.
+
+        Path parameters from the incoming request are used as primary key values for
+        the handled record.
+        
+        Args:
+            request: The incoming HTTP request.
+            data: Key value pairs representing record field values.
+            session: The database session to use.
+
+        Returns:
+            A copy of the new record values.
+        """
 
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
@@ -203,6 +247,19 @@ def create_patch_record_handler(engine: Engine | AsyncEngine, model: ModelBase) 
         data: interface,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> interface:
+        """Update record values in the database with the provided data.
+
+        Path parameters from the incoming request are used as primary key values for
+        the handled record.
+
+        Args:
+            request: The incoming HTTP request.
+            data: Key value pairs representing record field values.
+            session: The database session to use.
+
+        Returns:
+            A copy of the new record values.
+        """
 
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
@@ -232,6 +289,16 @@ def create_delete_record_handler(engine: Engine | AsyncEngine, model: ModelBase)
         request: Request,
         session: Session | AsyncSession = Depends(create_session_factory(engine)),
     ) -> None:
+        """Delete a single record from the database.
+
+        Path parameters from the incoming request are used as primary key values for
+        the handled record.
+
+        Args:
+            request: The incoming HTTP request.
+            session: The database session to use.
+        """
+
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
 
