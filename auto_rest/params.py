@@ -36,7 +36,7 @@ def apply_pagination_params(query: Select, params: dict[str, int], response: Res
     """Apply pagination to a database query.
 
     Returns a copy of the provided query with offset and limit parameters applied.
-    Compatible with parameters returned by the `get_pagination_params` dependency.
+    Compatible with parameters returned by the `get_pagination_params` method.
 
     Args:
         query: The database query to apply parameters to.
@@ -51,17 +51,16 @@ def apply_pagination_params(query: Select, params: dict[str, int], response: Res
     offset = params.get("offset", 0)
 
     if limit < 0 or offset < 0:
-        raise ValueError("Pagination parameters must be greater than zero.")
+        raise ValueError("Pagination parameters must be greater than or equal to zero.")
 
-    elif limit == 0:
+    if limit == 0:
         response.headers["X-Pagination-Applied"] = "false"
         return query
 
-    else:
-        response.headers["X-Pagination-Applied"] = "true"
-        response.headers["X-Pagination-Limit"] = str(limit)
-        response.headers["X-Pagination-Offset"] = str(offset)
-        return query.offset(offset).limit(limit)
+    response.headers["X-Pagination-Applied"] = "true"
+    response.headers["X-Pagination-Limit"] = str(limit)
+    response.headers["X-Pagination-Offset"] = str(offset)
+    return query.offset(offset).limit(limit)
 
 
 def get_ordering_params(
@@ -85,7 +84,7 @@ def apply_ordering_params(query: Select, params: dict, response: Response) -> Se
     """Apply ordering to a database query.
 
     Returns a copy of the provided query with ordering parameters applied.
-    Intended for use with parameters returned by the `get_ordering_params` dependency.
+    Compatible with parameters returned by the `get_ordering_params` method.
 
     Args:
         query: The database query to apply parameters to.
@@ -113,4 +112,4 @@ def apply_ordering_params(query: Select, params: dict, response: Response) -> Se
     if direction == "desc":
         return query.order_by(desc(order_by))
 
-    raise ValueError("Ordering parameter must be 'asc' or 'desc'.")
+    raise ValueError("Ordering direction must be 'asc' or 'desc'.")

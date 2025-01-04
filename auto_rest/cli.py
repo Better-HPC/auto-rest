@@ -1,8 +1,7 @@
 """Defines the application command line interface and argument parser."""
 
+import importlib.metadata
 from argparse import ArgumentParser
-
-from .dist import summary, version
 
 __all__ = ["create_argument_parser"]
 
@@ -19,11 +18,11 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
 
     parser = ArgumentParser(
         prog="auto-rest",
-        description=summary,
+        description="Automatically map database schemas and deploy per-table REST API endpoints.",
         exit_on_error=exit_on_error
     )
 
-    parser.add_argument("--version", action="version", version=version)
+    parser.add_argument("--version", action="version", version=importlib.metadata.version(__package__))
     parser.add_argument(
         "--log-level",
         default="INFO",

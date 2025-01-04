@@ -12,7 +12,9 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncEngine, AsyncSession
 from sqlalchemy.orm import declarative_base, Session, sessionmaker
 
 __all__ = [
-    "ModelBase",
+    "DBEngine",
+    "DBModel",
+    "DBSession",
     "create_db_engine",
     "create_db_interface",
     "create_db_metadata",
@@ -22,7 +24,11 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
-ModelBase = declarative_base()
+
+# Base classes and typing objects.
+DBModel = declarative_base()
+DBEngine = Engine | AsyncEngine
+DBSession = Session | AsyncSession
 
 
 def create_db_url(
@@ -36,18 +42,18 @@ def create_db_url(
     """Create a database URL from the provided parameters.
 
     Args:
-        driver: The sqlalchemy compatible database driver.
+        driver: The SQLAlchemy-compatible database driver.
         database: The database name or file path (for SQLite).
         host: The database server hostname or IP address.
         port: The database server port number.
-        username: The username to authenticate as.
+        username: The username for authentication.
         password: The password for the database user.
 
     Returns:
-        The fully qualified database URL.
+        A fully qualified database URL.
     """
 
-    # Handle special case where SQLite uses file paths
+    # Handle special case where SQLite uses file paths.
     if "sqlite" in driver:
         path = Path(database).resolve()
         return URL.create(drivername=driver, database=str(path))
@@ -62,7 +68,7 @@ def create_db_url(
     )
 
 
-def create_db_engine(url: URL, **kwargs) -> Engine | AsyncEngine:
+def create_db_engine(url: URL, **kwargs) -> DBEngine:
     """Initialize a new database engine.
 
     Instantiates and returns an `Engine` or `AsyncEngine` instance depending
@@ -70,7 +76,7 @@ def create_db_engine(url: URL, **kwargs) -> Engine | AsyncEngine:
 
     Args:
         url: A fully qualified database URL.
-        **kwargs: Optional init parameters for the returned instance.
+        **kwargs: Optional init parameters for the engine instance.
 
     Returns:
         A SQLAlchemy `Engine` or `AsyncEngine` instance.
@@ -78,6 +84,7 @@ def create_db_engine(url: URL, **kwargs) -> Engine | AsyncEngine:
 
     logger.info(f"Building database engine for {url}.")
 
+    # Attempt to create an async engine by default.
     try:
         engine = create_async_engine(url, **kwargs)
         logger.debug("Asynchronous connection established.")
@@ -86,6 +93,7 @@ def create_db_engine(url: URL, **kwargs) -> Engine | AsyncEngine:
     except InvalidRequestError as e:
         logger.warning(f"Async connection failed, falling back to sync. Error: {e}")
 
+    # Fall back to a synchronous engine if async fails.
     try:
         engine = create_engine(url, **kwargs)
         logger.debug("Synchronous connection established.")
@@ -103,17 +111,17 @@ async def _async_reflect_metadata(engine: AsyncEngine, metadata: MetaData) -> No
         await connection.run_sync(metadata.reflect)
 
 
-def create_db_metadata(engine: Engine | AsyncEngine) -> MetaData:
-    """Create and reflect the metadata for the database connection.
+def create_db_metadata(engine: DBEngine) -> MetaData:
+    """Create and reflect metadata for the database connection.
 
     Args:
-        engine: A database engine.
+        engine: The database engine to use for reflection.
 
     Returns:
-        A MetaData object reflecting the schema of the database.
+        A MetaData object reflecting the database schema.
     """
 
-    logger.info(f"Loading database schema.")
+    logger.info("Loading database schema.")
     metadata = MetaData()
 
     try:
@@ -130,26 +138,26 @@ def create_db_metadata(engine: Engine | AsyncEngine) -> MetaData:
         raise
 
 
-def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
+def create_db_models(metadata: MetaData) -> dict[str, DBModel]:
     """Dynamically generate database models from a metadata instance.
 
     Args:
-        metadata: An up-to-date reflection of database metadata.
+        metadata: A reflection of database metadata.
 
     Returns:
         A dictionary mapping table names to database models.
     """
 
-    logger.info(f"Building database models.")
+    logger.info("Building database models.")
     models = {}
 
     try:
-        # Dynamically create a class for each table
+        # Dynamically create a class for each table.
         for table_name, table in metadata.tables.items():
             logger.debug(f"Creating model for table {table_name}")
             models[table_name] = type(
                 table_name.capitalize(),
-                (ModelBase,),
+                (DBModel,),
                 {"__table__": table},
             )
 
@@ -161,25 +169,23 @@ def create_db_models(metadata: MetaData) -> dict[str, ModelBase]:
         raise
 
 
-def create_db_interface(model: ModelBase) -> type[ModelT]:
-    """Creates a Pydantic model interface for the given SQLAlchemy model.
+def create_db_interface(model: DBModel) -> type[ModelT]:
+    """Create a Pydantic interface for a SQLAlchemy model.
 
     Args:
-        model: A SQLAlchemy model with a defined table schema.
+        model: A SQLAlchemy model to create an interface for.
 
     Returns:
         A Pydantic model class with the same structure as the provided SQLAlchemy model.
     """
 
-    # Dynamic Pydantic models require a map of column names to their type and default value
+    # Dynamic Pydantic models require a map of column names to their type and default value.
     columns = {col.name: (col.type.python_type, col.default) for col in model.__table__.columns}
     return pydantic.create_model(model.__name__, **columns)
 
 
-def create_session_factory(engine: Engine | AsyncEngine, autocommit: bool = False, autoflush: bool = False):
-    """Create a factory function for generating database sessions.
-
-    The returned function is suitable for use as a FastAPI dependency.
+def create_session_factory(engine: DBEngine, autocommit: bool = False, autoflush: bool = False):
+    """Create a generator for database sessions.
 
     Args:
         engine: Database engine to use when generating new sessions.
@@ -187,7 +193,7 @@ def create_session_factory(engine: Engine | AsyncEngine, autocommit: bool = Fals
         autoflush: Whether to automatically flush changes to the database.
 
     Returns:
-        A function that yields new database session.
+        A function that yields new database sessions.
     """
 
     if isinstance(engine, AsyncEngine):

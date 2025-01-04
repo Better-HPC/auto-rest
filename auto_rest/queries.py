@@ -1,7 +1,9 @@
 from fastapi import HTTPException
+from sqlalchemy import Executable, Result
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 from starlette import status
+
+from auto_rest.models import DBSession
 
 __all__ = [
     "commit_session",
@@ -11,7 +13,7 @@ __all__ = [
 ]
 
 
-async def commit_session(session: Session | AsyncSession) -> None:
+async def commit_session(session: DBSession) -> None:
     """Commit a SQLAlchemy session.
 
     Supports synchronous and asynchronous sessions.
@@ -27,7 +29,7 @@ async def commit_session(session: Session | AsyncSession) -> None:
         session.commit()
 
 
-async def delete_session_record(session: Session | AsyncSession, record) -> None:
+async def delete_session_record(session: DBSession, record) -> None:
     """Delete a record from the database using an existing session.
 
     Does not automatically commit the session.
@@ -45,7 +47,7 @@ async def delete_session_record(session: Session | AsyncSession, record) -> None
         session.delete(record)
 
 
-async def execute_session_query(session: Session | AsyncSession, query):
+async def execute_session_query(session: DBSession, query: Executable) -> Result:
     """Execute a query in the given session and return the result.
 
     Supports synchronous and asynchronous sessions.
@@ -64,7 +66,7 @@ async def execute_session_query(session: Session | AsyncSession, query):
     return session.execute(query)
 
 
-def get_record_or_404(result):
+def get_record_or_404(result: Result) -> any:
     """Retrieve a scalar record from a query result or raise a 404 error.
 
     Args:
