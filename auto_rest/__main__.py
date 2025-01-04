@@ -38,6 +38,7 @@ def run_application(
     server_port: int,
     enable_docs: bool,
     enable_meta: bool,
+    enable_write: bool,
     pool_min: int | None,
     pool_max: int | None,
     pool_out: int | None,
@@ -59,6 +60,7 @@ def run_application(
         server_port: API server port number.
         enable_docs: Whether to enable the 'docs' API endpoint.
         enable_meta: Whether to enable the 'meta' API endpoint.
+        enable_write: Whether to enable support for write operations.
         pool_min: Minimum number of database connections in the connection pool.
         pool_max: Maximum number of database connections in the connection pool.
         pool_out: Timeout (in seconds) for waiting on a database connection.
