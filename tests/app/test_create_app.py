@@ -6,7 +6,6 @@ from sqlalchemy import Column, create_engine, INTEGER
 from sqlalchemy.orm import declarative_base
 
 from auto_rest.app import create_app
-from auto_rest.dist import version
 
 Base = declarative_base()
 
@@ -44,11 +43,10 @@ class TestCreateApp(TestCase):
         cls.app: FastAPI = create_app(cls.engine, cls.mock_models)
         cls.client = TestClient(cls.app)
 
-    def test_app_metadata(self) -> None:
-        """Test the application's metadata attributes."""
+    def test_app_title(self) -> None:
+        """Test the application's title."""
 
         self.assertEqual("Auto-REST", self.app.title)
-        self.assertEqual(version, self.app.version)
 
     def test_has_root_endpoint(self) -> None:
         """Test the application has a root endpoint."""

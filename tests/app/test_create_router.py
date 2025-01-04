@@ -4,10 +4,10 @@ from unittest.mock import MagicMock
 from sqlalchemy import Column, Integer, String
 
 from auto_rest.app import create_router
-from auto_rest.models import ModelBase
+from auto_rest.models import DBModel
 
 
-class SinglePKModel(ModelBase):
+class SinglePKModel(DBModel):
     """ORM for a mock table with a single primary key."""
 
     __tablename__ = "single_pk_model"
@@ -16,7 +16,7 @@ class SinglePKModel(ModelBase):
     name = Column(String)
 
 
-class MultiplePKModel(ModelBase):
+class MultiplePKModel(DBModel):
     """ORM for a mock table with multiple primary key."""
 
     __tablename__ = "multiple_pk_model"

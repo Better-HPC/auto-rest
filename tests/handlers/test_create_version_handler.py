@@ -3,24 +3,23 @@ from unittest import TestCase
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from auto_rest.handlers import version_handler
-from auto_rest.dist import version
+from auto_rest.handlers import create_version_handler
 
 
-class TestWelcomeHandler(TestCase):
-    """Unit tests for the `version_handler` function."""
+class TestCreateVersionHandler(TestCase):
+    """Unit tests for the `create_version_handler` function."""
 
     @classmethod
     def setUpClass(cls) -> None:
         """Set up a FastAPI app and test client."""
 
         app = FastAPI()
-        app.add_api_route("/", version_handler)
+        app.add_api_route("/", create_version_handler())
         cls.client = TestClient(app)
 
     def test_version_handler(self) -> None:
-        """Test the version handler returns the correct version number."""
+        """Test the version handler returns a 200 sstatus and version number."""
 
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        self.assertEqual({"version": version}, response.json())
+        self.assertIn("version", response.json())

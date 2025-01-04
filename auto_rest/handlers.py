@@ -1,15 +1,14 @@
 """Functions for handling incoming HTTP requests and generating responses."""
 
+import importlib.metadata
 import logging
+from typing import Awaitable, Callable, cast
 
 from fastapi import Depends, Response
 from pydantic import create_model
-from sqlalchemy import Engine, insert, select
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-from sqlalchemy.orm import Session
+from sqlalchemy import insert, select
 from starlette.requests import Request
 
-from .dist import version
 from .models import *
 from .params import *
 from .queries import *
@@ -22,26 +21,42 @@ __all__ = [
     "create_patch_record_handler",
     "create_post_record_handler",
     "create_put_record_handler",
-    "version_handler",
-    "welcome_handler",
+    "create_version_handler",
+    "create_welcome_handler",
 ]
 
 logger = logging.getLogger(__name__)
 
 
-async def welcome_handler() -> dict[str, str]:
-    """Return a welcome message in JSON format pointing users to the docs."""
+def create_welcome_handler() -> Callable[[], Awaitable]:
+    """Create a function that returns an application welcome message in JSON format."""
 
-    return {"message": "Welcome to Auto-Rest!"}
+    welcome_message = "Welcome to Auto-Rest!"
+    interface = create_model("Welcome", message=(str, welcome_message))
+
+    async def welcome_handler() -> interface:
+        """Return a welcome message in JSON format."""
+
+        return cast({"message": welcome_message}, interface)
+
+    return welcome_handler
 
 
-async def version_handler() -> create_model("Version", version=(str, version)):
-    """Return the application version number in JSON format."""
+def create_version_handler() -> Callable[[], Awaitable]:
+    """Create a function that returns a dictionary with the application version number."""
 
-    return {"version": version}
+    version = importlib.metadata.version(__package__)
+    interface = create_model("Version", version=(str, version))
+
+    async def version_handler() -> interface:
+        """Return the application version number in JSON format."""
+
+        return cast({"version": version}, interface)
+
+    return version_handler
 
 
-def create_meta_handler(engine: Engine) -> callable:
+def create_meta_handler(engine: DBEngine) -> Callable[[], Awaitable]:
     """Create a function that returns a dictionary of metadata related to a database.
 
     Args:
@@ -52,28 +67,28 @@ def create_meta_handler(engine: Engine) -> callable:
     """
 
     interface = create_model("Meta",
-        dialect=(str, "postgresql"),
-        driver=(str, "asyncpg"),
-        database=(str, "default"),
-        host=(str | None, "localhost"),
-        port=(int | None, 5432),
-        username=(str | None, "postgres"),
+        dialect=(str, engine.dialect.name),
+        driver=(str, engine.dialect.driver),
+        database=(str, engine.url.database),
+        host=(str | None, engine.url.host),
+        port=(int | None, engine.url.port),
+        username=(str | None, engine.url.username),
     )
 
     async def meta_handler() -> interface:
-        return {
+        return cast({
             "dialect": engine.dialect.name,
             "driver": engine.dialect.driver,
             "database": engine.url.database,
             "host": engine.url.host,
             "port": engine.url.port,
             "username": engine.url.username,
-        }
+        }, interface)
 
     return meta_handler
 
 
-def create_list_records_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
+def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
     """Create a function that returns a list of records from the database.
 
     Args:
@@ -87,20 +102,13 @@ def create_list_records_handler(engine: Engine | AsyncEngine, model: ModelBase) 
     async def list_records(
         request: Request,
         response: Response,
-        session: Session | AsyncSession = Depends(create_session_factory(engine)),
+        session: DBSession = Depends(create_session_factory(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
         ordering_params: dict[str, int] = Depends(get_ordering_params),
     ) -> list[create_db_interface(model)]:
-        """Fetch a list of records, applying filtering, pagination, and ordering parameters.
+        """Fetch a list of records from the database.
 
-        Header values summarizing the applied operations are attached to the provided response object.
-        
-        Args:
-            request: The incoming HTTP request.
-            response: The outgoing HTTP response.
-            session: The database session to use.
-            pagination_params: Pagination parameters parsed from URL query params.
-            ordering_params: Ordering parameters parsed from URL query params.
+        URL query parameters are used to enable filtering, ordering, and paginating returned values.
         """
 
         query = select(model)
@@ -112,7 +120,7 @@ def create_list_records_handler(engine: Engine | AsyncEngine, model: ModelBase) 
     return list_records
 
 
-def create_get_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
+def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
     """Create a function for handling GET requests against a single record in the database.
 
     Args:
@@ -123,22 +131,13 @@ def create_get_record_handler(engine: Engine | AsyncEngine, model: ModelBase) ->
         An async function that returns a single record from the given database model.
     """
 
+    interface = create_db_interface(model)
+
     async def get_record(
         request: Request,
-        session: Session | AsyncSession = Depends(create_session_factory(engine)),
-    ) -> create_db_interface(model):
-        """Fetch a single record from the database.
-
-        Path parameters from the incoming request are used as primary key values for
-        the handled record.
-
-        Args:
-            request: The incoming HTTP request.
-            session: The database session to use.
-
-        Returns:
-            The requested record values.
-        """
+        session: DBSession = Depends(create_session_factory(engine)),
+    ) -> interface:
+        """Fetch a single record from the database."""
 
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
@@ -147,7 +146,7 @@ def create_get_record_handler(engine: Engine | AsyncEngine, model: ModelBase) ->
     return get_record
 
 
-def create_post_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
+def create_post_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
     """Create a function to handle POST requests for creating a new record in the database.
 
     Args:
@@ -163,18 +162,9 @@ def create_post_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -
     async def post_record(
         request: Request,
         data: interface,
-        session: Session | AsyncSession = Depends(create_session_factory(engine)),
+        session: DBSession = Depends(create_session_factory(engine)),
     ) -> interface:
-        """Create a new record in the database.
-        
-        Args:
-            request: The incoming HTTP request.
-            data: Key value pairs representing record field values.
-            session: The database session to use.
-
-        Returns:
-            A copy of the new record values.
-        """
+        """Create a new record in the database."""
 
         query = insert(model).values(**data.dict())
         result = await execute_session_query(session, query)
@@ -184,7 +174,7 @@ def create_post_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -
     return post_record
 
 
-def create_put_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
+def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
     """Create a function to handle PUT requests for updating a record in the database.
 
     Args:
@@ -200,21 +190,9 @@ def create_put_record_handler(engine: Engine | AsyncEngine, model: ModelBase) ->
     async def put_record(
         request: Request,
         data: interface,
-        session: Session | AsyncSession = Depends(create_session_factory(engine)),
+        session: DBSession = Depends(create_session_factory(engine)),
     ) -> interface:
-        """Replace record values in the database with the provided data.
-
-        Path parameters from the incoming request are used as primary key values for
-        the handled record.
-        
-        Args:
-            request: The incoming HTTP request.
-            data: Key value pairs representing record field values.
-            session: The database session to use.
-
-        Returns:
-            A copy of the new record values.
-        """
+        """Replace record values in the database with the provided data."""
 
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
@@ -229,7 +207,7 @@ def create_put_record_handler(engine: Engine | AsyncEngine, model: ModelBase) ->
     return put_record
 
 
-def create_patch_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
+def create_patch_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
     """Create a function to handle PATCH requests for partially updating a record in the database.
 
     Args:
@@ -245,21 +223,9 @@ def create_patch_record_handler(engine: Engine | AsyncEngine, model: ModelBase) 
     async def patch_record(
         request: Request,
         data: interface,
-        session: Session | AsyncSession = Depends(create_session_factory(engine)),
+        session: DBSession = Depends(create_session_factory(engine)),
     ) -> interface:
-        """Update record values in the database with the provided data.
-
-        Path parameters from the incoming request are used as primary key values for
-        the handled record.
-
-        Args:
-            request: The incoming HTTP request.
-            data: Key value pairs representing record field values.
-            session: The database session to use.
-
-        Returns:
-            A copy of the new record values.
-        """
+        """Update record values in the database with the provided data."""
 
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
@@ -274,7 +240,7 @@ def create_patch_record_handler(engine: Engine | AsyncEngine, model: ModelBase) 
     return patch_record
 
 
-def create_delete_record_handler(engine: Engine | AsyncEngine, model: ModelBase) -> callable:
+def create_delete_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
     """Create a function to handle DELETE requests for a single record in the database.
 
     Args:
@@ -287,17 +253,9 @@ def create_delete_record_handler(engine: Engine | AsyncEngine, model: ModelBase)
 
     async def delete_record(
         request: Request,
-        session: Session | AsyncSession = Depends(create_session_factory(engine)),
+        session: DBSession = Depends(create_session_factory(engine)),
     ) -> None:
-        """Delete a single record from the database.
-
-        Path parameters from the incoming request are used as primary key values for
-        the handled record.
-
-        Args:
-            request: The incoming HTTP request.
-            session: The database session to use.
-        """
+        """Delete a single record from the database."""
 
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)

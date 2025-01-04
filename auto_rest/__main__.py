@@ -45,38 +45,38 @@ def run_application(
 ) -> None:
     """Run an Auto-REST API server.
 
-    This function accepts the same arguments as the CLI and is functionally
-    equivalent as launching an API server from the command line.
+    This function is equivalent to launching an API server from the command line
+    and accepts the same arguments as those provided in the CLI.
 
     Args:
-        db_driver: The sqlalchemy compatible database driver to use.
-        db_host: The database host address.
-        db_port: The database port number.
-        db_name: The database name to connect to.
-        db_user: The username for authenticating with the database.
-        db_pass: The password for authenticating with the database.
-        server_host: The API server host address.
-        server_port: The API server port number.
+        db_driver: SQLAlchemy-compatible database driver.
+        db_host: Database host address.
+        db_port: Database port number.
+        db_name: Database name.
+        db_user: Database authentication username.
+        db_pass: Database authentication password.
+        server_host: API server host address.
+        server_port: API server port number.
         enable_docs: Whether to enable the 'docs' API endpoint.
         enable_meta: Whether to enable the 'meta' API endpoint.
-        pool_min: Minimum number of maintained database connections.
-        pool_max: Maximum number of allowed database connections.
-        pool_out: Timeout in seconds to wait for a database connection before timing out.
-        log_level: The desired logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
+        pool_min: Minimum number of database connections in the connection pool.
+        pool_max: Maximum number of database connections in the connection pool.
+        pool_out: Timeout (in seconds) for waiting on a database connection.
+        log_level: Desired logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
     """
 
     configure_logging(log_level)
 
-    # Filter out optional args
+    # Filter out optional args.
     pool_args = dict(pool_size=pool_min, max_overflow=pool_max, pool_timeout=pool_out)
     pool_args = {k: v for k, v in pool_args.items() if v is not None}
 
-    # Connect to and map the database
+    # Connect to and map the database.
     db_url = create_db_url(driver=db_driver, host=db_host, port=db_port, database=db_name, username=db_user, password=db_pass)
     db_conn = create_db_engine(db_url, **pool_args)
     db_meta = create_db_metadata(db_conn)
     db_models = create_db_models(db_meta)
 
-    # Build and launch the app
+    # Build and run the application.
     app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs)
     run_app(app, server_host, server_port, log_level=log_level)

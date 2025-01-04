@@ -24,6 +24,7 @@ class TestConfigureLogging(TestCase):
 
         configure_logging("INFO")
         handler = logging.getLogger().handlers[0]
+
         self.assertIsInstance(handler, logging.StreamHandler)
         self.assertEqual(handler.formatter._fmt, "%(levelprefix)s %(message)s")
 
