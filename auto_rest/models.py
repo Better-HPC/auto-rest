@@ -21,7 +21,7 @@ __all__ = [
     "create_db_metadata",
     "create_db_models",
     "create_db_url",
-    "create_session_factory",
+    "create_session_iterator",
 ]
 
 logger = logging.getLogger(__name__)
@@ -185,14 +185,14 @@ def create_db_interface(model: DBModel) -> type[ModelT]:
     return pydantic.create_model(model.__name__, **columns)
 
 
-def create_session_factory(engine: DBEngine) -> Callable[[], DBSession]:
+def create_session_iterator(engine: DBEngine) -> Callable[[], DBSession]:
     """Create a generator for database sessions.
 
     Args:
         engine: Database engine to use when generating new sessions.
 
     Returns:
-        A function that yields new database sessions.
+        A function that yields a single new database session.
     """
 
     if isinstance(engine, AsyncEngine):

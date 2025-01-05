@@ -104,7 +104,7 @@ def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..
     async def list_records(
         request: Request,
         response: Response,
-        session: DBSession = Depends(create_session_factory(engine)),
+        session: DBSession = Depends(create_session_iterator(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
         ordering_params: dict[str, int] = Depends(get_ordering_params),
     ) -> list[interface]:
@@ -137,7 +137,7 @@ def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
 
     async def get_record(
         request: Request,
-        session: DBSession = Depends(create_session_factory(engine)),
+        session: DBSession = Depends(create_session_iterator(engine)),
     ) -> interface:
         """Fetch a single record from the database."""
 
@@ -164,7 +164,7 @@ def create_post_record_handler(engine: DBEngine, model: DBModel) -> Callable[...
     async def post_record(
         request: Request,
         data: interface,
-        session: DBSession = Depends(create_session_factory(engine)),
+        session: DBSession = Depends(create_session_iterator(engine)),
     ) -> interface:
         """Create a new record in the database."""
 
@@ -192,7 +192,7 @@ def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
     async def put_record(
         request: Request,
         data: interface,
-        session: DBSession = Depends(create_session_factory(engine)),
+        session: DBSession = Depends(create_session_iterator(engine)),
     ) -> interface:
         """Replace record values in the database with the provided data."""
 
@@ -225,7 +225,7 @@ def create_patch_record_handler(engine: DBEngine, model: DBModel) -> Callable[..
     async def patch_record(
         request: Request,
         data: interface,
-        session: DBSession = Depends(create_session_factory(engine)),
+        session: DBSession = Depends(create_session_iterator(engine)),
     ) -> interface:
         """Update record values in the database with the provided data."""
 
@@ -255,7 +255,7 @@ def create_delete_record_handler(engine: DBEngine, model: DBModel) -> Callable[.
 
     async def delete_record(
         request: Request,
-        session: DBSession = Depends(create_session_factory(engine)),
+        session: DBSession = Depends(create_session_iterator(engine)),
     ) -> None:
         """Delete a single record from the database."""
 
