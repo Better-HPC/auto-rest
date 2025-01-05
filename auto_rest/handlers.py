@@ -99,13 +99,15 @@ def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..
         An async function that returns a list of records from the given database model.
     """
 
+    interface = create_db_interface(model)
+
     async def list_records(
         request: Request,
         response: Response,
         session: DBSession = Depends(create_session_factory(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
         ordering_params: dict[str, int] = Depends(get_ordering_params),
-    ) -> list[create_db_interface(model)]:
+    ) -> list[interface]:
         """Fetch a list of records from the database.
 
         URL query parameters are used to enable filtering, ordering, and paginating returned values.
@@ -115,7 +117,7 @@ def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..
         query = apply_pagination_params(query, pagination_params, response)
         query = apply_ordering_params(query, ordering_params, response)
         result = await execute_session_query(session, query)
-        return result.scalars().all()
+        return cast(result.scalars().all(), list[interface])
 
     return list_records
 
