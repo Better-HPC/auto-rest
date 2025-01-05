@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 from auto_rest.models import create_session_factory
 
 
-class TestCreateDbDependency(IsolatedAsyncioTestCase):
-    """Unit tests for the `create_db_dependency` function."""
+class TestCreateSessionFactory(IsolatedAsyncioTestCase):
+    """Unit tests for the `create_session_factory` function."""
 
     @classmethod
     def setUpClass(cls) -> None:

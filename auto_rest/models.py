@@ -199,8 +199,9 @@ def create_session_factory(engine: DBEngine) -> Callable[[], DBSession]:
         async def session_iterator() -> AsyncSession:
             async with AsyncSession(bind=engine, autocommit=False, autoflush=True) as session:
                 yield session
+
     else:
-        async def session_iterator() -> Session:
+        def session_iterator() -> Session:
             with Session(bind=engine, autocommit=False, autoflush=True) as session:
                 yield session
 
