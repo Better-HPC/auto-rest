@@ -29,7 +29,7 @@ async def commit_session(session: DBSession) -> None:
         session.commit()
 
 
-async def delete_session_record(session: DBSession, record) -> None:
+async def delete_session_record(session: DBSession, record: Result) -> None:
     """Delete a record from the database using an existing session.
 
     Does not automatically commit the session.

@@ -3,13 +3,14 @@
 import asyncio
 import logging
 from pathlib import Path
+from typing import Callable
 
 import pydantic
 from pydantic.main import ModelT
 from sqlalchemy import create_engine, Engine, MetaData, URL
 from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import declarative_base, Session, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.orm import declarative_base, Session
 
 __all__ = [
     "DBEngine",
@@ -20,7 +21,7 @@ __all__ = [
     "create_db_metadata",
     "create_db_models",
     "create_db_url",
-    "create_session_factory",
+    "create_session_iterator",
 ]
 
 logger = logging.getLogger(__name__)
@@ -184,29 +185,24 @@ def create_db_interface(model: DBModel) -> type[ModelT]:
     return pydantic.create_model(model.__name__, **columns)
 
 
-def create_session_factory(engine: DBEngine, autocommit: bool = False, autoflush: bool = False):
+def create_session_iterator(engine: DBEngine) -> Callable[[], DBSession]:
     """Create a generator for database sessions.
 
     Args:
         engine: Database engine to use when generating new sessions.
-        autocommit: Whether to automatically commit changes to the database.
-        autoflush: Whether to automatically flush changes to the database.
 
     Returns:
-        A function that yields new database sessions.
+        A function that yields a single new database session.
     """
 
     if isinstance(engine, AsyncEngine):
-        async_session_factory = async_sessionmaker(bind=engine, autocommit=autocommit, autoflush=autoflush)
-
         async def session_iterator() -> AsyncSession:
-            async with async_session_factory() as session:
+            async with AsyncSession(bind=engine, autocommit=False, autoflush=True) as session:
                 yield session
-    else:
-        session_factory = sessionmaker(bind=engine, autocommit=autocommit, autoflush=autoflush)
 
+    else:
         def session_iterator() -> Session:
-            with session_factory() as session:
+            with Session(bind=engine, autocommit=False, autoflush=True) as session:
                 yield session
 
     return session_iterator
