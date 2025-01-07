@@ -31,6 +31,7 @@ def run_application(
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
     enable_docs: bool,
     enable_meta: bool,
+    enable_write: bool,
     db_driver: str,
     db_host: str,
     db_port: int,
@@ -54,6 +55,7 @@ def run_application(
         log_level: Desired logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
         enable_docs: Whether to enable the 'docs' API endpoint.
         enable_meta: Whether to enable the 'meta' API endpoint.
+        enable_write: Whether to enable support for write operations.
         db_driver: SQLAlchemy-compatible database driver.
         db_host: Database host address.
         db_port: Database port number.
@@ -84,7 +86,7 @@ def run_application(
     db_models = create_db_models(db_meta)
 
     # Build and run the application.
-    app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs)
+    app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs, enable_write=enable_write)
     app.openapi_schema = create_openapi_schema(app, title=schema_title, version=schema_version)
 
     run_app(app, server_host, server_port, log_level=log_level)

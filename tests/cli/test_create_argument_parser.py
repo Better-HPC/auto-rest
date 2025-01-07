@@ -72,6 +72,17 @@ class TestCreateArgumentParser(TestCase):
         args = self.parser.parse_args(["--sqlite", "--db-name", "default", "--enable-meta"])
         self.assertTrue(args.enable_meta)
 
+    def test_enable_write_flag(self) -> None:
+        """Test the `--enable-write` flag behavior."""
+
+        # Default should be False
+        args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
+        self.assertFalse(args.enable_write)
+
+        # Test enabling write behavior
+        args = self.parser.parse_args(["--sqlite", "--db-name", "default", "--enable-write"])
+        self.assertTrue(args.enable_write)
+
     def test_db_settings(self) -> None:
         """Test database-related arguments and default values."""
 

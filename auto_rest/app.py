@@ -49,12 +49,13 @@ def configure_logging(level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITI
     )
 
 
-def create_route_handlers(engine: DBEngine, model: DBModel) -> APIRouter:
+def create_route_handlers(engine: DBEngine, model: DBModel, writeable: bool = False) -> APIRouter:
     """Create an API router with endpoint handlers for the given database model.
 
     Args:
         engine: The SQLAlchemy engine connected to the database.
         model: The ORM model class representing a database table.
+        writeable: Whether the router should include support for write operations.
 
     Returns:
         An APIRouter instance with routes for database operations on the model.
@@ -70,7 +71,7 @@ def create_route_handlers(engine: DBEngine, model: DBModel) -> APIRouter:
     if not pk_columns:  # pragma: no cover
         raise RuntimeError(f"No primary key columns found for table {model.__tablename__}.")
 
-    # Define routes for the CRUD operations
+    # Define routes for read operations
     router.add_api_route(
         path="/",
         methods=["GET"],
@@ -80,18 +81,22 @@ def create_route_handlers(engine: DBEngine, model: DBModel) -> APIRouter:
     )
 
     router.add_api_route(
-        path="/",
-        methods=["POST"],
-        endpoint=create_post_record_handler(engine, model),
-        status_code=status.HTTP_201_CREATED,
-        tags=[model.__name__]
-    )
-
-    router.add_api_route(
         path=f"/{path_params}/",
         methods=["GET"],
         endpoint=create_get_record_handler(engine, model),
         status_code=status.HTTP_200_OK,
+        tags=[model.__name__]
+    )
+
+    if not writeable:
+        return router
+
+    # Define routes for write operations
+    router.add_api_route(
+        path="/",
+        methods=["POST"],
+        endpoint=create_post_record_handler(engine, model),
+        status_code=status.HTTP_201_CREATED,
         tags=[model.__name__]
     )
 
@@ -159,6 +164,7 @@ def create_app(
     models: dict[str, DBModel],
     enable_meta: bool = False,
     enable_docs: bool = False,
+    enable_write: bool = False,
 ) -> FastAPI:
     """Initialize a new FastAPI Application.
 
@@ -167,6 +173,7 @@ def create_app(
         models: Mapping of database model names to ORM classes.
         enable_meta: Add a `meta` API endpoint with DB metadata.
         enable_docs: Add a `docs` API endpoint with API documentation.
+        enable_write: Enable support for write operations.
 
     Returns:
         A new FastAPI application.
@@ -194,7 +201,7 @@ def create_app(
     # Add routes for each database model.
     for model_name, model_class in models.items():
         logging.debug(f"Adding endpoints for '{model_name}'.")
-        router = create_route_handlers(engine, model_class)
+        router = create_route_handlers(engine, model_class, enable_write)
         app.include_router(router, prefix=f"/db/{model_name}")
 
     return app
