@@ -43,8 +43,8 @@ def run_application(
     pool_out: int | None,
     server_host: str,
     server_port: int,
-    schema_title: str,
-    schema_version: str,
+    oai_title: str,
+    oai_version: str,
 ) -> None:
     """Run an Auto-REST API server.
 
@@ -67,8 +67,8 @@ def run_application(
         pool_out: Timeout (in seconds) for waiting on a database connection.
         server_host: API server host address.
         server_port: API server port number.
-        schema_title: title for the generated OpenAPI schema.
-        schema_version: version number for the generated OpenAPI schema.
+        oai_title: title for the generated OpenAPI schema.
+        oai_version: version number for the generated OpenAPI schema.
     """
 
     configure_logging(log_level)
@@ -87,6 +87,6 @@ def run_application(
 
     # Build and run the application.
     app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs, enable_write=enable_write)
-    app.openapi_schema = create_openapi_schema(app, title=schema_title, version=schema_version)
+    app.openapi_schema = create_openapi_schema(app, title=oai_title, version=oai_version)
 
     run_app(app, server_host, server_port, log_level=log_level)
