@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from sqlalchemy import Column, Integer, String
 
-from auto_rest.app import create_router
+from auto_rest.app import create_route_handlers
 from auto_rest.models import DBModel
 
 
@@ -38,7 +38,7 @@ class TestCreateRouter(unittest.TestCase):
     def test_router_single_primary_key(self) -> None:
         """Test router create for a table with a single primary key."""
 
-        router = create_router(self.mock_engine, SinglePKModel)
+        router = create_route_handlers(self.mock_engine, SinglePKModel)
         actual_routes = [(route.path, method) for route in router.routes for method in route.methods]
         expected_routes = [
             ("/", "GET"),
@@ -54,7 +54,7 @@ class TestCreateRouter(unittest.TestCase):
     def test_router_multiple_primary_keys(self) -> None:
         """Test router create for a table with a multiple primary keys."""
 
-        router = create_router(self.mock_engine, MultiplePKModel)
+        router = create_route_handlers(self.mock_engine, MultiplePKModel)
         actual_routes = [(route.path, method) for route in router.routes for method in route.methods]
         expected_routes = [
             ("/", "GET"),

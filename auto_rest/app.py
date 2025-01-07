@@ -1,11 +1,12 @@
 """Factory functions for building FastAPI application instances."""
 
-import importlib.metadata
 import logging
+import re
 from typing import Literal
 
 import uvicorn
 from fastapi import APIRouter, FastAPI
+from fastapi.openapi.utils import get_openapi
 from starlette import status
 from uvicorn.logging import DefaultFormatter
 
@@ -15,11 +16,13 @@ from .models import DBEngine, DBModel
 __all__ = [
     "configure_logging",
     "create_app",
-    "create_router",
+    "create_openapi_schema",
+    "create_route_handlers",
     "run_app"
 ]
 
 logger = logging.getLogger(__name__)
+
 
 def configure_logging(level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]) -> None:
     """Configure the application logging level.
@@ -46,7 +49,7 @@ def configure_logging(level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITI
     )
 
 
-def create_router(engine: DBEngine, model: DBModel) -> APIRouter:
+def create_route_handlers(engine: DBEngine, model: DBModel) -> APIRouter:
     """Create an API router with endpoint handlers for the given database model.
 
     Args:
@@ -119,6 +122,38 @@ def create_router(engine: DBEngine, model: DBModel) -> APIRouter:
     return router
 
 
+def create_openapi_schema(app, title: str, version: str) -> dict[str, any]:
+    """Create an OpenAPI schema generator for a FastAPI app.
+
+    Args:
+        app: The FastAPI application instance.
+        title: Title for the generated schema.
+        version: Version number for the generated schema.
+
+    Returns:
+        An OpenAPI schema definition for the application.
+    """
+
+    openapi_schema = get_openapi(
+        title=title,
+        version=version,
+        routes=app.routes,
+    )
+
+    # Ensure path parameters are defined for dynamically generated paths
+    path_parameter_pattern = re.compile(r"\{([^{}]+)\}")
+    for path, methods in openapi_schema["paths"].items():
+        path_params = path_parameter_pattern.findall(path)
+
+        # Override existing parameter definitions
+        for method in methods.values():
+            method.setdefault("parameters", []).extend(
+                {"name": param, "in": "path", "required": True} for param in path_params
+            )
+
+    return openapi_schema
+
+
 def create_app(
     engine: DBEngine,
     models: dict[str, DBModel],
@@ -143,9 +178,6 @@ def create_app(
 
     # Initialize FastAPI app
     app = FastAPI(
-        title="Auto-REST",
-        version=importlib.metadata.version(__package__),
-        summary=f"A REST API generated dynamically for \"{engine.url}\".",
         docs_url="/docs/" if enable_docs else None,
         redoc_url=None
     )
@@ -162,7 +194,7 @@ def create_app(
     # Add routes for each database model.
     for model_name, model_class in models.items():
         logging.debug(f"Adding endpoints for '{model_name}'.")
-        router = create_router(engine, model_class)
+        router = create_route_handlers(engine, model_class)
         app.include_router(router, prefix=f"/db/{model_name}")
 
     return app
