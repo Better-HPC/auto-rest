@@ -1,27 +1,47 @@
-"""Defines the application command line interface and argument parser."""
+"""
+The `cli` module is responsible for defining the `auto-rest` command-line
+interface. It uses the built-in argparse module to create a tailored
+`ArgumentParser` instance, pre-populated with custom argument definitions.
+Argument defaults, parsing, and type-casting, are handled automatically by
+the parser instance.
+
+!!! example "Example: Parsing Arguments"
+
+    The `create_argument_parser` function returns an `ArgumentParser`
+    instance which can be used as-is to parse arguments.
+
+    ```python
+    from auto_rest.cli import create_argument_parser
+
+    parser = create_argument_parser()
+    args = parser.parse_args()
+    ```
+"""
 
 import importlib.metadata
-from argparse import ArgumentParser
+from argparse import ArgumentParser, HelpFormatter
 
-__all__ = ["create_argument_parser"]
+__all__ = ['VERSION', "create_argument_parser"]
 
 VERSION = importlib.metadata.version(__package__)
 
 
 def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
-    """Create a command-line argument parser with predefined options / arguments.
+    """Create a command-line argument parser with preconfigured arguments.
 
     Args:
-        exit_on_error: Whether to exit the program on a parsing error (useful in testing).
+        exit_on_error: Whether to exit the program on a parsing error.
 
     Returns:
         An argument parser instance.
     """
 
+    formatter = lambda prog: HelpFormatter(prog, max_help_position=29)
     parser = ArgumentParser(
         prog="auto-rest",
         description="Automatically map database schemas and deploy per-table REST API endpoints.",
-        exit_on_error=exit_on_error
+        exit_on_error=exit_on_error,
+        formatter_class=formatter
     )
 
     parser.add_argument("--version", action="version", version=VERSION)
@@ -64,7 +84,7 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     server.add_argument("--server-port", type=int, default=8081, help="API server port number.")
 
     schema = parser.add_argument_group(title="api schema")
-    schema.add_argument("--schema-title", default="Auto-REST", help="title for the generated OpenAPI schema.")
-    schema.add_argument("--schema-version", default=VERSION, help="version number for the generated OpenAPI schema.")
+    schema.add_argument("--oai-title", default="Auto-REST", help="title for the generated OpenAPI schema.")
+    schema.add_argument("--oai-version", default=VERSION, help="version number for the generated OpenAPI schema.")
 
     return parser

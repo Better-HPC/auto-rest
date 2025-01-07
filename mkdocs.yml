@@ -61,5 +61,7 @@ nav:
   - Getting Started:
       - getting_started/install.md
       - getting_started/deploying.md
+  - Architecture:
+      - architecture/cli.md
   - Contributing: contributing.md
 copyright: Copyright &copy; 2025 Better HPC
