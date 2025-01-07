@@ -2,7 +2,7 @@
 
 import importlib.metadata
 import logging
-from typing import Awaitable, Callable, cast
+from typing import Awaitable, Callable
 
 from fastapi import Depends, Response
 from pydantic import create_model
@@ -31,13 +31,12 @@ logger = logging.getLogger(__name__)
 def create_welcome_handler() -> Callable[[], Awaitable]:
     """Create a function that returns an application welcome message in JSON format."""
 
-    welcome_message = "Welcome to Auto-Rest!"
-    interface = create_model("Welcome", message=(str, welcome_message))
+    interface = create_model("Welcome", message=(str, "Welcome to Auto-Rest!"))
 
     async def welcome_handler() -> interface:
         """Return a welcome message in JSON format."""
 
-        return cast({"message": welcome_message}, interface)
+        return interface()
 
     return welcome_handler
 
@@ -51,7 +50,7 @@ def create_version_handler() -> Callable[[], Awaitable]:
     async def version_handler() -> interface:
         """Return the application version number in JSON format."""
 
-        return cast({"version": version}, interface)
+        return interface()
 
     return version_handler
 
@@ -76,14 +75,9 @@ def create_meta_handler(engine: DBEngine) -> Callable[[], Awaitable]:
     )
 
     async def meta_handler() -> interface:
-        return cast({
-            "dialect": engine.dialect.name,
-            "driver": engine.dialect.driver,
-            "database": engine.url.database,
-            "host": engine.url.host,
-            "port": engine.url.port,
-            "username": engine.url.username,
-        }, interface)
+        """Return metadata concerning the underlying application database."""
+
+        return interface()
 
     return meta_handler
 
@@ -102,7 +96,6 @@ def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..
     interface = create_db_interface(model)
 
     async def list_records(
-        request: Request,
         response: Response,
         session: DBSession = Depends(create_session_iterator(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
@@ -117,7 +110,7 @@ def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..
         query = apply_pagination_params(query, pagination_params, response)
         query = apply_ordering_params(query, ordering_params, response)
         result = await execute_session_query(session, query)
-        return cast(result.scalars().all(), list[interface])
+        return [interface.model_validate(record.__dict__) for record in result.scalars().all()]
 
     return list_records
 
@@ -143,7 +136,8 @@ def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
 
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
-        return get_record_or_404(result)
+        record = get_record_or_404(result)
+        return interface.model_validate(record.__dict__)
 
     return get_record
 
@@ -162,7 +156,6 @@ def create_post_record_handler(engine: DBEngine, model: DBModel) -> Callable[...
     interface = create_db_interface(model)
 
     async def post_record(
-        request: Request,
         data: interface,
         session: DBSession = Depends(create_session_iterator(engine)),
     ) -> interface:
@@ -170,8 +163,10 @@ def create_post_record_handler(engine: DBEngine, model: DBModel) -> Callable[...
 
         query = insert(model).values(**data.dict())
         result = await execute_session_query(session, query)
+        record = get_record_or_404(result)
+
         await commit_session(session)
-        return result.fetchone()
+        return interface.model_validate(record.__dict__)
 
     return post_record
 
@@ -198,13 +193,13 @@ def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
 
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
-
         record = get_record_or_404(result)
+
         for key, value in data.dict().items():
             setattr(record, key, value)
 
         await commit_session(session)
-        return record
+        return interface.model_validate(record.__dict__)
 
     return put_record
 
@@ -231,13 +226,13 @@ def create_patch_record_handler(engine: DBEngine, model: DBModel) -> Callable[..
 
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
-
         record = get_record_or_404(result)
+
         for key, value in data.dict(exclude_unset=True).items():
             setattr(record, key, value)
 
         await commit_session(session)
-        return record
+        return interface(record.__dict__)
 
     return patch_record
 
@@ -261,8 +256,8 @@ def create_delete_record_handler(engine: DBEngine, model: DBModel) -> Callable[.
 
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
-
         record = get_record_or_404(result)
+
         await delete_session_record(session, record)
         await commit_session(session)
 
