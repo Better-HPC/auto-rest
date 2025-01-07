@@ -5,6 +5,8 @@ from argparse import ArgumentParser
 
 __all__ = ["create_argument_parser"]
 
+VERSION = importlib.metadata.version(__package__)
+
 
 def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     """Create a command-line argument parser with predefined options / arguments.
@@ -22,7 +24,7 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
         exit_on_error=exit_on_error
     )
 
-    parser.add_argument("--version", action="version", version=importlib.metadata.version(__package__))
+    parser.add_argument("--version", action="version", version=VERSION)
     parser.add_argument(
         "--log-level",
         default="INFO",
@@ -59,5 +61,9 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     server = parser.add_argument_group(title="server settings")
     server.add_argument("--server-host", default="127.0.0.1", help="API server host address.")
     server.add_argument("--server-port", type=int, default=8081, help="API server port number.")
+
+    schema = parser.add_argument_group(title="api schema")
+    schema.add_argument("--schema-title", default="Auto-REST", help="title for the generated OpenAPI schema.")
+    schema.add_argument("--schema-version", default=VERSION, help="version number for the generated OpenAPI schema.")
 
     return parser
