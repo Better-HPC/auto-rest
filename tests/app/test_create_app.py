@@ -43,11 +43,6 @@ class TestCreateApp(TestCase):
         cls.app: FastAPI = create_app(cls.engine, cls.mock_models)
         cls.client = TestClient(cls.app)
 
-    def test_app_title(self) -> None:
-        """Test the application's title."""
-
-        self.assertEqual("Auto-REST", self.app.title)
-
     def test_has_root_endpoint(self) -> None:
         """Test the application has a root endpoint."""
 

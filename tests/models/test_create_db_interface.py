@@ -2,6 +2,7 @@ import unittest
 from datetime import date
 
 import pydantic
+from pydantic_core import PydanticUndefined
 from sqlalchemy import Column, Date, Float, Integer, String
 
 from auto_rest.models import create_db_interface, DBModel
@@ -44,10 +45,14 @@ class TestCreateDbInterface(unittest.TestCase):
     def test_field_defaults(self) -> None:
         """Test interface fields have the correct default values."""
 
-        self.assertIsNone(self.interface.model_fields["id"].default)
-        self.assertIsNone(self.interface.model_fields["title"].default)
+        # Verify fields without default values
+        self.assertEqual(PydanticUndefined, self.interface.model_fields["id"].default)
+        self.assertEqual(PydanticUndefined, self.interface.model_fields["title"].default)
+
+        # Verify fields with fixed default values
         self.assertEqual(self.interface.model_fields["rating"].default.arg, 5)
 
+        # Verify fields with dynamic default values
         default_created_at = self.interface.model_fields["created_at"].default.arg
         self.assertTrue(callable(default_created_at))
         self.assertEqual(date.today(), default_created_at(None))

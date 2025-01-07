@@ -3,13 +3,12 @@
 import asyncio
 import logging
 from pathlib import Path
+from typing import Callable
 
-import pydantic
-from pydantic.main import ModelT
+from pydantic.main import create_model, ModelT
 from sqlalchemy import create_engine, Engine, MetaData, URL
-from sqlalchemy.exc import InvalidRequestError
-from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import declarative_base, Session, sessionmaker
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.orm import declarative_base, Session
 
 __all__ = [
     "DBEngine",
@@ -20,7 +19,7 @@ __all__ = [
     "create_db_metadata",
     "create_db_models",
     "create_db_url",
-    "create_session_factory",
+    "create_session_iterator",
 ]
 
 logger = logging.getLogger(__name__)
@@ -84,24 +83,15 @@ def create_db_engine(url: URL, **kwargs) -> DBEngine:
 
     logger.info(f"Building database engine for {url}.")
 
-    # Attempt to create an async engine by default.
-    try:
+    if url.get_dialect().is_async:
         engine = create_async_engine(url, **kwargs)
         logger.debug("Asynchronous connection established.")
         return engine
 
-    except InvalidRequestError as e:
-        logger.warning(f"Async connection failed, falling back to sync. Error: {e}")
-
-    # Fall back to a synchronous engine if async fails.
-    try:
+    else:
         engine = create_engine(url, **kwargs)
         logger.debug("Synchronous connection established.")
         return engine
-
-    except Exception as e:  # pragma: no cover
-        logger.error(f"Could not connect to the database: {e}")
-        raise
 
 
 async def _async_reflect_metadata(engine: AsyncEngine, metadata: MetaData) -> None:
@@ -179,34 +169,32 @@ def create_db_interface(model: DBModel) -> type[ModelT]:
         A Pydantic model class with the same structure as the provided SQLAlchemy model.
     """
 
-    # Dynamic Pydantic models require a map of column names to their type and default value.
-    columns = {col.name: (col.type.python_type, col.default) for col in model.__table__.columns}
-    return pydantic.create_model(model.__name__, **columns)
+    fields = {
+        col.name: (col.type.python_type, col.default if col.default is not None else ...)
+        for col in model.__table__.columns
+    }
+
+    return create_model(model.__name__, **fields)
 
 
-def create_session_factory(engine: DBEngine, autocommit: bool = False, autoflush: bool = False):
+def create_session_iterator(engine: DBEngine) -> Callable[[], DBSession]:
     """Create a generator for database sessions.
 
     Args:
         engine: Database engine to use when generating new sessions.
-        autocommit: Whether to automatically commit changes to the database.
-        autoflush: Whether to automatically flush changes to the database.
 
     Returns:
-        A function that yields new database sessions.
+        A function that yields a single new database session.
     """
 
     if isinstance(engine, AsyncEngine):
-        async_session_factory = async_sessionmaker(bind=engine, autocommit=autocommit, autoflush=autoflush)
-
         async def session_iterator() -> AsyncSession:
-            async with async_session_factory() as session:
+            async with AsyncSession(bind=engine, autocommit=False, autoflush=True) as session:
                 yield session
-    else:
-        session_factory = sessionmaker(bind=engine, autocommit=autocommit, autoflush=autoflush)
 
+    else:
         def session_iterator() -> Session:
-            with session_factory() as session:
+            with Session(bind=engine, autocommit=False, autoflush=True) as session:
                 yield session
 
     return session_iterator

@@ -28,21 +28,23 @@ def main() -> None:
 
 
 def run_application(
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+    enable_docs: bool,
+    enable_meta: bool,
+    enable_write: bool,
     db_driver: str,
     db_host: str,
     db_port: int,
     db_name: str,
     db_user: str,
     db_pass: str,
-    server_host: str,
-    server_port: int,
-    enable_docs: bool,
-    enable_meta: bool,
-    enable_write: bool,
     pool_min: int | None,
     pool_max: int | None,
     pool_out: int | None,
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+    server_host: str,
+    server_port: int,
+    schema_title: str,
+    schema_version: str,
 ) -> None:
     """Run an Auto-REST API server.
 
@@ -50,28 +52,32 @@ def run_application(
     and accepts the same arguments as those provided in the CLI.
 
     Args:
+        log_level: Desired logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
+        enable_docs: Whether to enable the 'docs' API endpoint.
+        enable_meta: Whether to enable the 'meta' API endpoint.
+        enable_write: Whether to enable support for write operations.
         db_driver: SQLAlchemy-compatible database driver.
         db_host: Database host address.
         db_port: Database port number.
         db_name: Database name.
         db_user: Database authentication username.
         db_pass: Database authentication password.
-        server_host: API server host address.
-        server_port: API server port number.
-        enable_docs: Whether to enable the 'docs' API endpoint.
-        enable_meta: Whether to enable the 'meta' API endpoint.
-        enable_write: Whether to enable support for write operations.
         pool_min: Minimum number of database connections in the connection pool.
         pool_max: Maximum number of database connections in the connection pool.
         pool_out: Timeout (in seconds) for waiting on a database connection.
-        log_level: Desired logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
+        server_host: API server host address.
+        server_port: API server port number.
+        schema_title: title for the generated OpenAPI schema.
+        schema_version: version number for the generated OpenAPI schema.
     """
 
     configure_logging(log_level)
 
     # Filter out optional args.
-    pool_args = dict(pool_size=pool_min, max_overflow=pool_max, pool_timeout=pool_out)
-    pool_args = {k: v for k, v in pool_args.items() if v is not None}
+    pool_args = dict()
+    if "sqlite" not in db_driver:
+        pool_args = dict(pool_size=pool_min, max_overflow=pool_max, pool_timeout=pool_out)
+        pool_args = {k: v for k, v in pool_args.items() if v is not None}
 
     # Connect to and map the database.
     db_url = create_db_url(driver=db_driver, host=db_host, port=db_port, database=db_name, username=db_user, password=db_pass)
@@ -80,5 +86,7 @@ def run_application(
     db_models = create_db_models(db_meta)
 
     # Build and run the application.
-    app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs)
+    app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs, enable_write=enable_write)
+    app.openapi_schema = create_openapi_schema(app, title=schema_title, version=schema_version)
+
     run_app(app, server_host, server_port, log_level=log_level)
