@@ -36,12 +36,12 @@ from argparse import ArgumentParser, HelpFormatter
 
 from uvicorn.logging import DefaultFormatter
 
-__all__ = ['VERSION', "create_argument_parser", "configure_console_logging"]
+__all__ = ['VERSION', "create_cli_parser", "configure_cli_logging"]
 
 VERSION = importlib.metadata.version(__package__)
 
 
-def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
+def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
     """Create a command-line argument parser with preconfigured arguments.
 
     Args:
@@ -105,7 +105,7 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     return parser
 
 
-def configure_console_logging(level: str) -> None:
+def configure_cli_logging(level: str) -> None:
     """Enable console logging with the specified application log level.
 
     Calling this method overrides and removes all previously configured

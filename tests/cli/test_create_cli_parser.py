@@ -1,11 +1,11 @@
 from argparse import ArgumentError
 from unittest import TestCase
 
-from auto_rest.cli import create_argument_parser, VERSION
+from auto_rest.cli import create_cli_parser, VERSION
 
 
-class TestCreateArgumentParser(TestCase):
-    """Unit tests for the `create_argument_parser` function.
+class TestCreateCliParser(TestCase):
+    """Unit tests for the `create_cli_parser` function.
 
     Individual methods target behavior for a different subset of commandline arguments.
     """
@@ -13,7 +13,7 @@ class TestCreateArgumentParser(TestCase):
     def setUp(self) -> None:
         """Set up a new parser instance for each test."""
 
-        self.parser = create_argument_parser(exit_on_error=False)
+        self.parser = create_cli_parser(exit_on_error=False)
 
     def test_parser_name(self) -> None:
         """Verify the parser is created with the correct program name."""

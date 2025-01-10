@@ -15,10 +15,10 @@ def main() -> None:
     """Parse command-line arguments and launch an API server."""
 
     try:
-        parser = create_argument_parser()
+        parser = create_cli_parser()
         args = vars(parser.parse_args())
 
-        configure_console_logging(args.pop('log_level'))
+        configure_cli_logging(args.pop('log_level'))
         run_application(**args)
 
     except KeyboardInterrupt:
