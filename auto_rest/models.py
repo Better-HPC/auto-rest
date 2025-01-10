@@ -99,7 +99,7 @@ def create_db_url(
     )
 
 
-def create_db_engine(url: URL, pool_min=None, pool_max=None, pool_out=None) -> DBEngine:
+def create_db_engine(url: URL, pool_min: int = None, pool_max: int = None, pool_out: int = None) -> DBEngine:
     """Initialize a new database engine.
 
     Instantiates and returns an `Engine` or `AsyncEngine` instance depending
