@@ -1,17 +1,17 @@
 import logging
 from unittest import TestCase
 
-from auto_rest.app import configure_logging
+from auto_rest.cli import configure_console_logging
 
 
-class TestConfigureLogging(TestCase):
+class TestConfigureCOnsoleLogging(TestCase):
     """Unit tests for the `configure_logging` function."""
 
     def test_log_level_is_set(self) -> None:
         """Test the logging level is configured."""
 
         for log_level_str in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
-            configure_logging(log_level_str)
+            configure_console_logging(log_level_str)
 
             # The `getLevelName` method returns the numeric logging level when
             # passed the level name string. This was originally a bug, but is
@@ -22,7 +22,7 @@ class TestConfigureLogging(TestCase):
     def test_log_format_is_set(self) -> None:
         """Test the logging format is configured."""
 
-        configure_logging("INFO")
+        configure_console_logging("INFO")
         handler = logging.getLogger().handlers[0]
 
         self.assertIsInstance(handler, logging.StreamHandler)
@@ -32,4 +32,4 @@ class TestConfigureLogging(TestCase):
         """Test an invalid logging level raises an error."""
 
         with self.assertRaisesRegex(ValueError, "Invalid logging level"):
-            configure_logging("INVALID")
+            configure_console_logging("INVALID")

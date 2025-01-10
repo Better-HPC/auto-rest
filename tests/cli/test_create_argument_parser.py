@@ -5,7 +5,10 @@ from auto_rest.cli import create_argument_parser, VERSION
 
 
 class TestCreateArgumentParser(TestCase):
-    """Unit tests for the `create_argument_parser` function."""
+    """Unit tests for the `create_argument_parser` function.
+
+    Individual methods target behavior for a different subset of commandline arguments.
+    """
 
     def setUp(self) -> None:
         """Set up a new parser instance for each test."""

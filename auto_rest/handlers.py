@@ -1,4 +1,60 @@
-"""Functions for handling incoming HTTP requests and generating responses."""
+"""
+An **endpoint handler** is a function designed to process incoming HTTP
+requests for one or more API endpoints. In `auto_rest`, handlers are
+created dynamically using a factory pattern. This approach allows
+handler logic to be customized and reused across multiple endpoints.
+
+!!! example "Example: Creating a Handler"
+
+    New endpoint handlers are created dynamically using factory methods.
+
+    ```python
+    welcome_handler = create_welcome_handler()
+    ```
+
+Handler functions are defined as asynchronous coroutines, enabling
+asynchronous I/O operations where applicable. This provides improved
+performance when handling large numbers of incoming requests.
+
+!!! example "Example: Async Handlers"
+
+    Python requires asynchronous coroutines to be run from an asynchronous
+    context. FastAPI handles this automatically, but extra care is required
+    when manually calling a handler.
+
+    ```python
+    import asyncio
+
+    return_value = asyncio.run(welcome_handler())
+    ```
+
+Handlers are specifically designed to integrate with the FastAPI framework,
+including support for FastAPI's type hinting and data validation capabilities.
+This allows handlers to be directly incorporated into a FastAPI application
+instance.
+
+!!! example "Example: Adding a Handler to an Application"
+
+    Use the `add_api_route` method to dynamically add handler functions to
+    an existing application instance. This is effectively equivalent to the
+    commonly used `@app` decorator pattern used in many FastAPI applications.
+
+    ```python
+    app = FastAPI(...)
+
+    handler = create_welcome_handler()
+    app.add_api_route("/", handler, methods=["GET"], ...)
+    ```
+
+!!! info "Developer Note"
+
+    FastAPI internally performs post-processing on values returned by endpoint
+    handlers before sending them in an HTTP response. For this reason, handlers
+    should always be tested within the context of a FastAPI application.
+
+    In general, function testing is strongly preferred to unit testing for
+    endpoint handlers.
+"""
 
 import importlib.metadata
 import logging
@@ -6,6 +62,7 @@ from typing import Awaitable, Callable
 
 from fastapi import Depends, Response
 from pydantic import create_model
+from pydantic.main import ModelT
 from sqlalchemy import insert, select
 from starlette.requests import Request
 
@@ -28,41 +85,49 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-def create_welcome_handler() -> Callable[[], Awaitable]:
-    """Create a function that returns an application welcome message in JSON format."""
+def create_welcome_handler() -> Callable[[], Awaitable[ModelT]]:
+    """Create an endpoint handler that returns an application welcome message.
+
+    Returns:
+        An async function that returns a welcome message.
+    """
 
     interface = create_model("Welcome", message=(str, "Welcome to Auto-Rest!"))
 
     async def welcome_handler() -> interface:
-        """Return a welcome message in JSON format."""
+        """Return a welcome message."""
 
         return interface()
 
     return welcome_handler
 
 
-def create_version_handler() -> Callable[[], Awaitable]:
-    """Create a function that returns a dictionary with the application version number."""
+def create_version_handler() -> Callable[[], Awaitable[ModelT]]:
+    """Create an endpoint handler that returns the application version number.
+
+    Returns:
+        An async function that returns a version number.
+    """
 
     version = importlib.metadata.version(__package__)
     interface = create_model("Version", version=(str, version))
 
     async def version_handler() -> interface:
-        """Return the application version number in JSON format."""
+        """Return the application version number."""
 
         return interface()
 
     return version_handler
 
 
-def create_meta_handler(engine: DBEngine) -> Callable[[], Awaitable]:
-    """Create a function that returns a dictionary of metadata related to a database.
+def create_meta_handler(engine: DBEngine) -> Callable[[], Awaitable[ModelT]]:
+    """Create an endpoint handler that returns metadata related to a database.
 
     Args:
         engine: Database engine to pull metadata from.
 
     Returns:
-        An async function that returns a dictionary of database metadata.
+        An async function that returns database metadata.
     """
 
     interface = create_model("Meta",
@@ -82,12 +147,12 @@ def create_meta_handler(engine: DBEngine) -> Callable[[], Awaitable]:
     return meta_handler
 
 
-def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
-    """Create a function that returns a list of records from the database.
+def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[list[ModelT]]]:
+    """Create an endpoint handler that returns a list of records from a database table.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The database ORM object to use for database manipulations.
+        model: The ORM object to use for database manipulations.
 
     Returns:
         An async function that returns a list of records from the given database model.
@@ -95,7 +160,7 @@ def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..
 
     interface = create_db_interface(model)
 
-    async def list_records(
+    async def list_records_handler(
         response: Response,
         session: DBSession = Depends(create_session_iterator(engine)),
         pagination_params: dict[str, int] = Depends(get_pagination_params),
@@ -112,15 +177,15 @@ def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..
         result = await execute_session_query(session, query)
         return [interface.model_validate(record.__dict__) for record in result.scalars().all()]
 
-    return list_records
+    return list_records_handler
 
 
-def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
+def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[ModelT]]:
     """Create a function for handling GET requests against a single record in the database.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The database ORM object to use for database manipulations.
+        model: The ORM object to use for database manipulations.
 
     Returns:
         An async function that returns a single record from the given database model.
@@ -128,7 +193,7 @@ def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
 
     interface = create_db_interface(model)
 
-    async def get_record(
+    async def get_record_handler(
         request: Request,
         session: DBSession = Depends(create_session_iterator(engine)),
     ) -> interface:
@@ -139,23 +204,23 @@ def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
         record = get_record_or_404(result)
         return interface.model_validate(record.__dict__)
 
-    return get_record
+    return get_record_handler
 
 
-def create_post_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
-    """Create a function to handle POST requests for creating a new record in the database.
+def create_post_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[ModelT]]:
+    """Create a function for handling POST requests against a record in the database.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The database ORM object to use for database manipulations.
+        model: The ORM object to use for database manipulations.
 
     Returns:
-        An async function to handle POST requests and create a new record.
+        An async function that handles record creation.
     """
 
     interface = create_db_interface(model)
 
-    async def post_record(
+    async def post_record_handler(
         data: interface,
         session: DBSession = Depends(create_session_iterator(engine)),
     ) -> interface:
@@ -168,23 +233,23 @@ def create_post_record_handler(engine: DBEngine, model: DBModel) -> Callable[...
         await commit_session(session)
         return interface.model_validate(record.__dict__)
 
-    return post_record
+    return post_record_handler
 
 
-def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
-    """Create a function to handle PUT requests for updating a record in the database.
+def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[ModelT]]:
+    """Create a function for handling PUT requests against a record in the database.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The database ORM object to use for database manipulations.
+        model: The ORM object to use for database manipulations.
 
     Returns:
-        An async function to handle PUT requests and update a record.
+        An async function that handles record updates.
     """
 
     interface = create_db_interface(model)
 
-    async def put_record(
+    async def put_record_handler(
         request: Request,
         data: interface,
         session: DBSession = Depends(create_session_iterator(engine)),
@@ -201,23 +266,23 @@ def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
         await commit_session(session)
         return interface.model_validate(record.__dict__)
 
-    return put_record
+    return put_record_handler
 
 
-def create_patch_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
-    """Create a function to handle PATCH requests for partially updating a record in the database.
+def create_patch_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[ModelT]]:
+    """Create a function for handling PATCH requests against a record in the database.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The database ORM object to use for database manipulations.
+        model: The ORM object to use for database manipulations.
 
     Returns:
-        An async function to handle PATCH requests and partially update a record.
+        An async function that handles record updates.
     """
 
     interface = create_db_interface(model)
 
-    async def patch_record(
+    async def patch_record_handler(
         request: Request,
         data: interface,
         session: DBSession = Depends(create_session_iterator(engine)),
@@ -234,25 +299,25 @@ def create_patch_record_handler(engine: DBEngine, model: DBModel) -> Callable[..
         await commit_session(session)
         return interface(record.__dict__)
 
-    return patch_record
+    return patch_record_handler
 
 
-def create_delete_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable]:
-    """Create a function to handle DELETE requests for a single record in the database.
+def create_delete_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[None]]:
+    """Create a function for handling DELETE requests against a record in the database.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The database ORM object to use for database manipulations.
+        model: The ORM object to use for database manipulations.
 
     Returns:
-        An async function to handle DELETE requests and delete a record.
+        An async function that handles record deletion.
     """
 
-    async def delete_record(
+    async def delete_record_handler(
         request: Request,
         session: DBSession = Depends(create_session_iterator(engine)),
     ) -> None:
-        """Delete a single record from the database."""
+        """Delete a record from the database."""
 
         query = select(model).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
@@ -261,4 +326,4 @@ def create_delete_record_handler(engine: DBEngine, model: DBModel) -> Callable[.
         await delete_session_record(session, record)
         await commit_session(session)
 
-    return delete_record
+    return delete_record_handler

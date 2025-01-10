@@ -2,19 +2,16 @@
 
 import logging
 import re
-from typing import Literal
 
 import uvicorn
 from fastapi import APIRouter, FastAPI
 from fastapi.openapi.utils import get_openapi
 from starlette import status
-from uvicorn.logging import DefaultFormatter
 
 from .handlers import *
 from .models import DBEngine, DBModel
 
 __all__ = [
-    "configure_logging",
     "create_app",
     "create_openapi_schema",
     "create_route_handlers",
@@ -22,31 +19,6 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
-
-
-def configure_logging(level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]) -> None:
-    """Configure the application logging level.
-
-    Does not configure logging for dependencies (e.g., for uvicorn).
-
-    Args:
-        level: The Python logging level.
-    """
-
-    # Normalize and validate the logging level
-    level = level.upper()
-    if level not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
-        raise ValueError(f"Invalid logging level: {level}")
-
-    # Set up logging with a stream handler
-    handler = logging.StreamHandler()
-    handler.setFormatter(DefaultFormatter(fmt="%(levelprefix)s %(message)s"))
-    logging.basicConfig(
-        force=True,
-        level=level,
-        format="%(levelprefix)s %(message)s",
-        handlers=[handler]
-    )
 
 
 def create_route_handlers(engine: DBEngine, model: DBModel, writeable: bool = False) -> APIRouter:
@@ -207,15 +179,14 @@ def create_app(
     return app
 
 
-def run_app(app: FastAPI, server_host: str, server_port: int, log_level: str) -> None:  # pragma: no cover
+def run_app(app: FastAPI, server_host: str, server_port: int) -> None:  # pragma: no cover
     """Launch an application server.
 
     Args:
         app: The FastAPI application to serve.
         server_host: The server hostname.
         server_port: The server port.
-        log_level: The desired server logging level.
     """
 
     logger.info("Launching API server.")
-    uvicorn.run(app, host=server_host, port=server_port, log_level=log_level.lower())
+    uvicorn.run(app, host=server_host, port=server_port, log_level="error")

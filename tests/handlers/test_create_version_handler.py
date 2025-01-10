@@ -18,7 +18,7 @@ class TestCreateVersionHandler(TestCase):
         cls.client = TestClient(app)
 
     def test_version_handler(self) -> None:
-        """Test the version handler returns a 200 sstatus and version number."""
+        """Test the version handler returns a 200 status and version number."""
 
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
