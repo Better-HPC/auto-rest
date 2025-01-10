@@ -1,4 +1,36 @@
-"""Database utilities used to map database schemas and generate model interfaces."""
+"""
+The `models` module facilitates communication with relational databases
+via dynamically generated object relational mappers (ORMs). Building
+on the popular SQLAlchemy package, it natively supports multiple
+Database Management Systems (DBMS) without requiring custom configuration
+or setup.
+
+!!! example "Example: Creating ORM objects"
+
+    Utility functions are provided for connecting to the database,
+    mapping the schema, and dynamically generating ORM models based on
+    the existing database structure.
+
+    ```python
+    connection_args = dict(...)
+    db_url = create_db_url(**connection_args)
+    db_conn = create_db_engine(db_url)
+    db_meta = create_db_metadata(db_conn)
+    db_models = create_db_models(db_meta)
+    ```
+
+Support for asynchronous operations is automatically determined based on
+the driver used when connecting to the database. If the driver supports
+asynchronous operations, the connection and session handling are configured
+accordingly.
+
+!!! important "Developer Note"
+
+    When working with database objects, the returned object type may vary
+    depending on whether the underlying driver is synchronous or asynchronous.
+    Of particular note are database engines (`Engine` / `AsyncEngine`) and
+    sessions (`Session` / `AsyncSession`).
+"""
 
 import asyncio
 import logging
@@ -67,7 +99,7 @@ def create_db_url(
     )
 
 
-def create_db_engine(url: URL, **kwargs) -> DBEngine:
+def create_db_engine(url: URL, pool_min=None, pool_max=None, pool_out=None) -> DBEngine:
     """Initialize a new database engine.
 
     Instantiates and returns an `Engine` or `AsyncEngine` instance depending
@@ -75,13 +107,26 @@ def create_db_engine(url: URL, **kwargs) -> DBEngine:
 
     Args:
         url: A fully qualified database URL.
-        **kwargs: Optional init parameters for the engine instance.
+        pool_min: Minimum number of database connections in the connection pool.
+        pool_max: Maximum number of database connections in the connection pool.
+        pool_out: Timeout (in seconds) for waiting on a database connection.
 
     Returns:
         A SQLAlchemy `Engine` or `AsyncEngine` instance.
     """
 
     logger.info(f"Building database engine for {url}.")
+
+    # Filter out features not supported by SQLite.
+    kwargs = dict()
+    if url.get_dialect().name != "sqlite":
+        kwargs.update({
+            k: v for k, v in {
+                'pool_size': pool_min,
+                'max_overflow': pool_max,
+                'pool_timeout': pool_out
+            }.items() if v is not None
+        })
 
     if url.get_dialect().is_async:
         engine = create_async_engine(url, **kwargs)
@@ -179,6 +224,11 @@ def create_db_interface(model: DBModel) -> type[ModelT]:
 
 def create_session_iterator(engine: DBEngine) -> Callable[[], DBSession]:
     """Create a generator for database sessions.
+
+    Returns a synchronous or asynchronous function depending on whether
+    the database engine supports async operations. The type of session
+    returned also depends on the underlying database engine, and will
+    either be a `Session` or `AsyncSession` instance.
 
     Args:
         engine: Database engine to use when generating new sessions.

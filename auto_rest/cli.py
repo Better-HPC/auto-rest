@@ -1,27 +1,42 @@
 """
-The `cli` module is responsible for defining the `auto-rest` command-line
-interface. It uses the built-in argparse module to create a tailored
-`ArgumentParser` instance, pre-populated with custom argument definitions.
-Argument defaults, parsing, and type-casting, are handled automatically by
-the parser instance.
+The `cli` module manages input/output operations for the application's
+command line interface (CLI). Application inputs are parsed using the
+built-in `argparse` module while output messages are handled using the
+Python `logging` library.
 
 !!! example "Example: Parsing Arguments"
 
     The `create_argument_parser` function returns an `ArgumentParser`
-    instance which can be used as-is to parse arguments.
+    instance with pre-populated argument definitions.
 
     ```python
     from auto_rest.cli import create_argument_parser
 
     parser = create_argument_parser()
     args = parser.parse_args()
+    print(vars(args))
+    ```
+
+!!! example "Example: Enabling Console Logging"
+
+    The `configure_console_logging` method overrides any existing logging
+    configurations and enables console logging according to the provided log
+    level.
+
+    ```python
+    from auto_rest.cli import configure_console_logging
+
+    configure_console_logging(log_level="INFO")
     ```
 """
 
 import importlib.metadata
+import logging
 from argparse import ArgumentParser, HelpFormatter
 
-__all__ = ['VERSION', "create_argument_parser"]
+from uvicorn.logging import DefaultFormatter
+
+__all__ = ['VERSION', "create_argument_parser", "configure_console_logging"]
 
 VERSION = importlib.metadata.version(__package__)
 
@@ -88,3 +103,29 @@ def create_argument_parser(exit_on_error: bool = True) -> ArgumentParser:
     schema.add_argument("--oai-version", default=VERSION, help="version number for the generated OpenAPI schema.")
 
     return parser
+
+
+def configure_console_logging(level: str) -> None:
+    """Enable console logging with the specified application log level.
+
+    Calling this method overrides and removes all previously configured
+    logging configurations.
+
+    Args:
+        level: The Python logging level.
+    """
+
+    # Normalize and validate the logging level
+    level = level.upper()
+    if level not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+        raise ValueError(f"Invalid logging level: {level}")
+
+    # Set up logging with a stream handler
+    handler = logging.StreamHandler()
+    handler.setFormatter(DefaultFormatter(fmt="%(levelprefix)s %(message)s"))
+    logging.basicConfig(
+        force=True,
+        level=level,
+        format="%(levelprefix)s %(message)s",
+        handlers=[handler]
+    )

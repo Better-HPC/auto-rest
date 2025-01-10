@@ -19,10 +19,7 @@ plugins:
       handlers:
         python:
           options:
-            allow_inspection: false
-            show_bases: false
-            show_source: false
-            show_root_heading: false
+            show_root_toc_entry: false
 markdown_extensions:
   - abbr
   - admonition
@@ -63,5 +60,7 @@ nav:
       - getting_started/deploying.md
   - Architecture:
       - architecture/cli.md
+      - architecture/handlers.md
+      - architecture/models.md
   - Contributing: contributing.md
 copyright: Copyright &copy; 2025 Better HPC

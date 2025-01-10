@@ -1,7 +1,6 @@
 """Application entrypoint triggered by calling the packaged CLI command."""
 
 import logging
-from typing import Literal
 
 from auto_rest.app import *
 from auto_rest.cli import *
@@ -17,8 +16,10 @@ def main() -> None:
 
     try:
         parser = create_argument_parser()
-        args = parser.parse_args()
-        run_application(**vars(args))
+        args = vars(parser.parse_args())
+
+        configure_console_logging(args.pop('log_level'))
+        run_application(**args)
 
     except KeyboardInterrupt:
         pass
@@ -28,7 +29,6 @@ def main() -> None:
 
 
 def run_application(
-    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
     enable_docs: bool,
     enable_meta: bool,
     enable_write: bool,
@@ -52,7 +52,6 @@ def run_application(
     and accepts the same arguments as those provided in the CLI.
 
     Args:
-        log_level: Desired logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL').
         enable_docs: Whether to enable the 'docs' API endpoint.
         enable_meta: Whether to enable the 'meta' API endpoint.
         enable_write: Whether to enable support for write operations.
@@ -71,22 +70,15 @@ def run_application(
         oai_version: version number for the generated OpenAPI schema.
     """
 
-    configure_logging(log_level)
-
-    # Filter out optional args.
-    pool_args = dict()
-    if "sqlite" not in db_driver:
-        pool_args = dict(pool_size=pool_min, max_overflow=pool_max, pool_timeout=pool_out)
-        pool_args = {k: v for k, v in pool_args.items() if v is not None}
-
     # Connect to and map the database.
     db_url = create_db_url(driver=db_driver, host=db_host, port=db_port, database=db_name, username=db_user, password=db_pass)
-    db_conn = create_db_engine(db_url, **pool_args)
+    db_conn = create_db_engine(db_url, pool_min=pool_min, pool_max=pool_max, pool_out=pool_out)
     db_meta = create_db_metadata(db_conn)
     db_models = create_db_models(db_meta)
 
-    # Build and run the application.
+    # Build the application.
     app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs, enable_write=enable_write)
     app.openapi_schema = create_openapi_schema(app, title=oai_title, version=oai_version)
 
-    run_app(app, server_host, server_port, log_level=log_level)
+    # Launch the API server
+    run_app(app, server_host, server_port)
