@@ -94,7 +94,7 @@ def create_welcome_handler() -> Callable[[], Awaitable[ModelT]]:
     interface = create_model("Welcome", message=(str, "Welcome to Auto-Rest!"))
 
     async def welcome_handler() -> interface:
-        """Return a welcome message."""
+        """Return an application welcome message."""
 
         return interface()
 
