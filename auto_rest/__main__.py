@@ -2,9 +2,12 @@
 
 import logging
 
-from auto_rest.app import *
-from auto_rest.cli import *
+import uvicorn
+from fastapi import FastAPI
+
+from .cli import *
 from .models import *
+from .routers import *
 
 __all__ = ["main", "run_application"]
 
@@ -25,12 +28,13 @@ def main() -> None:
         pass
 
     except Exception as e:
-        logger.critical(str(e))
+        logger.critical(str(e), exc_info=True)
 
 
 def run_application(
     enable_docs: bool,
     enable_meta: bool,
+    enable_version: bool,
     enable_write: bool,
     db_driver: str,
     db_host: str,
@@ -43,8 +47,8 @@ def run_application(
     pool_out: int | None,
     server_host: str,
     server_port: int,
-    oai_title: str,
-    oai_version: str,
+    app_title: str,
+    app_version: str,
 ) -> None:
     """Run an Auto-REST API server.
 
@@ -54,6 +58,7 @@ def run_application(
     Args:
         enable_docs: Whether to enable the 'docs' API endpoint.
         enable_meta: Whether to enable the 'meta' API endpoint.
+        enable_version: Whether to enable the 'version' API endpoint.
         enable_write: Whether to enable support for write operations.
         db_driver: SQLAlchemy-compatible database driver.
         db_host: Database host address.
@@ -66,19 +71,33 @@ def run_application(
         pool_out: Timeout (in seconds) for waiting on a database connection.
         server_host: API server host address.
         server_port: API server port number.
-        oai_title: title for the generated OpenAPI schema.
-        oai_version: version number for the generated OpenAPI schema.
+        app_title: title for the generated OpenAPI schema.
+        app_version: version number for the generated OpenAPI schema.
     """
 
     # Connect to and map the database.
+    logger.info(f"Mapping database schema for {db_name}.")
     db_url = create_db_url(driver=db_driver, host=db_host, port=db_port, database=db_name, username=db_user, password=db_pass)
     db_conn = create_db_engine(db_url, pool_min=pool_min, pool_max=pool_max, pool_out=pool_out)
     db_meta = create_db_metadata(db_conn)
     db_models = create_db_models(db_meta)
 
-    # Build the application.
-    app = create_app(db_conn, db_models, enable_meta=enable_meta, enable_docs=enable_docs, enable_write=enable_write)
-    app.openapi_schema = create_openapi_schema(app, title=oai_title, version=oai_version)
+    # Build an empty application and dynamically add the requested functionality.
+    app = FastAPI(docs_url="/docs/" if enable_docs else None, redoc_url=None)
+    app.include_router(create_welcome_router(), prefix="")
 
-    # Launch the API server
-    run_app(app, server_host, server_port)
+    if enable_version:
+        logger.info("Adding `/version/` endpoint.")
+        app.include_router(create_version_router(app_version), prefix="/version")
+
+    if enable_meta:
+        logger.info("Adding `/meta/` endpoint.")
+        app.include_router(create_meta_router(db_conn), prefix="/meta")
+
+    for model_name, model in db_models.items():
+        logger.info(f"Adding `/db/{model_name}` endpoint.")
+        app.include_router(create_model_router(db_conn, model, enable_write), prefix=f"/db/{model_name}")
+
+    # Launch the API server.
+    logger.info(f"Launching API server on http://{server_host}:{server_port}.")
+    uvicorn.run(app, host=server_host, port=server_port, log_level="error")

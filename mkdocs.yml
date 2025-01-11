@@ -59,8 +59,11 @@ nav:
       - getting_started/install.md
       - getting_started/deploying.md
   - Architecture:
-      - architecture/cli.md
-      - architecture/handlers.md
-      - architecture/models.md
+      - Overview: architecture/overview.md
+      - Source Code:
+        - architecture/cli.md
+        - architecture/handlers.md
+        - architecture/models.md
+        - architecture/routers.md
   - Contributing: contributing.md
 copyright: Copyright &copy; 2025 Better HPC

@@ -83,10 +83,12 @@ This value, in addition to the host server name, is customizable from the comman
 Certain API endpoints are disabled by default and are only included in the generated API when specified.
 The following table lists optional endpoints and the corresponding CLI flag.
 
-| Endpoint | CLI Flag        | Description                                                         |
-|----------|-----------------|---------------------------------------------------------------------|
-| `/docs/` | `--enable-docs` | Displays HTML documentation for all available endpoints.            |
-| `/meta/` | `--enable-meta` | Returns meta data concerning the database used to generate the API. |
+| Endpoint            | CLI Flag           | Description                                                                                          |
+|---------------------|--------------------|------------------------------------------------------------------------------------------------------|
+| `/docs/`            | `--enable-docs`    | Displays HTML documentation for all available endpoints.                                             |
+| `/meta/`            | `--enable-meta`    | Returns meta data concerning the database used to generate the API.                                  |
+| `/version/`         | `--enable-version` | Returns the application/openapi schema version number.                                               |
+| `/db/<table-name>/` | `--enable-write`   | Enables support for write operations against database tables (`POST`, `PUT`, `PATCH`, and `DELETE`). |
 
 ## Scaling the Connection Pool
 

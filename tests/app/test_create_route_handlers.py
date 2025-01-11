@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 from sqlalchemy import Column, Integer, String
 
-from auto_rest.app import create_route_handlers
+from auto_rest.routers import create_model_router
 from auto_rest.models import DBModel
 
 
@@ -38,7 +38,7 @@ class TestCreateRouter(unittest.TestCase):
     def test_read_only_router(self) -> None:
         """Test the creation of a read-only router."""
 
-        router = create_route_handlers(self.mock_engine, SinglePKModel, writeable=False)
+        router = create_model_router(self.mock_engine, SinglePKModel, writeable=False)
         routes = [(route.path, method) for route in router.routes for method in route.methods]
 
         expected_routes = [("/", "GET"), ("/{id}/", "GET"), ]
@@ -47,7 +47,7 @@ class TestCreateRouter(unittest.TestCase):
     def test_writable_router(self) -> None:
         """Test the creation of a router with support for write operations."""
 
-        router = create_route_handlers(self.mock_engine, SinglePKModel, writeable=True)
+        router = create_model_router(self.mock_engine, SinglePKModel, writeable=True)
         routes = [(route.path, method) for route in router.routes for method in route.methods]
         expected_routes = [
             ("/", "GET"),
@@ -63,7 +63,7 @@ class TestCreateRouter(unittest.TestCase):
     def test_multiple_primary_keys(self) -> None:
         """Test router create for a table with a multiple primary keys."""
 
-        router = create_route_handlers(self.mock_engine, MultiplePKModel, writeable=True)
+        router = create_model_router(self.mock_engine, MultiplePKModel, writeable=True)
         actual_routes = [(route.path, method) for route in router.routes for method in route.methods]
         expected_routes = [
             ("/", "GET"),
