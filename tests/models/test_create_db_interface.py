@@ -4,11 +4,14 @@ from datetime import date
 import pydantic
 from pydantic_core import PydanticUndefined
 from sqlalchemy import Column, Date, Float, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
 
-from auto_rest.models import create_db_interface, DBModel
+from auto_rest.models import create_db_interface
+
+Base = declarative_base()
 
 
-class DummyOrmModel(DBModel):
+class DummyOrmModel(Base):
     """A dummy SQLAlchemy model used for testing."""
 
     __tablename__ = "test_model"

@@ -1,17 +1,17 @@
 import asyncio
 from unittest import TestCase
 
-from sqlalchemy import Column, create_engine, Engine, INTEGER, MetaData, Table
+from sqlalchemy import Column, create_engine, INTEGER, MetaData, Table
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from auto_rest.models import create_db_metadata
+from auto_rest.models import create_db_metadata, DBEngine
 
 
 class TestCreateDbMetadata(TestCase):
     """Unit tests for the `create_db_metadata` function."""
 
     @staticmethod
-    def add_tables(engine: Engine) -> None:
+    def add_tables(engine: DBEngine) -> None:
         """Helper method to add test tables to the database engine.
 
         Args:
