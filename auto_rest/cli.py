@@ -36,9 +36,35 @@ from argparse import ArgumentParser, HelpFormatter
 
 from uvicorn.logging import DefaultFormatter
 
-__all__ = ['VERSION', "create_cli_parser", "configure_cli_logging"]
+__all__ = ['VERSION', "configure_cli_logging", "create_cli_parser"]
 
 VERSION = importlib.metadata.version(__package__)
+
+
+def configure_cli_logging(level: str) -> None:
+    """Enable console logging with the specified application log level.
+
+    Calling this method overrides and removes all previously configured
+    logging configurations.
+
+    Args:
+        level: The Python logging level.
+    """
+
+    # Normalize and validate the logging level.
+    level = level.upper()
+    if level not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+        raise ValueError(f"Invalid logging level: {level}")
+
+    # Set up logging with a stream handler.
+    handler = logging.StreamHandler()
+    handler.setFormatter(DefaultFormatter(fmt="%(levelprefix)s %(message)s"))
+    logging.basicConfig(
+        force=True,
+        level=level,
+        format="%(levelprefix)s %(message)s",
+        handlers=[handler],
+    )
 
 
 def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
@@ -104,29 +130,3 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
     schema.add_argument("--app-version", default=VERSION, help="application version number.")
 
     return parser
-
-
-def configure_cli_logging(level: str) -> None:
-    """Enable console logging with the specified application log level.
-
-    Calling this method overrides and removes all previously configured
-    logging configurations.
-
-    Args:
-        level: The Python logging level.
-    """
-
-    # Normalize and validate the logging level
-    level = level.upper()
-    if level not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
-        raise ValueError(f"Invalid logging level: {level}")
-
-    # Set up logging with a stream handler
-    handler = logging.StreamHandler()
-    handler.setFormatter(DefaultFormatter(fmt="%(levelprefix)s %(message)s"))
-    logging.basicConfig(
-        force=True,
-        level=level,
-        format="%(levelprefix)s %(message)s",
-        handlers=[handler],
-    )

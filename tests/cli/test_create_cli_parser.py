@@ -154,21 +154,21 @@ class TestCreateCliParser(TestCase):
         self.assertEqual("0.0.0.0", custom_args.server_host)
         self.assertEqual(9090, custom_args.server_port)
 
-    def test_oai_schema_settings(self) -> None:
-        """Verify OpenAPI schema-related arguments and default values."""
+    def test_app_settings(self) -> None:
+        """Verify app-settings related arguments and default values."""
 
         # Test default values
         default_args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
-        self.assertEqual("Auto-REST", default_args.oai_title)
-        self.assertEqual(VERSION, default_args.oai_version)
+        self.assertEqual("Auto-REST", default_args.app_title)
+        self.assertEqual(VERSION, default_args.app_version)
 
         # Test parsing custom values
         custom_args = self.parser.parse_args([
             "--sqlite",
             "--db-name", "default",
-            "--oai-title", "Custom API",
-            "--oai-version", "1.2.3",
+            "--app-title", "Custom API",
+            "--app-version", "1.2.3",
         ])
 
-        self.assertEqual("Custom API", custom_args.oai_title)
-        self.assertEqual("1.2.3", custom_args.oai_version)
+        self.assertEqual("Custom API", custom_args.app_title)
+        self.assertEqual("1.2.3", custom_args.app_version)
