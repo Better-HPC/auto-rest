@@ -30,6 +30,20 @@ class TestCreateDbEngine(TestCase):
         self.assertEqual("aiosqlite", async_engine.driver)
         self.assertEqual(url, async_engine.url)
 
+    def test_engine_with_pool_arguments(self) -> None:
+        """Test pool arguments are correctly applied to the engine."""
+
+        pool_min = 5
+        pool_max = 10
+        pool_out = 30
+
+        url = URL.create(drivername="postgresql+asyncpg", username="user", password="password", host="localhost", port=5432, database="test_db")
+        engine = create_db_engine(url, pool_min=pool_min, pool_max=pool_max, pool_out=pool_out)
+
+        self.assertEqual(engine.pool.size(), pool_min)
+        self.assertEqual(engine.pool._max_overflow, pool_max)
+        self.assertEqual(engine.pool._timeout, pool_out)
+
     def test_invalid_url(self) -> None:
         """Test handling for an invalid database URL."""
 
