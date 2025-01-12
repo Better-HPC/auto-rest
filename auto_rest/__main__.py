@@ -83,7 +83,7 @@ def run_application(
     db_models = create_db_models(db_meta)
 
     # Build an empty application and dynamically add the requested functionality.
-    app = FastAPI(docs_url="/docs/" if enable_docs else None, redoc_url=None)
+    app = FastAPI(title=app_title, version=app_version, docs_url="/docs/" if enable_docs else None, redoc_url=None)
     app.include_router(create_welcome_router(), prefix="")
 
     if enable_version:
