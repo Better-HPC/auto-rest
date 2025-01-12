@@ -31,5 +31,6 @@ class TestGetRecordOr404(IsolatedAsyncioTestCase):
         # Verify a 404 error is raised
         with self.assertRaises(HTTPException) as context:
             get_record_or_404(mock_result)
-            self.assertEqual(context.exception.status_code, status.HTTP_404_NOT_FOUND)
-            self.assertEqual(context.exception.detail, "Record not found")
+
+        self.assertEqual(context.exception.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(context.exception.detail, "Record not found")
