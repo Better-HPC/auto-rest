@@ -13,8 +13,10 @@ class TestCreateVersionHandler(TestCase):
     def setUpClass(cls) -> None:
         """Set up a FastAPI app and test client."""
 
+        cls.version = "x.y.z"
+
         app = FastAPI()
-        app.add_api_route("/", create_version_handler())
+        app.add_api_route("/", create_version_handler(cls.version))
         cls.client = TestClient(app)
 
     def test_version_handler(self) -> None:
@@ -22,4 +24,4 @@ class TestCreateVersionHandler(TestCase):
 
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)
-        self.assertIn("version", response.json())
+        self.assertEqual(response.json(), {"version": self.version})

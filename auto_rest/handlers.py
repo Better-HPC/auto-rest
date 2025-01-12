@@ -56,7 +56,6 @@ instance.
     endpoint handlers.
 """
 
-import importlib.metadata
 import logging
 from typing import Awaitable, Callable
 
@@ -95,21 +94,23 @@ def create_welcome_handler() -> Callable[[], Awaitable[ModelT]]:
     interface = create_model("Welcome", message=(str, "Welcome to Auto-Rest!"))
 
     async def welcome_handler() -> interface:
-        """Return a welcome message."""
+        """Return an application welcome message."""
 
         return interface()
 
     return welcome_handler
 
 
-def create_version_handler() -> Callable[[], Awaitable[ModelT]]:
+def create_version_handler(version: str) -> Callable[[], Awaitable[ModelT]]:
     """Create an endpoint handler that returns the application version number.
+
+    Args:
+        version: The returned version identifier.
 
     Returns:
         An async function that returns a version number.
     """
 
-    version = importlib.metadata.version(__package__)
     interface = create_model("Version", version=(str, version))
 
     async def version_handler() -> interface:

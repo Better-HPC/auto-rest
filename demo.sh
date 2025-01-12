@@ -64,4 +64,4 @@ sqlite3 "$DB_NAME" <<EOF
     (5, 'Mark', 'The advanced query tips will definitely help with my performance issues.');
 EOF
 
-auto-rest --enable-meta --enable-docs --sqlite --db-name demo.db
+auto-rest --enable-docs --enable-meta --enable-version --enable-write --sqlite --db-name demo.db

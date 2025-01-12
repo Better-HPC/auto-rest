@@ -3,12 +3,12 @@ from unittest.mock import MagicMock
 
 from sqlalchemy import Column, Integer, String
 
-from auto_rest.app import create_route_handlers
 from auto_rest.models import DBModel
+from auto_rest.routers import create_model_router
 
 
 class SinglePKModel(DBModel):
-    """ORM for a mock table with a single primary key."""
+    """Database model for a mock table with a single primary key."""
 
     __tablename__ = "single_pk_model"
 
@@ -17,7 +17,7 @@ class SinglePKModel(DBModel):
 
 
 class MultiplePKModel(DBModel):
-    """ORM for a mock table with multiple primary key."""
+    """Database model for a mock table with multiple primary key."""
 
     __tablename__ = "multiple_pk_model"
 
@@ -26,8 +26,8 @@ class MultiplePKModel(DBModel):
     name = Column(String)
 
 
-class TestCreateRouter(unittest.TestCase):
-    """Unit tests for the """
+class TestCreateModelRouter(unittest.TestCase):
+    """Unit tests for the `create_model_router` function."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -36,18 +36,18 @@ class TestCreateRouter(unittest.TestCase):
         cls.mock_engine = MagicMock()
 
     def test_read_only_router(self) -> None:
-        """Test the creation of a read-only router."""
+        """Test read-only routers only support HTTP GET operations."""
 
-        router = create_route_handlers(self.mock_engine, SinglePKModel, writeable=False)
+        router = create_model_router(self.mock_engine, SinglePKModel, writeable=False)
         routes = [(route.path, method) for route in router.routes for method in route.methods]
 
         expected_routes = [("/", "GET"), ("/{id}/", "GET"), ]
         self.assertCountEqual(expected_routes, routes)
 
     def test_writable_router(self) -> None:
-        """Test the creation of a router with support for write operations."""
+        """Test writable routers support all common HTTP operations."""
 
-        router = create_route_handlers(self.mock_engine, SinglePKModel, writeable=True)
+        router = create_model_router(self.mock_engine, SinglePKModel, writeable=True)
         routes = [(route.path, method) for route in router.routes for method in route.methods]
         expected_routes = [
             ("/", "GET"),
@@ -61,9 +61,9 @@ class TestCreateRouter(unittest.TestCase):
         self.assertCountEqual(expected_routes, routes)
 
     def test_multiple_primary_keys(self) -> None:
-        """Test router create for a table with a multiple primary keys."""
+        """Test router paths for a table with a multiple primary keys."""
 
-        router = create_route_handlers(self.mock_engine, MultiplePKModel, writeable=True)
+        router = create_model_router(self.mock_engine, MultiplePKModel, writeable=True)
         actual_routes = [(route.path, method) for route in router.routes for method in route.methods]
         expected_routes = [
             ("/", "GET"),

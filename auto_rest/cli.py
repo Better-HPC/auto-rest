@@ -36,9 +36,35 @@ from argparse import ArgumentParser, HelpFormatter
 
 from uvicorn.logging import DefaultFormatter
 
-__all__ = ['VERSION', "create_cli_parser", "configure_cli_logging"]
+__all__ = ["VERSION", "configure_cli_logging", "create_cli_parser"]
 
 VERSION = importlib.metadata.version(__package__)
+
+
+def configure_cli_logging(level: str) -> None:
+    """Enable console logging with the specified application log level.
+
+    Calling this method overrides and removes all previously configured
+    logging configurations.
+
+    Args:
+        level: The Python logging level.
+    """
+
+    # Normalize and validate the logging level.
+    level = level.upper()
+    if level not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+        raise ValueError(f"Invalid logging level: {level}")
+
+    # Set up logging with a stream handler.
+    handler = logging.StreamHandler()
+    handler.setFormatter(DefaultFormatter(fmt="%(levelprefix)s %(message)s"))
+    logging.basicConfig(
+        force=True,
+        level=level,
+        format="%(levelprefix)s %(message)s",
+        handlers=[handler],
+    )
 
 
 def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
@@ -71,6 +97,7 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
     features = parser.add_argument_group(title="API features")
     features.add_argument("--enable-docs", action="store_true", help="enable the 'docs' endpoint.")
     features.add_argument("--enable-meta", action="store_true", help="enable the 'meta' endpoint.")
+    features.add_argument("--enable-version", action="store_true", help="enable the 'version' endpoint.")
     features.add_argument("--enable-write", action="store_true", help="enable support for write operations.")
 
     driver = parser.add_argument_group("database type")
@@ -98,34 +125,8 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
     server.add_argument("--server-host", default="127.0.0.1", help="API server host address.")
     server.add_argument("--server-port", type=int, default=8081, help="API server port number.")
 
-    schema = parser.add_argument_group(title="api schema")
-    schema.add_argument("--oai-title", default="Auto-REST", help="title for the generated OpenAPI schema.")
-    schema.add_argument("--oai-version", default=VERSION, help="version number for the generated OpenAPI schema.")
+    schema = parser.add_argument_group(title="application settings")
+    schema.add_argument("--app-title", default="Auto-REST", help="application title.")
+    schema.add_argument("--app-version", default=VERSION, help="application version number.")
 
     return parser
-
-
-def configure_cli_logging(level: str) -> None:
-    """Enable console logging with the specified application log level.
-
-    Calling this method overrides and removes all previously configured
-    logging configurations.
-
-    Args:
-        level: The Python logging level.
-    """
-
-    # Normalize and validate the logging level
-    level = level.upper()
-    if level not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
-        raise ValueError(f"Invalid logging level: {level}")
-
-    # Set up logging with a stream handler
-    handler = logging.StreamHandler()
-    handler.setFormatter(DefaultFormatter(fmt="%(levelprefix)s %(message)s"))
-    logging.basicConfig(
-        force=True,
-        level=level,
-        format="%(levelprefix)s %(message)s",
-        handlers=[handler]
-    )

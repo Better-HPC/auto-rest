@@ -1,8 +1,8 @@
 # Install and Setup
 
-Auto-REST is built in Python and can be installed directly from the Python Package Index (PyPI).
-The `pipx` package manager is recommended for standalone installations, which isolates the package in its own environment.
-Alternatively, the standard `pip` utility can be used to install Auto-REST as a dependency within an existing project.
+Auto-REST is available for installation from the Python Package Index (PyPI).
+The `pipx` package manager is recommended for standalone installations, however the standard `pip` utility can also be
+used.
 
 === "pipx (standalone)"
 
@@ -18,20 +18,29 @@ Alternatively, the standard `pip` utility can be used to install Auto-REST as a 
 
 ## Adding Custom Drivers
 
-Auto-REST includes drivers for most common database systems by default.
-However, additional drivers can be installed to support other database types or as alternatives to the prepackaged drivers.
-Auto-REST supports any driver compatible with the SQLAlchemy Python framework, including synchronous and asynchronous drivers.
+Auto-REST includes pre-packaged drivers for most common databases.
+The table below lists the supported database systems along with their default drivers.
 
-To add a new driver, install the driver package into the same environment where Auto-REST is installed.
+| Database System      | Default Driver       |
+|----------------------|----------------------|
+| SQLite               | `sqlite+aiosqlite`   |
+| PostgreSQL           | `postgresql+asyncpg` |
+| MySQL                | `mysql+asyncmy`      |
+| Oracle               | `oracle+oracledb`    |
+| Microsoft SQL Server | `mssql+aiomysql`     |
+
+User's can extend the list 
+In addition to the default drivers, Auto-REST supports any driver compatible with the SQLAlchemy Python framework.
+To add a new driver, install it in the same environment as the Auto-REST utility.
 
 === "pipx (standalone)"
 
     ```bash
-    pipx inject auto-rest [PACKAGE NAME]   
+    pipx inject auto-rest [PACKAGE_NAME]   
     ```
 
 === "pip (dependency)"
 
     ```bash
-    pip install [PACKAGE NAME]
+    pip install [PACKAGE_NAME]
     ```

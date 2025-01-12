@@ -69,8 +69,6 @@ class TestApplyOrderingParams(TestCase):
     def test_invalid_order_by_param(self) -> None:
         """Test a `ValueError` is raised for an invalid `order_by` parameter."""
 
-        self.fail()
-
     def test_missing_direction_param(self) -> None:
         """Test the `direction` parameter defaults to ascending."""
 

@@ -84,6 +84,8 @@ def create_db_url(
         A fully qualified database URL.
     """
 
+    logger.debug("Resolving database URL.")
+
     # Handle special case where SQLite uses file paths.
     if "sqlite" in driver:
         path = Path(database).resolve()
@@ -115,16 +117,16 @@ def create_db_engine(url: URL, pool_min: int = None, pool_max: int = None, pool_
         A SQLAlchemy `Engine` or `AsyncEngine` instance.
     """
 
-    logger.info(f"Building database engine for {url}.")
+    logger.debug(f"Building database engine for {url}.")
 
     # Filter out features not supported by SQLite.
     kwargs = dict()
     if url.get_dialect().name != "sqlite":
         kwargs.update({
             k: v for k, v in {
-                'pool_size': pool_min,
-                'max_overflow': pool_max,
-                'pool_timeout': pool_out
+                "pool_size": pool_min,
+                "max_overflow": pool_max,
+                "pool_timeout": pool_out
             }.items() if v is not None
         })
 
@@ -156,21 +158,16 @@ def create_db_metadata(engine: DBEngine) -> MetaData:
         A MetaData object reflecting the database schema.
     """
 
-    logger.info("Loading database schema.")
+    logger.debug("Loading database metadata.")
     metadata = MetaData()
 
-    try:
-        if isinstance(engine, AsyncEngine):
-            asyncio.run(_async_reflect_metadata(engine, metadata))
+    if isinstance(engine, AsyncEngine):
+        asyncio.run(_async_reflect_metadata(engine, metadata))
 
-        else:
-            metadata.reflect(bind=engine)
+    else:
+        metadata.reflect(bind=engine)
 
-        return metadata
-
-    except Exception as e:  # pragma: no cover
-        logger.error(f"Schema reflection error: {e}")
-        raise
+    return metadata
 
 
 def create_db_models(metadata: MetaData) -> dict[str, DBModel]:
@@ -183,25 +180,20 @@ def create_db_models(metadata: MetaData) -> dict[str, DBModel]:
         A dictionary mapping table names to database models.
     """
 
-    logger.info("Building database models.")
+    logger.debug("Building database models...")
     models = {}
 
-    try:
-        # Dynamically create a class for each table.
-        for table_name, table in metadata.tables.items():
-            logger.debug(f"Creating model for table {table_name}")
-            models[table_name] = type(
-                table_name.capitalize(),
-                (DBModel,),
-                {"__table__": table},
-            )
+    # Dynamically create a class for each table.
+    for table_name, table in metadata.tables.items():
+        logger.debug(f"> Creating model for table {table_name}.")
+        models[table_name] = type(
+            table_name.capitalize(),
+            (DBModel,),
+            {"__table__": table},
+        )
 
-        logger.debug(f"Successfully generated {len(models)} models.")
-        return models
-
-    except Exception as e:  # pragma: no cover
-        logger.error(f"Error generating models: {e}")
-        raise
+    logger.debug(f"Successfully generated {len(models)} models.")
+    return models
 
 
 def create_db_interface(model: DBModel) -> type[ModelT]:
