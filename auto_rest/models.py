@@ -124,9 +124,9 @@ def create_db_engine(url: URL, pool_min: int = None, pool_max: int = None, pool_
     if url.get_dialect().name != "sqlite":
         kwargs.update({
             k: v for k, v in {
-                'pool_size': pool_min,
-                'max_overflow': pool_max,
-                'pool_timeout': pool_out
+                "pool_size": pool_min,
+                "max_overflow": pool_max,
+                "pool_timeout": pool_out
             }.items() if v is not None
         })
 

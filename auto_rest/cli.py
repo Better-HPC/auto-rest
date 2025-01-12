@@ -36,7 +36,7 @@ from argparse import ArgumentParser, HelpFormatter
 
 from uvicorn.logging import DefaultFormatter
 
-__all__ = ['VERSION', "configure_cli_logging", "create_cli_parser"]
+__all__ = ["VERSION", "configure_cli_logging", "create_cli_parser"]
 
 VERSION = importlib.metadata.version(__package__)
 

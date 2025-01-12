@@ -14,14 +14,14 @@ __all__ = ["main", "run_application"]
 logger = logging.getLogger(__name__)
 
 
-def main() -> None:
+def main() -> None:  # pragma: no cover
     """Parse command-line arguments and launch an API server."""
 
     try:
         parser = create_cli_parser()
         args = vars(parser.parse_args())
 
-        configure_cli_logging(args.pop('log_level'))
+        configure_cli_logging(args.pop("log_level"))
         run_application(**args)
 
     except KeyboardInterrupt:
@@ -49,7 +49,7 @@ def run_application(
     server_port: int,
     app_title: str,
     app_version: str,
-) -> None:
+) -> None:  # pragma: no cover
     """Run an Auto-REST API server.
 
     This function is equivalent to launching an API server from the command line
