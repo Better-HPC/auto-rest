@@ -156,7 +156,7 @@ def create_schema_handler(metadata: MetaData) -> Callable[[], Awaitable[ModelT]]
         An async function that returns the database schema.
     """
 
-    # Define the Pydantic model for column details
+    # Define Pydantic models for column, table, and schema level data
     column_interface = create_model("Column",
         type=(str, ...),
         nullable=(bool, ...),
@@ -164,10 +164,7 @@ def create_schema_handler(metadata: MetaData) -> Callable[[], Awaitable[ModelT]]
         primary_key=(bool, ...),
     )
 
-    # Define the Pydantic model for table details
     table_interface = create_model("Table", columns=(dict[str, column_interface], ...))
-
-    # Define the Pydantic model for the overall schema
     schema_interface = create_model("Schema", tables=(dict[str, table_interface], ...))
 
     async def schema_handler() -> schema_interface:
