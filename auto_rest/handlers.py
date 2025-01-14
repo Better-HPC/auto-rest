@@ -175,7 +175,7 @@ def create_schema_handler(metadata: MetaData) -> Callable[[], Awaitable[ModelT]]
                 column.name: column_interface(
                     type=str(column.type),
                     nullable=column.nullable,
-                    default=str(column.default) if column.default else None,
+                    default=str(column.default.arg) if column.default else None,
                     primary_key=column.primary_key
                 )
                 for column in table.columns
