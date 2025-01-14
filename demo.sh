@@ -10,6 +10,11 @@ DB_NAME="${1:-demo.db}"
 
 # Check if the database already exists
 if [ -f "$DB_NAME" ]; then
+  read -p "The file '$DB_NAME' already exists. Do you want to overwrite it? (y/n): " choice
+  if [[ "$choice" != "y" && "$choice" != "Y" ]]; then
+    echo "Exiting demo."
+    exit 1
+  fi
   rm "$DB_NAME"
 fi
 
@@ -64,4 +69,4 @@ sqlite3 "$DB_NAME" <<EOF
     (5, 'Mark', 'The advanced query tips will definitely help with my performance issues.');
 EOF
 
-auto-rest --enable-docs --enable-meta --enable-version --enable-write --sqlite --db-name demo.db
+auto-rest --enable-docs --enable-write --sqlite --db-name demo.db

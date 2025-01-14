@@ -62,7 +62,7 @@ from typing import Awaitable, Callable
 from fastapi import Depends, Response
 from pydantic import create_model
 from pydantic.main import ModelT
-from sqlalchemy import insert, select
+from sqlalchemy import insert, MetaData, select
 from starlette.requests import Request
 
 from .models import *
@@ -71,12 +71,13 @@ from .queries import *
 
 __all__ = [
     "create_delete_record_handler",
+    "create_engine_handler",
     "create_get_record_handler",
     "create_list_records_handler",
-    "create_meta_handler",
     "create_patch_record_handler",
     "create_post_record_handler",
     "create_put_record_handler",
+    "create_schema_handler",
     "create_version_handler",
     "create_welcome_handler",
 ]
@@ -121,11 +122,11 @@ def create_version_handler(version: str) -> Callable[[], Awaitable[ModelT]]:
     return version_handler
 
 
-def create_meta_handler(engine: DBEngine) -> Callable[[], Awaitable[ModelT]]:
-    """Create an endpoint handler that returns metadata related to a database.
+def create_engine_handler(engine: DBEngine) -> Callable[[], Awaitable[ModelT]]:
+    """Create an endpoint handler that returns configuration details for a database engine.
 
     Args:
-        engine: Database engine to pull metadata from.
+        engine: Database engine to return the configuration for.
 
     Returns:
         An async function that returns database metadata.
@@ -135,9 +136,6 @@ def create_meta_handler(engine: DBEngine) -> Callable[[], Awaitable[ModelT]]:
         dialect=(str, engine.dialect.name),
         driver=(str, engine.dialect.driver),
         database=(str, engine.url.database),
-        host=(str | None, engine.url.host),
-        port=(int | None, engine.url.port),
-        username=(str | None, engine.url.username),
     )
 
     async def meta_handler() -> interface:
@@ -146,6 +144,48 @@ def create_meta_handler(engine: DBEngine) -> Callable[[], Awaitable[ModelT]]:
         return interface()
 
     return meta_handler
+
+
+def create_schema_handler(metadata: MetaData) -> Callable[[], Awaitable[ModelT]]:
+    """Create an endpoint handler that returns the database schema.
+
+    Args:
+        metadata: Metadata object containing the database schema.
+
+    Returns:
+        An async function that returns the database schema.
+    """
+
+    # Define the Pydantic model for column details
+    column_interface = create_model("Column",
+        type=(str, ...),
+        nullable=(bool, ...),
+        default=(str | None, None),
+        primary_key=(bool, ...),
+    )
+
+    # Define the Pydantic model for table details
+    table_interface = create_model("Table", columns=(dict[str, column_interface], ...))
+
+    # Define the Pydantic model for the overall schema
+    schema_interface = create_model("Schema", tables=(dict[str, table_interface], ...))
+
+    async def schema_handler() -> schema_interface:
+        """Return metadata concerning the underlying application database."""
+
+        return schema_interface(
+            tables={table_name: table_interface(columns={
+                column.name: column_interface(
+                    type=str(column.type),
+                    nullable=column.nullable,
+                    default=str(column.default) if column.default else None,
+                    primary_key=column.primary_key
+                )
+                for column in table.columns
+            }) for table_name, table in metadata.tables.items()}
+        )
+
+    return schema_handler
 
 
 def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[list[ModelT]]]:

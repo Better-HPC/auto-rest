@@ -38,8 +38,6 @@ Launch an API by providing connection arguments to a database of your choice.
 auto-rest \
   # Enable optional endpoints / functionality
   --enable-docs \
-  --enable-meta \
-  --enable-version \
   --enable-write \
   # Define the database type and connection arguments
   --psql 
