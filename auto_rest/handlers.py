@@ -1,6 +1,6 @@
 """
 An **endpoint handler** is a function designed to process incoming HTTP
-requests for one or more API endpoints. In `auto_rest`, handlers are
+requests for single API endpoint. In `auto_rest`, handlers are
 created dynamically using a factory pattern. This approach allows
 handler logic to be customized and reused across multiple endpoints.
 
@@ -12,15 +12,14 @@ handler logic to be customized and reused across multiple endpoints.
     welcome_handler = create_welcome_handler()
     ```
 
-Handler functions are defined as asynchronous coroutines, enabling
-asynchronous I/O operations where applicable. This provides improved
-performance when handling large numbers of incoming requests.
+Handler functions are defined as asynchronous coroutines.
+This provides improved performance when handling large numbers of
+incoming requests.
 
 !!! example "Example: Async Handlers"
 
     Python requires asynchronous coroutines to be run from an asynchronous
-    context. FastAPI handles this automatically, but extra care is required
-    when manually calling a handler.
+    context. In the following example, this is achieved using `asyncio.run`.
 
     ```python
     import asyncio
@@ -30,14 +29,12 @@ performance when handling large numbers of incoming requests.
 
 Handlers are specifically designed to integrate with the FastAPI framework,
 including support for FastAPI's type hinting and data validation capabilities.
-This allows handlers to be directly incorporated into a FastAPI application
-instance.
+This makes it easy to incorporate handlers into a FastAPI application.
 
 !!! example "Example: Adding a Handler to an Application"
 
     Use the `add_api_route` method to dynamically add handler functions to
-    an existing application instance. This is effectively equivalent to the
-    commonly used `@app` decorator pattern used in many FastAPI applications.
+    an existing application instance.
 
     ```python
     app = FastAPI(...)
@@ -51,9 +48,6 @@ instance.
     FastAPI internally performs post-processing on values returned by endpoint
     handlers before sending them in an HTTP response. For this reason, handlers
     should always be tested within the context of a FastAPI application.
-
-    In general, function testing is strongly preferred to unit testing for
-    endpoint handlers.
 """
 
 import logging

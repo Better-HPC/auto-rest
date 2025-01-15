@@ -1,14 +1,14 @@
 # Application Architecture
 
-Auto-REST is built around a functional programming paradigm. 
-It utilizes the factory pattern to dynamically generate application components based on the reflected database schema.
-This enables flexible and efficient creation of components that are tailored to the specific structure of the database.
+Auto-REST uses a functional programming paradigm and relies heavily on the factory design pattern.
+In this approach, factory functions are used to dynamically generate application components.
+This enables a flexible architecture capable of adapting to the underlying database structure.
 
-A strong preference is given to using sequential function calls rather than nested ones
-This design improves code clarity and makes logic easier to follow.
-Nested function design is used sparingly and only when it offers notable improvement to the overall code quality.
+In general, functions are designed to be called sequentially, rather than being nested together.
+This approach improves code clarity and makes logic easier to follow.
+Nested functions are used occasionally, but only when they offer a notable improvement to the overall code quality.
 
-The diagram below illustrates the sequence of function calls triggered by the API.
+The diagram below demonstrates the sequence of function calls initiated by the command-line application.
 Functions are grouped together into modules based on their common responsibilities.
 
 ![Architecture Diagram](../static/architecture.svg)

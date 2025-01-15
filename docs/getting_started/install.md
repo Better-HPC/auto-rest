@@ -1,8 +1,7 @@
 # Install and Setup
 
 Auto-REST is available for installation from the Python Package Index (PyPI).
-The `pipx` package manager is recommended for standalone installations, however the standard `pip` utility can also be
-used.
+Using the `pipx` package manager is strongly recommended, however the standard `pip` utility can also be used.
 
 === "pipx (standalone)"
 
@@ -29,8 +28,8 @@ The table below lists the supported database systems along with their default dr
 | Oracle               | `oracle+oracledb`    |
 | Microsoft SQL Server | `mssql+aiomysql`     |
 
-User's can extend the list 
-In addition to the default drivers, Auto-REST supports any driver compatible with the SQLAlchemy Python framework.
+
+Auto-REST also supports any database driver compatible with the SQLAlchemy Python framework.
 To add a new driver, install it in the same environment as the Auto-REST utility.
 
 === "pipx (standalone)"

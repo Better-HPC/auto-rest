@@ -8,10 +8,10 @@ routers to be added directly to an API application instance.
 
 !!! example "Example: Creating and Adding a Router"
 
-   Care should be taken to avoid path conflicts when adding routers
-   to an API application instance. Using a unique `prefix` value
-   ensures that each router's endpoints are properly namespaced and
-   unique.
+    Care should be taken to avoid path conflicts when adding routers
+    to an API application instance. Using a unique `prefix` value
+    ensures that each router's endpoints are properly namespaced and
+    unique.
 
     ```python
     from fastapi import FastAPI
