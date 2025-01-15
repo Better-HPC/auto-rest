@@ -410,7 +410,7 @@ markers = {main = "platform_system == \"Windows\""}
 name = "coverage"
 version = "7.6.10"
 description = "Code coverage measurement for Python"
-optional = true
+optional = false
 python-versions = ">=3.9"
 groups = ["tests"]
 files = [
@@ -1828,4 +1828,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10"
-content-hash = "8d57e04a514095edc2897fc9c0ccf8973034ebd8b47a10e56d9a347911118002"
+content-hash = "ed1cf4fed64298b55186227195806b493b29e01ce61e725ab87c36cfccd9a29b"
