@@ -72,15 +72,6 @@ class TestCreateCliParser(TestCase):
         custom_args = self.parser.parse_args(["--sqlite", "--db-name", "default", "--enable-docs"])
         self.assertTrue(custom_args.enable_docs)
 
-    def test_enable_meta_flag(self) -> None:
-        """Verify the `--enable-meta` flag."""
-
-        default_args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
-        self.assertFalse(default_args.enable_meta)
-
-        custom_args = self.parser.parse_args(["--sqlite", "--db-name", "default", "--enable-meta"])
-        self.assertTrue(custom_args.enable_meta)
-
     def test_enable_write_flag(self) -> None:
         """Verify the `--enable-write` flag."""
 

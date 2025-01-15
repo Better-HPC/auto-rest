@@ -1,5 +1,5 @@
-import unittest
 from datetime import date
+from unittest import TestCase
 
 import pydantic
 from pydantic_core import PydanticUndefined
@@ -22,7 +22,7 @@ class DummyOrmModel(Base):
     created_at = Column(Date, default=date.today)
 
 
-class TestCreateDbInterface(unittest.TestCase):
+class TestCreateDbInterface(TestCase):
     """Unit tests for the `create_db_interface` function."""
 
     @classmethod

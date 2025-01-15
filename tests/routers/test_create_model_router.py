@@ -1,4 +1,4 @@
-import unittest
+from unittest import TestCase
 from unittest.mock import MagicMock
 
 from sqlalchemy import Column, Integer, String
@@ -26,7 +26,7 @@ class MultiplePKModel(DBModel):
     name = Column(String)
 
 
-class TestCreateModelRouter(unittest.TestCase):
+class TestCreateModelRouter(TestCase):
     """Unit tests for the `create_model_router` function."""
 
     @classmethod

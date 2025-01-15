@@ -33,8 +33,6 @@ def main() -> None:  # pragma: no cover
 
 def run_application(
     enable_docs: bool,
-    enable_meta: bool,
-    enable_version: bool,
     enable_write: bool,
     db_driver: str,
     db_host: str,
@@ -57,8 +55,6 @@ def run_application(
 
     Args:
         enable_docs: Whether to enable the 'docs' API endpoint.
-        enable_meta: Whether to enable the 'meta' API endpoint.
-        enable_version: Whether to enable the 'version' API endpoint.
         enable_write: Whether to enable support for write operations.
         db_driver: SQLAlchemy-compatible database driver.
         db_host: Database host address.
@@ -85,14 +81,7 @@ def run_application(
     # Build an empty application and dynamically add the requested functionality.
     app = FastAPI(title=app_title, version=app_version, docs_url="/docs/" if enable_docs else None, redoc_url=None)
     app.include_router(create_welcome_router(), prefix="")
-
-    if enable_version:
-        logger.info("Adding `/version/` endpoint.")
-        app.include_router(create_version_router(app_version), prefix="/version")
-
-    if enable_meta:
-        logger.info("Adding `/meta/` endpoint.")
-        app.include_router(create_meta_router(db_conn), prefix="/meta")
+    app.include_router(create_meta_router(db_conn, db_meta, app_version), prefix="/meta")
 
     for model_name, model in db_models.items():
         logger.info(f"Adding `/db/{model_name}` endpoint.")

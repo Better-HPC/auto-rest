@@ -24,6 +24,7 @@ routers to be added directly to an API application instance.
 """
 
 from fastapi import APIRouter
+from sqlalchemy import MetaData
 from starlette import status
 
 from auto_rest.handlers import *
@@ -32,7 +33,6 @@ from auto_rest.models import DBEngine, DBModel
 __all__ = [
     "create_meta_router",
     "create_model_router",
-    "create_version_router",
     "create_welcome_router",
 ]
 
@@ -45,37 +45,31 @@ def create_welcome_router() -> APIRouter:
     """
 
     router = APIRouter()
-    router.add_api_route("/", create_welcome_handler(), methods=["GET"])
+    router.add_api_route("/", create_welcome_handler(), methods=["GET"], include_in_schema=False)
     return router
 
 
-def create_version_router(version: str) -> APIRouter:
-    """Create an API router for returning a version number message.
+def create_meta_router(engine: DBEngine, metadata: MetaData, version: str) -> APIRouter:
+    """Create an API router for returning database metadata.
+
+    Includes routes for retrieving the database driver, database schema,
+    and application/schema version.
 
     Args:
+        engine: The database engine used to facilitate database interactions.
+        metadata: The metadata object containing the database schema.
         version: The version string to return.
 
     Returns:
-        An `APIRouter` with a single route for retrieving the version string.
+        An `APIRouter` with a routes for retrieving application metadata.
     """
 
     router = APIRouter()
-    router.add_api_route("/", create_version_handler(version), methods=["GET"], tags=["Application Metadata"])
-    return router
+    tags = ["Application Metadata"]
 
-
-def create_meta_router(engine: DBEngine) -> APIRouter:
-    """Create an API router for returning database metadata.
-
-    Args:
-        engine: The database engine used to retrieve metadata.
-
-    Returns:
-        An `APIRouter` with a single route for retrieving application metadata.
-    """
-
-    router = APIRouter()
-    router.add_api_route("/", create_meta_handler(engine), methods=["GET"], tags=["Application Metadata"])
+    router.add_api_route("/version", create_version_handler(version), methods=["GET"], tags=tags)
+    router.add_api_route("/engine", create_engine_handler(engine), methods=["GET"], tags=tags)
+    router.add_api_route("/schema", create_schema_handler(metadata), methods=["GET"], tags=tags)
     return router
 
 
