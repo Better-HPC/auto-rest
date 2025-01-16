@@ -1,4 +1,36 @@
-"""Injectable dependencies and utility functions used for building FastAPI request handlers."""
+"""
+The `params` module provides utilities for extracting and applying query
+parameters from incoming HTTP requests. These utilities ensure the consistent
+parsing, validation, and application of query parameters, and automatically
+update HTTP response headers to reflect applied query options.
+
+Parameter functions are designed in pairs. A *get* function is used to parse
+parameters from a FastAPI request and an *apply* function is used to apply
+the arguments onto a SQLAlchemy query.
+
+!!! example "Example: Parameter Parsing and Application"
+
+    When handling URL parameters, a *get* function is injected as a dependency
+    into the signature of the request handler. The parsed parameter dictionary
+    is then passed to an *apply* function.
+
+    ```python
+    from fastapi import FastAPI, Response, Depends
+    from sqlalchemy import select
+    from auto_rest.query_params import get_pagination_params, apply_pagination_params
+
+    app = FastAPI()
+
+    @app.get("/items/")
+    async def list_items(
+        pagination_params: dict = Depends(get_pagination_params),
+        response: Response
+    ):
+        query = select(SomeModel)
+        query = apply_pagination_params(query, pagination_params, response)
+        return ...  # Logic to further process and execute the query goes here
+    ```
+"""
 
 from typing import Literal
 

@@ -8,10 +8,7 @@ For a full list of available options, see the application help text (`auto-rest 
 Deploying an API server requires specifying the database type and connection settings.
 Using the provided arguments, `auto-rest` will automatically connect to the database,
 map the database schema, and deploy a customized API server.
-
-Auto-REST supports most common database systems out-of-the-box.
-User's can extend this support to additional database systems using third party database drivers.
-See the [installation instructions](install.md) for details on installing custom drivers.
+The API server is deployed on port `8081` by default, but can be modified via commandline arguments.
 
 !!! example "Example: Launching an API"
 
@@ -21,7 +18,7 @@ See the [installation instructions](install.md) for details on installing custom
         Unlike traditional database systems, SQLite is file based and requires fewer conenction settings.
         The file path to the database should be specified using the `--db-name` option.
     
-        ```bash
+        ```shell
         auto-rest --sqlite --db-name my_database.db
         ```
     
@@ -29,7 +26,7 @@ See the [installation instructions](install.md) for details on installing custom
     
         Use the `--psql` flag to enable support for PostgreSQL databases.
     
-        ```bash
+        ```shell
         auto-rest --psql --db-host localhost --db-port 5432 --db-name my_database
         ```
     
@@ -37,7 +34,7 @@ See the [installation instructions](install.md) for details on installing custom
     
         Use the `--mysql` flag to enable support for MySQL databases.
     
-        ```bash
+        ```shell
         auto-rest --mysql --db-host localhost --db-port 3306 --db-name my_database
         ```
     
@@ -45,7 +42,7 @@ See the [installation instructions](install.md) for details on installing custom
     
         Use the `--oracle` flag to enable support for Oracle databases.
     
-        ```bash
+        ```shell
         auto-rest --oracle --db-host localhost --db-port 1521 --db-name my_database
         ```
     
@@ -54,57 +51,66 @@ See the [installation instructions](install.md) for details on installing custom
         Use the `--mssql` flag to enable support for Microsoft SQL Server.
         
     
-        ```bash
+        ```shell
         auto-rest --mssql --db-host localhost --db-port 1433 --db-name my_database
         ```
 
-    === "Custom Driver"
+Auto-REST supports most common database systems out-of-the-box.
+However, users can extend support to additional database systems using third party database drivers.
+See the [installation instructions](install.md) for details on installing custom drivers.
 
-        The `--driver` option allows users to leverage specific database drivers.
-        In the following example, the `postgresql+asyncpg` driver is used to connect to a PostgreSQL database.
+!!! example "Example: Using a Custom Database Driver"
 
-        ```bash
-        auto-rest --driver postgresql+asyncpg --db-host localhost --db-port 5432 --db-name my_database
-        ```
+    The `--driver` option allows users to leverage specific database drivers.
+    In the following example, the `postgresql+asyncpg` driver is used to connect to a PostgreSQL database.
 
-The API server is deployed on port `8081` by default.
-This value, in addition to the host server name, is customizable from the command line.
-
-!!! example "Example: Custom Server Settings"
-
-    In the following example the `--server-host` and `--server-port` arguments are used to customize the deployed API server.
-
-    ```bash
-    auto-rest ... --server-host my.host.name --server-port 8888
+    ```shell
+    auto-rest --driver postgresql+asyncpg --db-host localhost --db-port 5432 --db-name my_database
     ```
 
-## Enabling Optional Endpoints
+## Enabling Optional Features
 
-Certain API endpoints are disabled by default and are only included in the generated API when specified.
-The following table lists optional endpoints and the corresponding CLI flag.
+Certain API features are disabled by default.
+The following table lists CLI flags for enabling optional functionality.
 
-| Endpoint            | CLI Flag           | Description                                                                                          |
-|---------------------|--------------------|------------------------------------------------------------------------------------------------------|
-| `/docs/`            | `--enable-docs`    | Displays HTML documentation for all available endpoints.                                             |
-| `/meta/`            | `--enable-meta`    | Returns meta data concerning the database used to generate the API.                                  |
-| `/version/`         | `--enable-version` | Returns the application/openapi schema version number.                                               |
-| `/db/<table-name>/` | `--enable-write`   | Enables support for write operations against database tables (`POST`, `PUT`, `PATCH`, and `DELETE`). |
+| CLI Flag         | Description                                                                                          |
+|------------------|------------------------------------------------------------------------------------------------------|
+| `--enable-docs`  | Enables a `/docs/` endpoint with HTML documentation for all available endpoints.                     |
+| `--enable-write` | Enables support for write operations against database tables (`POST`, `PUT`, `PATCH`, and `DELETE`). |
 
-## Scaling the Connection Pool
+## Customizing Application Info
 
-Auto-REST maintains a pool of active database connections at all times.
-This minimizes application latency and improves overall performance.
-The size of this pool is determined at application launch using the `--pool-min` and `--pool-max` arguments.
+The application title and version number are both configurable at runtime.
+These values are reflected across multiple endpoints, including the API documentation and version endpoint.
+By default, the application title is set to "Auto-REST," and the version is set to the current Auto-REST version.
 
-!!! note
+!!! example "Example: Customizing Application Info"
 
-    Pool connection settings have no effect on SQLite databases due to their file-based architecture.
-    This is a design feature of SQLite databases in general, and not a function of the `auto-rest` utility.
+    Use the `--app-title` and `--app-version` arguments to customize the application name and version.
 
-!!! example "Example: Connection Pool Sizing"
-
-    The following example maintains at least 10 active database connections and allows 50 connections maximum.
-
-    ```bash
-    auto-rest ... --pool-min 10 --pool-max 50
+    ```shell
+    auto-rest ... --app-title "My Application Name" --app-version 1.2.3
     ```
+
+## Deploying with Docker
+
+Better HPC provides an official docker image for the Auto-REST utility.
+
+```shell
+docker pull ghcr.io/better-hpc/auto-rest
+```
+
+Running servers with docker requires paying special attention to the network settings.
+When deploying Auto-REST against a database on localhost, the database host should be set to `host.docker.internal`.
+In all cases, the port of the server within the container needs to be exposed to outside traffic (`-p <HOST PORT>:<CONTAINER PORT>`).
+
+```
+docker run -p 8081:8081 auto-rest \
+    --psql \
+    --db-host host.docker.internal \
+    --db-port <DB_PORT> \
+    --db-name <DB_NAME> \
+    --db-user <DB_USER> \
+    --server-host 0.0.0.0 \
+    --server-port 8081
+```

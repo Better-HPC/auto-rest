@@ -2,6 +2,8 @@ site_name: Auto-REST Documentation
 
 theme:
   name: material
+  palette:
+    primary: custom
   font:
     text: Roboto
     code: Roboto Mono
@@ -14,6 +16,8 @@ theme:
     - content.code.annotate
     - content.code.copy
     - content.tabs.link
+extra_css:
+  - _static/css/theme.css
 plugins:
   - mkdocstrings:
       handlers:
@@ -64,6 +68,11 @@ nav:
         - architecture/cli.md
         - architecture/handlers.md
         - architecture/models.md
+        - architecture/params.md
+        - architecture/queries.md
         - architecture/routers.md
-  - Contributing: contributing.md
+  - Contributing:
+      - contributing/guidelines.md
+      - Project License: contributing/license.md
+      - contributing/dev_reference.md
 copyright: Copyright &copy; 2025 Better HPC

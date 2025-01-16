@@ -1,29 +1,9 @@
----
-hide:
-  - navigation
----
+# Developer Reference
 
-# Contributing
-
-Community contributions to the Auto-REST project are welcome!
-To ensure consistency and maintainability, please review the following guidelines before submitting your contributions.
-
-## Licensing
-
-The Auto-REST project is licensed under the [GNU General Public License (GPL) v3](https://www.gnu.org/licenses/gpl-3.0.en.html).
-This license allows users to modify, distribute, and use the software freely, as 
-long as any derived works are shared under the same license.
-
-All contributions to the project are required to fall under the same GPL v3 license.
-By submitting your contributions, you agree to license your contributions under the 
-same terms, ensuring the continued openness and accessibility of the project.
-
-## Common Developer Tasks
-
-Instructions are provided below for common tasks performed during development.
+Instructions are provided below for common developer tasks.
 All commands are assumed to be run from within the root project directory.
 
-### Environment Setup
+## Environment Setup
 
 Auto-REST uses the [Poetry](https://python-poetry.org/) utility to manage project dependencies.
 To create a new project environment, point poetry at the desired Python interpreter.
@@ -40,12 +20,13 @@ poetry env list
 ```
 
 From within the activated environment, install the project dependencies.
+Using the `--all-groups` flag includes optional development dependencies in the installation.
 
 ```shell
-poetry install
+poetry install --all-groups
 ```
 
-### Running Tests
+## Running Tests
 
 All contributions are required to pass the application test suite.
 To run the tests, start by installing the test dependencies:
@@ -54,7 +35,7 @@ To run the tests, start by installing the test dependencies:
 poetry install --with tests
 ```
 
-The `coverage` tool is used to track application test coverage and helps to maintain code quality by identifying untested areas.
+The `coverage` tool is used to track application test coverage.
 To run tests with coverage, use the following commands:
 
 ```shell
@@ -62,7 +43,9 @@ coverage run -m unittest discover
 coverage report
 ```
 
-### Previewing Docs
+
+
+## Previewing Docs
 
 To build and preview the documentation locally, start by installing the documentation dependencies:
 

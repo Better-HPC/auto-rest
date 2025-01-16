@@ -1,13 +1,13 @@
 # Auto-REST
 
 A command line tool for deploying dynamically generated REST APIs against relational databases.
-See the [project documentation]() for detailed usage instructions.
+See the [project documentation](https://better-hpc.github.io/auto-rest/) for detailed usage instructions.
 
 ## Supported Databases
 
 Auto-REST provides built-in support for the database types listed below.
-Support for additional database types can be added by installing the corresponding database drivers.
-See the [installation guide]() for instructions.
+Support for additional databases can be added by installing the corresponding database drivers.
+See the official documentation for instructions.
 
 | Flag       | Default Driver               | Database Type        |
 |------------|------------------------------|----------------------|

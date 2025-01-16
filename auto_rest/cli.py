@@ -19,14 +19,14 @@ Python `logging` library.
 
 !!! example "Example: Enabling Console Logging"
 
-    The `configure_console_logging` method overrides any existing logging
+    The `configure_cli_logging` method overrides any existing logging
     configurations and enables console logging according to the provided log
     level.
 
     ```python
-    from auto_rest.cli import configure_console_logging
+    from auto_rest.cli import configure_cli_logging
 
-    configure_console_logging(log_level="INFO")
+    configure_cli_logging(log_level="INFO")
     ```
 """
 

@@ -20,9 +20,8 @@ or setup.
     ```
 
 Support for asynchronous operations is automatically determined based on
-the driver used when connecting to the database. If the driver supports
-asynchronous operations, the connection and session handling are configured
-accordingly.
+the chosen database. If the driver supports asynchronous operations, the
+connection and session handling are configured accordingly.
 
 !!! important "Developer Note"
 
