@@ -33,6 +33,7 @@ Python `logging` library.
 import importlib.metadata
 import logging
 from argparse import ArgumentParser, HelpFormatter
+from pathlib import Path
 
 from uvicorn.logging import DefaultFormatter
 
@@ -107,7 +108,7 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
     db_type.add_argument("--mssql", action="store_const", dest="db_driver", const="mssql+aiomysql", help="use a Microsoft database driver.")
     db_type.add_argument("--driver", action="store", dest="db_driver", help="use a custom database driver.")
 
-    database = parser.add_argument_group("database location")
+    database = parser.add_argument_group("database settings")
     database.add_argument("--db-host", help="database address to connect to.")
     database.add_argument("--db-port", type=int, help="database port to connect to.")
     database.add_argument("--db-name", required=True, help="database name or file path to connect to.")
