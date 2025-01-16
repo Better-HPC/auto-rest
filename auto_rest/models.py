@@ -100,7 +100,7 @@ def create_db_url(
     )
 
 
-def create_db_engine(url: URL, **kwargs) -> DBEngine:
+def create_db_engine(url: URL, **kwargs: dict[str: any]) -> DBEngine:
     """Initialize a new database engine.
 
     Instantiates and returns an `Engine` or `AsyncEngine` instance depending
