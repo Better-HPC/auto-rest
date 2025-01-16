@@ -114,11 +114,6 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
     database.add_argument("--db-user", help="username to authenticate with.")
     database.add_argument("--db-pass", help="password to authenticate with.")
 
-    connection = parser.add_argument_group(title="database connection")
-    connection.add_argument("--pool-min", nargs="?", type=int, help="minimum number of maintained database connections.")
-    connection.add_argument("--pool-max", nargs="?", type=int, help="max number of allowed database connections.")
-    connection.add_argument("--pool-out", nargs="?", type=int, help="seconds to wait on connection before timing out.")
-
     server = parser.add_argument_group(title="server settings")
     server.add_argument("--server-host", default="127.0.0.1", help="API server host address.")
     server.add_argument("--server-port", type=int, default=8081, help="API server port number.")
