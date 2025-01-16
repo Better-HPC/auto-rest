@@ -1,4 +1,5 @@
 from argparse import ArgumentError
+from pathlib import Path
 from unittest import TestCase
 
 from auto_rest.cli import create_cli_parser, VERSION
@@ -88,19 +89,23 @@ class TestCreateCliParser(TestCase):
         default_args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
         self.assertEqual("default", default_args.db_name)
         self.assertIsNone(default_args.db_port)
+        self.assertIsNone(default_args.db_config)
 
         # Test parsing custom values
+        config_path = Path("/path/to/db-config.yaml")
         custom_args = self.parser.parse_args([
             "--psql",
             "--db-host", "localhost",
             "--db-name", "default",
             "--db-user", "user",
             "--db-pass", "password",
+            "--db-config", str(config_path)
         ])
 
         self.assertEqual("localhost", custom_args.db_host)
         self.assertEqual("user", custom_args.db_user)
         self.assertEqual("password", custom_args.db_pass)
+        self.assertEqual(config_path, custom_args.db_config)
 
     def test_server_settings(self) -> None:
         """Verify server-related settings and default values."""

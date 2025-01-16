@@ -1,8 +1,10 @@
 """Application entrypoint triggered by calling the packaged CLI command."""
 
 import logging
+from pathlib import Path
 
 import uvicorn
+import yaml
 from fastapi import FastAPI
 
 from .cli import *
@@ -20,8 +22,9 @@ def main() -> None:  # pragma: no cover
     try:
         parser = create_cli_parser()
         args = vars(parser.parse_args())
+        log_level = args.pop("log_level")
 
-        configure_cli_logging(args.pop("log_level"))
+        configure_cli_logging(log_level)
         run_application(**args)
 
     except KeyboardInterrupt:
@@ -40,6 +43,7 @@ def run_application(
     db_name: str,
     db_user: str,
     db_pass: str,
+    db_config: Path | None,
     server_host: str,
     server_port: int,
     app_title: str,
@@ -59,6 +63,7 @@ def run_application(
         db_name: Database name.
         db_user: Database authentication username.
         db_pass: Database authentication password.
+        db_config: Path to a database configuration file.
         server_host: API server host address.
         server_port: API server port number.
         app_title: title for the generated OpenAPI schema.
@@ -68,11 +73,13 @@ def run_application(
     # Connect to and map the database.
     logger.info(f"Mapping database schema for {db_name}.")
     db_url = create_db_url(driver=db_driver, host=db_host, port=db_port, database=db_name, username=db_user, password=db_pass)
-    db_conn = create_db_engine(db_url)
+    db_kwargs = yaml.safe_load(db_config.read_text()) if db_config else {}
+    db_conn = create_db_engine(db_url, **db_kwargs)
     db_meta = create_db_metadata(db_conn)
     db_models = create_db_models(db_meta)
 
     # Build an empty application and dynamically add the requested functionality.
+    logger.info("Creating API application.")
     app = FastAPI(title=app_title, version=app_version, docs_url="/docs/" if enable_docs else None, redoc_url=None)
     app.include_router(create_welcome_router(), prefix="")
     app.include_router(create_meta_router(db_conn, db_meta, app_version), prefix="/meta")

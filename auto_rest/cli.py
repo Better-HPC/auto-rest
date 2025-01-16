@@ -114,6 +114,7 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
     database.add_argument("--db-name", required=True, help="database name or file path to connect to.")
     database.add_argument("--db-user", help="username to authenticate with.")
     database.add_argument("--db-pass", help="password to authenticate with.")
+    database.add_argument("--db-config", action="store", type=Path, help="path to a database configuration file.")
 
     server = parser.add_argument_group(title="server settings")
     server.add_argument("--server-host", default="127.0.0.1", help="API server host address.")

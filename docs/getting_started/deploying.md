@@ -55,9 +55,10 @@ The API server is deployed on port `8081` by default, but can be modified via co
         auto-rest --mssql --db-host localhost --db-port 1433 --db-name my_database
         ```
 
-Auto-REST supports most common database systems out-of-the-box.
-However, users can extend support to additional database systems using third party database drivers.
-See the [installation instructions](install.md) for details on installing custom drivers.
+## Using Custom Drivers
+
+Users can extend Auto-Rest to support additional database systems using third party database drivers.
+To use an alternate driver, specify the registered driver name at runtime.
 
 !!! example "Example: Using a Custom Database Driver"
 
@@ -65,8 +66,33 @@ See the [installation instructions](install.md) for details on installing custom
     In the following example, the `postgresql+asyncpg` driver is used to connect to a PostgreSQL database.
 
     ```shell
-    auto-rest --driver postgresql+asyncpg --db-host localhost --db-port 5432 --db-name my_database
+    auto-rest --driver postgresql+asyncpg ...
     ```
+
+Some database drivers support extra configuration options not available through the `auto-rest` CLI.
+These options are typically driver specific and are defined using a YAML config file.
+All values in the file are passed directly as arguments to the underlying `sqlalchemy.create_engine` call 
+(or `create_async_engine` for asynchronous drivers).
+
+!!! example "Example: Specifying a Database Config"
+
+    Extra configuration arguments are defined in YAML format and passed 
+    to the database engine via the `--db-config` option.
+
+    === "CLI Call"
+
+        ```shell
+        auto-rest --driver postgresql+asyncpg --db-config config.yml  ...
+        ```
+    
+    === "config.yml"
+    
+        ```yaml
+        pool_size: 20
+        max_overflow: 0
+        echo: true
+        ```
+
 
 ## Enabling Optional Features
 

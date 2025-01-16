@@ -100,7 +100,7 @@ def create_db_url(
     )
 
 
-def create_db_engine(url: URL) -> DBEngine:
+def create_db_engine(url: URL, **kwargs: dict[str: any]) -> DBEngine:
     """Initialize a new database engine.
 
     Instantiates and returns an `Engine` or `AsyncEngine` instance depending
@@ -108,6 +108,7 @@ def create_db_engine(url: URL) -> DBEngine:
 
     Args:
         url: A fully qualified database URL.
+        **kwargs: Keyword arguments passed to `create_engine`.
 
     Returns:
         A SQLAlchemy `Engine` or `AsyncEngine` instance.
@@ -116,12 +117,12 @@ def create_db_engine(url: URL) -> DBEngine:
     logger.debug(f"Building database engine for {url}.")
 
     if url.get_dialect().is_async:
-        engine = create_async_engine(url)
+        engine = create_async_engine(url, **kwargs)
         logger.debug("Asynchronous connection established.")
         return engine
 
     else:
-        engine = create_engine(url)
+        engine = create_engine(url, **kwargs)
         logger.debug("Synchronous connection established.")
         return engine
 
