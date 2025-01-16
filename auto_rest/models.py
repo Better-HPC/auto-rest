@@ -100,7 +100,7 @@ def create_db_url(
     )
 
 
-def create_db_engine(url: URL, pool_min: int = None, pool_max: int = None, pool_out: int = None) -> DBEngine:
+def create_db_engine(url: URL) -> DBEngine:
     """Initialize a new database engine.
 
     Instantiates and returns an `Engine` or `AsyncEngine` instance depending
@@ -108,9 +108,6 @@ def create_db_engine(url: URL, pool_min: int = None, pool_max: int = None, pool_
 
     Args:
         url: A fully qualified database URL.
-        pool_min: Minimum number of database connections in the connection pool.
-        pool_max: Maximum number of database connections in the connection pool.
-        pool_out: Timeout (in seconds) for waiting on a database connection.
 
     Returns:
         A SQLAlchemy `Engine` or `AsyncEngine` instance.
@@ -118,24 +115,13 @@ def create_db_engine(url: URL, pool_min: int = None, pool_max: int = None, pool_
 
     logger.debug(f"Building database engine for {url}.")
 
-    # Filter out features not supported by SQLite.
-    kwargs = dict()
-    if url.get_dialect().name != "sqlite":
-        kwargs.update({
-            k: v for k, v in {
-                "pool_size": pool_min,
-                "max_overflow": pool_max,
-                "pool_timeout": pool_out
-            }.items() if v is not None
-        })
-
     if url.get_dialect().is_async:
-        engine = create_async_engine(url, **kwargs)
+        engine = create_async_engine(url)
         logger.debug("Asynchronous connection established.")
         return engine
 
     else:
-        engine = create_engine(url, **kwargs)
+        engine = create_engine(url)
         logger.debug("Synchronous connection established.")
         return engine
 

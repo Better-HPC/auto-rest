@@ -40,9 +40,6 @@ def run_application(
     db_name: str,
     db_user: str,
     db_pass: str,
-    pool_min: int | None,
-    pool_max: int | None,
-    pool_out: int | None,
     server_host: str,
     server_port: int,
     app_title: str,
@@ -62,9 +59,6 @@ def run_application(
         db_name: Database name.
         db_user: Database authentication username.
         db_pass: Database authentication password.
-        pool_min: Minimum number of database connections in the connection pool.
-        pool_max: Maximum number of database connections in the connection pool.
-        pool_out: Timeout (in seconds) for waiting on a database connection.
         server_host: API server host address.
         server_port: API server port number.
         app_title: title for the generated OpenAPI schema.
@@ -74,7 +68,7 @@ def run_application(
     # Connect to and map the database.
     logger.info(f"Mapping database schema for {db_name}.")
     db_url = create_db_url(driver=db_driver, host=db_host, port=db_port, database=db_name, username=db_user, password=db_pass)
-    db_conn = create_db_engine(db_url, pool_min=pool_min, pool_max=pool_max, pool_out=pool_out)
+    db_conn = create_db_engine(db_url)
     db_meta = create_db_metadata(db_conn)
     db_models = create_db_models(db_meta)
 

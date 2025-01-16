@@ -102,29 +102,6 @@ class TestCreateCliParser(TestCase):
         self.assertEqual("user", custom_args.db_user)
         self.assertEqual("password", custom_args.db_pass)
 
-    def test_pool_settings(self) -> None:
-        """Verify connection pool arguments and default values."""
-
-        # Test default values
-        default_args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
-        self.assertIsNone(default_args.pool_min)
-        self.assertIsNone(default_args.pool_max)
-        self.assertIsNone(default_args.pool_out)
-
-        # Test parsing custom values
-        custom_args = self.parser.parse_args([
-            "--psql",
-            "--db-name", "default",
-            "--db-host", "localhost",
-            "--pool-min", "5",
-            "--pool-max", "20",
-            "--pool-out", "30",
-        ])
-
-        self.assertEqual(5, custom_args.pool_min)
-        self.assertEqual(20, custom_args.pool_max)
-        self.assertEqual(30, custom_args.pool_out)
-
     def test_server_settings(self) -> None:
         """Verify server-related settings and default values."""
 
