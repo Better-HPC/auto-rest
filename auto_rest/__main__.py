@@ -82,7 +82,7 @@ def run_application(
     logger.info("Creating API application.")
     app = FastAPI(title=app_title, version=app_version, docs_url="/docs/" if enable_docs else None, redoc_url=None)
     app.include_router(create_welcome_router(), prefix="")
-    app.include_router(create_meta_router(db_conn, db_meta, app_version), prefix="/meta")
+    app.include_router(create_meta_router(db_conn, db_meta, app_title, app_version), prefix="/meta")
 
     for model_name, model in db_models.items():
         logger.info(f"Adding `/db/{model_name}` endpoint.")
