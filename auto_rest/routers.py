@@ -49,7 +49,7 @@ def create_welcome_router() -> APIRouter:
     return router
 
 
-def create_meta_router(engine: DBEngine, metadata: MetaData, version: str) -> APIRouter:
+def create_meta_router(engine: DBEngine, metadata: MetaData, name: str, version: str) -> APIRouter:
     """Create an API router for returning database metadata.
 
     Includes routes for retrieving the database driver, database schema,
@@ -58,7 +58,8 @@ def create_meta_router(engine: DBEngine, metadata: MetaData, version: str) -> AP
     Args:
         engine: The database engine used to facilitate database interactions.
         metadata: The metadata object containing the database schema.
-        version: The version string to return.
+        version: The application name.
+        version: The application versionnumber.
 
     Returns:
         An `APIRouter` with a routes for retrieving application metadata.
@@ -67,7 +68,7 @@ def create_meta_router(engine: DBEngine, metadata: MetaData, version: str) -> AP
     router = APIRouter()
     tags = ["Application Metadata"]
 
-    router.add_api_route("/version", create_version_handler(version), methods=["GET"], tags=tags)
+    router.add_api_route("/app", create_about_handler(name, version), methods=["GET"], tags=tags)
     router.add_api_route("/engine", create_engine_handler(engine), methods=["GET"], tags=tags)
     router.add_api_route("/schema", create_schema_handler(metadata), methods=["GET"], tags=tags)
     return router

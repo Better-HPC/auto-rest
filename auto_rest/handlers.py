@@ -64,6 +64,7 @@ from .params import *
 from .queries import *
 
 __all__ = [
+    "create_about_handler",
     "create_delete_record_handler",
     "create_engine_handler",
     "create_get_record_handler",
@@ -72,7 +73,6 @@ __all__ = [
     "create_post_record_handler",
     "create_put_record_handler",
     "create_schema_handler",
-    "create_version_handler",
     "create_welcome_handler",
 ]
 
@@ -96,24 +96,25 @@ def create_welcome_handler() -> Callable[[], Awaitable[ModelT]]:
     return welcome_handler
 
 
-def create_version_handler(version: str) -> Callable[[], Awaitable[ModelT]]:
-    """Create an endpoint handler that returns the application version number.
+def create_about_handler(name: str, version: str) -> Callable[[], Awaitable[ModelT]]:
+    """Create an endpoint handler that returns the application name and version number.
 
     Args:
+        name: The application name.
         version: The returned version identifier.
 
     Returns:
-        An async function that returns a version number.
+        An async function that returns aplication info.
     """
 
-    interface = create_model("Version", version=(str, version))
+    interface = create_model("Version", version=(str, version), name=(str, name))
 
-    async def version_handler() -> interface:
-        """Return the application version number."""
+    async def about_handler() -> interface:
+        """Return the application name and version number."""
 
         return interface()
 
-    return version_handler
+    return about_handler
 
 
 def create_engine_handler(engine: DBEngine) -> Callable[[], Awaitable[ModelT]]:

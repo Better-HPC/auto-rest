@@ -14,13 +14,14 @@ class TestCreateMetaRouter(TestCase):
         engine = create_engine("sqlite:///:memory:")
         metadata = MetaData()
         metadata.bind = engine
+        name = "FooBar"
         version = "0.0.0"
 
-        router = create_meta_router(engine, metadata, version)
+        router = create_meta_router(engine, metadata, name, version)
         routes = [(route.path, method) for route in router.routes for method in route.methods]
 
         expected_routes = [
-            ("/version", "GET"),
+            ("/app", "GET"),
             ("/engine", "GET"),
             ("/schema", "GET"),
         ]
