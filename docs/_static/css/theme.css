@@ -1,0 +1,24 @@
+:root {
+    --md-primary-fg-color: #00308f;
+}
+
+.md-typeset__table {
+    min-width: 100%;
+}
+
+.md-typeset table:not([class]) {
+    display: table;
+}
+
+table {
+    table-layout: auto;
+}
+
+td {
+    white-space: nowrap
+}
+
+td:last-child {
+    white-space: wrap;
+    width: auto;
+}

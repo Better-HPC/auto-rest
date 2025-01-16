@@ -18,7 +18,7 @@ The API server is deployed on port `8081` by default, but can be modified via co
         Unlike traditional database systems, SQLite is file based and requires fewer conenction settings.
         The file path to the database should be specified using the `--db-name` option.
     
-        ```bash
+        ```shell
         auto-rest --sqlite --db-name my_database.db
         ```
     
@@ -26,7 +26,7 @@ The API server is deployed on port `8081` by default, but can be modified via co
     
         Use the `--psql` flag to enable support for PostgreSQL databases.
     
-        ```bash
+        ```shell
         auto-rest --psql --db-host localhost --db-port 5432 --db-name my_database
         ```
     
@@ -34,7 +34,7 @@ The API server is deployed on port `8081` by default, but can be modified via co
     
         Use the `--mysql` flag to enable support for MySQL databases.
     
-        ```bash
+        ```shell
         auto-rest --mysql --db-host localhost --db-port 3306 --db-name my_database
         ```
     
@@ -42,7 +42,7 @@ The API server is deployed on port `8081` by default, but can be modified via co
     
         Use the `--oracle` flag to enable support for Oracle databases.
     
-        ```bash
+        ```shell
         auto-rest --oracle --db-host localhost --db-port 1521 --db-name my_database
         ```
     
@@ -51,7 +51,7 @@ The API server is deployed on port `8081` by default, but can be modified via co
         Use the `--mssql` flag to enable support for Microsoft SQL Server.
         
     
-        ```bash
+        ```shell
         auto-rest --mssql --db-host localhost --db-port 1433 --db-name my_database
         ```
 
@@ -64,19 +64,53 @@ See the [installation instructions](install.md) for details on installing custom
     The `--driver` option allows users to leverage specific database drivers.
     In the following example, the `postgresql+asyncpg` driver is used to connect to a PostgreSQL database.
 
-    ```bash
+    ```shell
     auto-rest --driver postgresql+asyncpg --db-host localhost --db-port 5432 --db-name my_database
     ```
 
 ## Enabling Optional Features
 
 Certain API features are disabled by default.
-The following table lists optional endpoints and the corresponding CLI flag.
+The following table lists CLI flags for enabling optional functionality.
 
-| Endpoint            | CLI Flag           | Description                                                                                          |
-|---------------------|--------------------|------------------------------------------------------------------------------------------------------|
-| `/docs/`            | `--enable-docs`    | Displays HTML documentation for all available endpoints.                                             |
-| `/db/<table-name>/` | `--enable-write`   | Enables support for write operations against database tables (`POST`, `PUT`, `PATCH`, and `DELETE`). |
+| CLI Flag         | Description                                                                                          |
+|------------------|------------------------------------------------------------------------------------------------------|
+| `--enable-docs`  | Enables a `/docs/` endpoint with HTML documentation for all available endpoints.                     |
+| `--enable-write` | Enables support for write operations against database tables (`POST`, `PUT`, `PATCH`, and `DELETE`). |
 
-## Customizing the Server
+## Customizing Application Info
 
+The application title and version number are both configurable at runtime.
+These values are reflected across multiple endpoints, including the API documentation and version endpoint.
+By default, the application title is set to "Auto-REST," and the version is set to the current Auto-REST version.
+
+!!! example "Example: Customizing Application Info"
+
+    Use the `--app-title` and `--app-version` arguments to customize the application name and version.
+
+    ```shell
+    auto-rest ... --app-title "My Application Name" --app-version 1.2.3
+    ```
+
+## Deploying with Docker
+
+Better HPC provides an official docker image for the Auto-REST utility.
+
+```shell
+docker pull ghcr.io/better-hpc/auto-rest
+```
+
+Running servers with docker requires paying special attention to the network settings.
+When deploying Auto-REST against a database on localhost, the database host should be set to `host.docker.internal`.
+In all cases, the port of the server within the container needs to be exposed to outside traffic (`-p <HOST PORT>:<CONTAINER PORT>`).
+
+```
+docker run -p 8081:8081 auto-rest \
+    --psql \
+    --db-host host.docker.internal \
+    --db-port <DB_PORT> \
+    --db-name <DB_NAME> \
+    --db-user <DB_USER> \
+    --server-host 0.0.0.0 \
+    --server-port 8081
+```

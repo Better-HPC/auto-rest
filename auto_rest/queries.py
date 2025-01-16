@@ -1,3 +1,25 @@
+"""
+The `queries` module provides asynchronous wrapper functions around operations
+involving SQLAlchemy sessions. These utilities automatically account for
+variations in behavior between synchronous and asynchronous session types
+(i.e., `Session` and `AsyncSession` instances). This ensures consistent query
+handling and provides a streamlined interface for database interactions.
+
+!!! example "Example: Query Execution"
+
+    Query utilities seamlessly support synchronous and asynchronous session types.
+
+    ```python
+    query = select(SomeModel).where(SomeModel.id == item_id)
+
+    with Session(...) as sync_session:
+        result = await execute_session_query(sync_session, query)
+
+    with AsyncSession(...) as async_session:
+        result = await execute_session_query(async_session, query)
+    ```
+"""
+
 from fastapi import HTTPException
 from sqlalchemy import Executable, Result
 from sqlalchemy.ext.asyncio import AsyncSession

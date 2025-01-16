@@ -5,13 +5,13 @@ Using the `pipx` package manager is strongly recommended, however the standard `
 
 === "pipx (standalone)"
 
-    ```bash
+    ```shell
     pipx install auto-rest
     ```
 
 === "pip (dependency)"
 
-    ```bash
+    ```shell
     pip install auto-rest
     ```
 
@@ -34,12 +34,12 @@ To add a new driver, install it in the same environment as the Auto-REST utility
 
 === "pipx (standalone)"
 
-    ```bash
+    ```shell
     pipx inject auto-rest [PACKAGE_NAME]   
     ```
 
 === "pip (dependency)"
 
-    ```bash
+    ```shell
     pip install [PACKAGE_NAME]
     ```
