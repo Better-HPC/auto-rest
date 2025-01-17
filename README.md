@@ -23,7 +23,7 @@ See the official documentation for instructions.
 Install the command line utility using your favorite Python package manager.
 
 ```shell
-pipx install auto-rest
+pipx install auto-rest-api
 ```
 
 Check the package installed correctly.
