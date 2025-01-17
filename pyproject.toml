@@ -40,6 +40,12 @@ dependencies = [
     "pyyaml (>=6.0.2,<7.0.0)",
 ]
 
+[tool.poetry]
+packages = [
+    { include = "auto_rest" },
+]
+
+
 [tool.poetry.group.tests.dependencies]
 coverage = "*"
 
