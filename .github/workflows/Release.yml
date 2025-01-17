@@ -31,10 +31,16 @@ jobs:
     needs: build
     uses: ./.github/workflows/Test.yml
     secrets: inherit
-  
+
+  qa:
+    name: QA
+    needs: build
+    uses: ./.github/workflows/QA.yml
+    secrets: inherit
+
   publish:
     name: Publish
-    needs: [ version, test ]
+    needs: [ version, test, qa ]
     uses: ./.github/workflows/Publish.yml
     secrets: inherit
     permissions:
