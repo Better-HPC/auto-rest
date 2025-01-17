@@ -71,4 +71,4 @@ if [ -f "$DB_NAME" ]; then
 fi
 
 # Launch the API server using auto-rest
-auto-rest --enable-docs --enable-write --sqlite --db-name demo.db
+auto-rest --enable-docs --enable-write --sqlite --db-name demo.db --app-title "Auto-REST Demo"
