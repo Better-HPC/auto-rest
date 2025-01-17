@@ -68,7 +68,8 @@ def apply_pagination_params(query: Select, params: dict[str, int], response: Res
     """Apply pagination to a database query.
 
     Returns a copy of the provided query with offset and limit parameters applied.
-    Compatible with parameters returned by the `get_pagination_params` method.
+    This method is compatible with parameters returned by the `get_pagination_params` method.
+    Pagination is not applied for invalid params, but response headers are still set.
 
     Args:
         query: The database query to apply parameters to.
@@ -113,7 +114,8 @@ def apply_ordering_params(query: Select, params: dict, response: Response) -> Se
     """Apply ordering to a database query.
 
     Returns a copy of the provided query with ordering parameters applied.
-    Compatible with parameters returned by the `get_ordering_params` method.
+    This method is compatible with parameters returned by the `get_ordering_params` method.
+    Ordering is not applied for invalid params, but response headers are still set.
 
     Args:
         query: The database query to apply parameters to.
