@@ -112,7 +112,6 @@ jobs:
   pages:
       name: Documentation
       runs-on: ubuntu-latest
-      needs: [pypi, docker]
 
       environment:
         name: github-pages
