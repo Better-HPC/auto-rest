@@ -39,7 +39,7 @@ from uvicorn.logging import DefaultFormatter
 
 __all__ = ["VERSION", "configure_cli_logging", "create_cli_parser"]
 
-VERSION = importlib.metadata.version(__package__)
+VERSION = importlib.metadata.version("auto-rest-api")
 
 
 def configure_cli_logging(level: str) -> None:

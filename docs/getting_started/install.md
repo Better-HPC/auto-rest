@@ -6,13 +6,13 @@ Using the `pipx` package manager is strongly recommended, however the standard `
 === "pipx (standalone)"
 
     ```shell
-    pipx install auto-rest
+    pipx install auto-rest-api
     ```
 
 === "pip (dependency)"
 
     ```shell
-    pip install auto-rest
+    pip install auto-rest-api
     ```
 
 ## Adding Custom Drivers

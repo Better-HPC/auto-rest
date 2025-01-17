@@ -3,7 +3,7 @@ requires = ["poetry-core==2"]
 build-backend = "poetry.core.masonry.api"
 
 [project]
-name = "auto-rest"
+name = "auto-rest-api"
 version = "0.0.0"
 readme = "README.md"
 description = "Automatically map database schemas and deploy per-table REST API endpoints."
@@ -39,6 +39,12 @@ dependencies = [
     "uvicorn~=0.34",
     "pyyaml (>=6.0.2,<7.0.0)",
 ]
+
+[tool.poetry]
+packages = [
+    { include = "auto_rest" },
+]
+
 
 [tool.poetry.group.tests.dependencies]
 coverage = "*"
