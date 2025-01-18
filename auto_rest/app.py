@@ -1,3 +1,19 @@
+"""
+The `app` module provides factory functions and utilities for building and
+deploying Fast-API applications.
+
+
+!!! example "Example: Build and Deploy an API"
+
+    ```python
+    from auto_rest.app import create_app, run_server
+
+    app = create_app(app_title="My Application", app_version="1.2.3", enable_docs=True)
+    ... # Add endpoints to the application here
+    run_server(app, host="127.0.0.1", port=8081)
+    ```
+"""
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,13 +55,13 @@ def create_app(app_title: str, app_version: str, enable_docs: bool) -> FastAPI:
     return app
 
 
-def run_server(app: FastAPI, server_host: str, server_port: int) -> None:
+def run_server(app: FastAPI, host: str, port: int) -> None:
     """Deploy a FastAPI application server.
 
     Args:
         app: The FastAPI application to run.
-        server_host: The hostname or IP address for the server to bind to.
-        server_port: The port number for the server to listen on.
+        host: The hostname or IP address for the server to bind to.
+        port: The port number for the server to listen on.
     """
 
-    uvicorn.run(app, host=server_host, port=server_port, log_level="error")
+    uvicorn.run(app, host=host, port=port, log_level="error")
