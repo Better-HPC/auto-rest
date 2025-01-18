@@ -6,15 +6,19 @@
 # database and launches an API server using `auto-rest`.
 
 # Define database file
-DB_NAME="${1:-demo.db}"
+DB_NAME="${1:-blog.db}"
 
-# Check if the database already exists
 if [ -f "$DB_NAME" ]; then
+
+  # Only overwrite existing database with user permission
   read -p "The file '$DB_NAME' already exists. Do you want to replace it? (y/N): " choice
-  if [[ "$choice" == "y" || "$choice" == "Y" ]]; then
+  if [[ "$choice" =~ ^[Yy]$ ]]; then
     rm "$DB_NAME"
     sqlite3 "$DB_NAME" < data.sql
   fi
+
+else
+  sqlite3 "$DB_NAME" < data.sql
 fi
 
 # Launch the API server using auto-rest
