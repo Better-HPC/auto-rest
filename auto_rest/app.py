@@ -55,7 +55,7 @@ def create_app(app_title: str, app_version: str, enable_docs: bool) -> FastAPI:
     return app
 
 
-def run_server(app: FastAPI, host: str, port: int) -> None:
+def run_server(app: FastAPI, host: str, port: int) -> None: # pragma: no cover
     """Deploy a FastAPI application server.
 
     Args:
