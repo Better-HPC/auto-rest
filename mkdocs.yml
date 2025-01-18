@@ -65,6 +65,7 @@ nav:
   - Architecture:
       - Overview: architecture/overview.md
       - Source Code:
+        - architecture/app.md
         - architecture/cli.md
         - architecture/handlers.md
         - architecture/models.md
