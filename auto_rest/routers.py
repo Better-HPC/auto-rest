@@ -89,15 +89,11 @@ def create_model_router(engine: DBEngine, model: DBModel, writeable: bool = Fals
     router = APIRouter()
 
     # Construct path parameters from primary key columns
-    pk_columns = model.__table__.primary_key.columns
-    path_params_url = "/".join(f"{{{col.name}}}" for col in pk_columns)
+    pk_columns = sorted(column.name for column in model.__table__.primary_key.columns)
+    path_params_url = "/".join(f"{{{col_name}}}" for col_name in pk_columns)
     path_params_openapi = {
         "parameters": [
-            {
-                "name": col.name,
-                "in": "path",
-                "required": True
-            } for col in pk_columns
+            {"name": col_name, "in": "path", "required": True} for col_name in pk_columns
         ]
     }
 

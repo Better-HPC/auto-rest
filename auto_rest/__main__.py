@@ -3,10 +3,9 @@
 import logging
 from pathlib import Path
 
-import uvicorn
 import yaml
-from fastapi import FastAPI
 
+from .app import *
 from .cli import *
 from .models import *
 from .routers import *
@@ -80,7 +79,7 @@ def run_application(
 
     # Build an empty application and dynamically add the requested functionality.
     logger.info("Creating API application.")
-    app = FastAPI(title=app_title, version=app_version, docs_url="/docs/" if enable_docs else None, redoc_url=None)
+    app = create_app(app_title, app_version, enable_docs)
     app.include_router(create_welcome_router(), prefix="")
     app.include_router(create_meta_router(db_conn, db_meta, app_title, app_version), prefix="/meta")
 
@@ -90,4 +89,4 @@ def run_application(
 
     # Launch the API server.
     logger.info(f"Launching API server on http://{server_host}:{server_port}.")
-    uvicorn.run(app, host=server_host, port=server_port, log_level="error")
+    run_server(app, server_host, server_port)
