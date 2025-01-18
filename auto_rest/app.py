@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-__all__ = ["create_app", "run_app"]
+__all__ = ["create_app", "run_server"]
 
 
 def create_app(app_title: str, app_version: str, enable_docs: bool) -> FastAPI:
@@ -39,7 +39,7 @@ def create_app(app_title: str, app_version: str, enable_docs: bool) -> FastAPI:
     return app
 
 
-def run_app(app: FastAPI, server_host: str, server_port: int) -> None:
+def run_server(app: FastAPI, server_host: str, server_port: int) -> None:
     """Deploy a FastAPI application server.
 
     Args:

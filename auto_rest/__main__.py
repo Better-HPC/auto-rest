@@ -89,4 +89,4 @@ def run_application(
 
     # Launch the API server.
     logger.info(f"Launching API server on http://{server_host}:{server_port}.")
-    run_app(app, server_host, server_port)
+    run_server(app, server_host, server_port)
