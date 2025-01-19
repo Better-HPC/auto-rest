@@ -5,7 +5,9 @@
 # with tables for authors, posts, and comments. The script populates the
 # database and launches an API server using `auto-rest`.
 
-# Define database file
+# Define necessary file paths
+WORK_DIR=$(dirname "$0")
+DEMO_DATA="$WORK_DIR/data.sql"
 DB_NAME="${1:-blog.db}"
 
 if [ -f "$DB_NAME" ]; then
@@ -14,11 +16,11 @@ if [ -f "$DB_NAME" ]; then
   read -p "The file '$DB_NAME' already exists. Do you want to replace it? (y/N): " choice
   if [[ "$choice" =~ ^[Yy]$ ]]; then
     rm "$DB_NAME"
-    sqlite3 "$DB_NAME" < data.sql
+    sqlite3 "$DB_NAME" < "$DEMO_DATA"
   fi
 
 else
-  sqlite3 "$DB_NAME" < data.sql
+  sqlite3 "$DB_NAME" < "$DEMO_DATA"
 fi
 
 # Launch the API server using auto-rest
