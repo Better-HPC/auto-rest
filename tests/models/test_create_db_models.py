@@ -29,7 +29,7 @@ class TestCreateDbModels(TestCase):
         )
 
     def test_models_are_created(self) -> None:
-        """Test models are generated for each table."""
+        """Verify models are generated for each table."""
 
         models = create_db_models(self.metadata)
 
@@ -59,7 +59,7 @@ class TestCreateDbModels(TestCase):
         self.assertEqual(VARCHAR, table2_columns["description"].type.__class__)
 
     def test_empty_database(self) -> None:
-        """Test an empty collection is returned for an empty database."""
+        """Verify an empty collection is returned for an empty database."""
 
         # Validate that no models are generated
         models = create_db_models(MetaData())

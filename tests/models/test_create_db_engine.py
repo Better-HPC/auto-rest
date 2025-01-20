@@ -11,7 +11,7 @@ class TestCreateDbEngine(TestCase):
     """Unit tests for the `create_db_engine` method."""
 
     def test_create_sync_engine(self) -> None:
-        """Test creating an engine with a synchronous driver."""
+        """Verify synchronous drivers return synchronous engines."""
 
         url = URL.create(drivername="sqlite", database=":memory:")
         engine = create_db_engine(url)
@@ -21,7 +21,7 @@ class TestCreateDbEngine(TestCase):
         self.assertEqual(url, engine.url)
 
     def test_create_async_engine(self) -> None:
-        """Test creating an engine with an asynchronous driver."""
+        """Verify asynchronous drivers return asynchronous engines."""
 
         url = URL.create(drivername="sqlite+aiosqlite", database=":memory:")
         async_engine = create_db_engine(url)
@@ -31,7 +31,7 @@ class TestCreateDbEngine(TestCase):
         self.assertEqual(url, async_engine.url)
 
     def test_invalid_url(self) -> None:
-        """Test handling for an invalid database URL."""
+        """Verify invalid database URLs raise an error."""
 
         with self.assertRaises(Exception):
             create_db_engine("invalid_url")

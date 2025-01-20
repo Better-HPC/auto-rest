@@ -25,11 +25,11 @@ class TestDeleteSessionRecord(IsolatedAsyncioTestCase):
         mock_session.delete.assert_called_once_with(record)
 
     async def test_delete_sync_session(self) -> None:
-        """Test deleting a record with a synchronous session."""
+        """Verify records are deleted with a synchronous session."""
 
         await self._test_session_deletion(Session)
 
     async def test_delete_async_session(self) -> None:
-        """Test deleting a record with an asynchronous session."""
+        """Verify records are deleted with an asynchronous session."""
 
         await self._test_session_deletion(AsyncSession)

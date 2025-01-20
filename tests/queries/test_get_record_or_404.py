@@ -10,7 +10,7 @@ class TestGetRecordOr404(IsolatedAsyncioTestCase):
     """Unit tests for the `get_record_or_404` function."""
 
     def test_get_record_found(self) -> None:
-        """Test retrieving a record when it exists."""
+        """Verify a record is returned when requested."""
 
         # Create a mock result where scalar_one_or_none() returns a valid record
         mock_result = MagicMock()
@@ -22,7 +22,7 @@ class TestGetRecordOr404(IsolatedAsyncioTestCase):
         self.assertEqual(result, mock_record)
 
     def test_get_record_not_found(self) -> None:
-        """Test raising a 404 error when no record is found."""
+        """Verify a 404 error is raised when no record is found."""
 
         # Create a mock result where scalar_one_or_none() returns None
         mock_result = MagicMock()

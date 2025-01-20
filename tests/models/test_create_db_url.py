@@ -8,7 +8,7 @@ class TestCreateDbUrl(TestCase):
     """Unit tests for the `create_db_url` function."""
 
     def test_create_url_with_all_params(self) -> None:
-        """Test creating a database URL with all parameters provided."""
+        """Verify a valid database url is returned when specifying all possible parameters."""
 
         driver = "postgresql"
         host = "localhost"
@@ -27,7 +27,7 @@ class TestCreateDbUrl(TestCase):
         self.assertEqual(password, result.password)
 
     def test_create_url_without_optional_params(self) -> None:
-        """Test creating a database URL without optional parameters."""
+        """Verify a valid database url is returned when specifying only required parameters."""
 
         driver = "mysql"
         database = "default"
@@ -42,7 +42,7 @@ class TestCreateDbUrl(TestCase):
         self.assertIsNone(result.password)
 
     def test_create_sqlite_url_with_relative_path(self) -> None:
-        """Test creating a SQLite URL with a relative file path."""
+        """Verify SQLite URLs properly resolve relative file paths."""
 
         driver = "sqlite"
         path = Path("path/to/database.db")
@@ -58,7 +58,7 @@ class TestCreateDbUrl(TestCase):
         self.assertIsNone(result.password)
 
     def test_create_sqlite_url_with_absolute_path(self) -> None:
-        """Test creating a SQLite URL with an absolute file path."""
+        """Verify SQLite URLs properly resolve absolute file paths."""
 
         driver = "sqlite"
         path = Path("/absolute/path/to/database.db")

@@ -30,11 +30,11 @@ class TestExecuteSessionQuery(IsolatedAsyncioTestCase):
         assert result == mock_result
 
     async def test_execute_sync_session(self) -> None:
-        """Test executing a query with a synchronous session."""
+        """Verify queries are executed with a synchronous session."""
 
         await self._test_session_execution(Session)
 
     async def test_execute_async_session(self) -> None:
-        """Test executing a query with an asynchronous session."""
+        """Verify queries are executed with an asynchronous session."""
 
         await self._test_session_execution(AsyncSession)

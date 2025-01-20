@@ -34,7 +34,7 @@ class TestCreateDbMetadata(TestCase):
             metadata.create_all(engine)
 
     def test_synchronous_metadata(self) -> None:
-        """Test metadata mapping with a synchronous engine."""
+        """Verify tables are mapped using a synchronous engine."""
 
         engine = create_engine("sqlite:///:memory:")
         self.add_tables(engine)
@@ -46,7 +46,7 @@ class TestCreateDbMetadata(TestCase):
         engine.dispose()
 
     def test_synchronous_metadata_empty_database(self) -> None:
-        """Test metadata mapping with a synchronous engine against an empty database."""
+        """Verify an empty collection is returned for an empty database using a synchronous engine."""
 
         engine = create_engine("sqlite:///:memory:")
 
@@ -57,7 +57,7 @@ class TestCreateDbMetadata(TestCase):
         engine.dispose()
 
     def test_asynchronous_metadata(self) -> None:
-        """Test metadata mapping with an asynchronous engine."""
+        """Verify tables are mapped using an asynchronous engine."""
 
         async_engine = create_async_engine("sqlite+aiosqlite:///:memory:")
         self.add_tables(async_engine)
@@ -69,7 +69,7 @@ class TestCreateDbMetadata(TestCase):
         asyncio.run(async_engine.dispose())
 
     def test_asynchronous_metadata_empty_database(self) -> None:
-        """Test metadata mapping with an asynchronous engine against an empty database."""
+        """Verify an empty collection is returned for an empty database using an asynchronous engine."""
 
         async_engine = create_async_engine("sqlite+aiosqlite:///:memory:")
 

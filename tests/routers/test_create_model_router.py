@@ -36,7 +36,7 @@ class TestCreateModelRouter(TestCase):
         cls.mock_engine = MagicMock()
 
     def test_read_only_router(self) -> None:
-        """Test read-only routers only support HTTP GET operations."""
+        """Verify read-only routers only support HTTP GET operations."""
 
         router = create_model_router(self.mock_engine, SinglePKModel, writeable=False)
         routes = [(route.path, method) for route in router.routes for method in route.methods]
@@ -45,7 +45,7 @@ class TestCreateModelRouter(TestCase):
         self.assertCountEqual(expected_routes, routes)
 
     def test_writable_router(self) -> None:
-        """Test writable routers support all common HTTP operations."""
+        """Verify writable routers support all common HTTP operations."""
 
         router = create_model_router(self.mock_engine, SinglePKModel, writeable=True)
         routes = [(route.path, method) for route in router.routes for method in route.methods]
@@ -61,7 +61,7 @@ class TestCreateModelRouter(TestCase):
         self.assertCountEqual(expected_routes, routes)
 
     def test_multiple_primary_keys(self) -> None:
-        """Test router paths for a table with a multiple primary keys."""
+        """Verify router paths include path parameters for tables with a multiple primary keys."""
 
         router = create_model_router(self.mock_engine, MultiplePKModel, writeable=True)
         actual_routes = [(route.path, method) for route in router.routes for method in route.methods]

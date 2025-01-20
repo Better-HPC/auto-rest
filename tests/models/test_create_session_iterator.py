@@ -19,7 +19,7 @@ class TestCreateSessionIterator(IsolatedAsyncioTestCase):
         cls.test_async_engine = create_async_engine("sqlite+aiosqlite:///:memory:")
 
     def test_session_is_active(self) -> None:
-        """Test the generated function yields an active session."""
+        """Verify the generated function yields an active session."""
 
         db_dependency = create_session_iterator(self.test_engine)
         session_generator = db_dependency()
@@ -30,7 +30,7 @@ class TestCreateSessionIterator(IsolatedAsyncioTestCase):
             self.assertIs(self.test_engine, session.bind)
 
     def test_session_closes_after_use(self) -> None:
-        """Test the session is properly closed after yielding."""
+        """Verify the session is properly closed after yielding."""
 
         db_dependency = create_session_iterator(self.test_engine)
         session_generator = db_dependency()
@@ -42,7 +42,7 @@ class TestCreateSessionIterator(IsolatedAsyncioTestCase):
             mock_close.assert_called_once_with(session)
 
     async def test_async_session_is_active(self) -> None:
-        """Test the generated function yields an active async session."""
+        """Verify the generated function yields an active async session."""
 
         db_dependency = create_session_iterator(self.test_async_engine)
         session_generator = db_dependency()
@@ -53,7 +53,7 @@ class TestCreateSessionIterator(IsolatedAsyncioTestCase):
             self.assertIs(self.test_async_engine, session.bind)
 
     async def test_async_session_closes_after_use(self) -> None:
-        """Test the async session is properly closed after yielding."""
+        """Verify the async session is properly closed after yielding."""
 
         db_dependency = create_session_iterator(self.test_async_engine)
         session_generator = db_dependency()

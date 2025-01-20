@@ -22,7 +22,7 @@ class TestCreateCliParser(TestCase):
         self.assertEqual("auto-rest", self.parser.prog)
 
     def test_log_level(self) -> None:
-        """Verify the `--log-level` argument."""
+        """Verify the `--log-level` argument stores valid logging levels."""
 
         # Validate the default log level
         args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
@@ -44,7 +44,7 @@ class TestCreateCliParser(TestCase):
             self.parser.parse_args(["--sqlite", "--db-name", "default", "--log-level", "INVALID"])
 
     def test_db_driver(self) -> None:
-        """Verify behavior for database driver arguments."""
+        """Verify the database driver arguments store their state."""
 
         # Map CLI flags to expected database drivers
         db_drivers = {
@@ -65,7 +65,7 @@ class TestCreateCliParser(TestCase):
         self.assertEqual("custom-driver", args.db_driver)
 
     def test_enable_docs_flag(self) -> None:
-        """Verify the `--enable-docs` flag."""
+        """Verify the `--enable-docs` flag stores its state."""
 
         default_args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
         self.assertFalse(default_args.enable_docs)
@@ -74,7 +74,7 @@ class TestCreateCliParser(TestCase):
         self.assertTrue(custom_args.enable_docs)
 
     def test_enable_write_flag(self) -> None:
-        """Verify the `--enable-write` flag."""
+        """Verify the `--enable-write` flag stores its state."""
 
         default_args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
         self.assertFalse(default_args.enable_write)

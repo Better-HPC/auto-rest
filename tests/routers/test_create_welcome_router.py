@@ -7,7 +7,7 @@ class TestCreateWelcomeRouter(TestCase):
     """Unit tests for the `create_welcome_router` method."""
 
     def test_has_root_route(self) -> None:
-        """Test the router supports GET requests against the root path."""
+        """Verify the router supports GET requests against the root path."""
 
         router = create_welcome_router()
         routes = [(route.path, method) for route in router.routes for method in route.methods]
