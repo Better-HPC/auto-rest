@@ -31,37 +31,118 @@ the arguments onto a SQLAlchemy query.
         return ...  # Logic to further process and execute the query goes here
     ```
 """
-
+from collections.abc import Callable
 from typing import Literal
 
-from fastapi import Query
+from fastapi import Depends, Query
 from sqlalchemy import asc, desc
 from sqlalchemy.sql.selectable import Select
 from starlette.responses import Response
 
+from .models import DBModel
+
 __all__ = [
     "apply_ordering_params",
     "apply_pagination_params",
-    "get_ordering_params",
-    "get_pagination_params",
+    "create_ordering_dependency",
+    "create_pagination_dependency",
 ]
 
 
-def get_pagination_params(
-    _limit_: int = Query(0, ge=0, description="The maximum number of records to return."),
-    _offset_: int = Query(0, ge=0, description="The starting index of the returned records."),
-) -> dict[str, int]:
-    """Extract pagination parameters from request query parameters.
+def create_ordering_dependency(model: type[DBModel]) -> Callable[..., dict]:
+    """Create an injectable dependency for fetching ordering arguments from query parameters.
 
     Args:
-        _limit_: The maximum number of records to return.
-        _offset_: The starting index of the returned records.
+        model: The database model to create the dependency for.
 
     Returns:
-        dict: A dictionary containing the `limit` and `offset` values.
+        An injectable FastAPI dependency.
     """
 
-    return {"limit": _limit_, "offset": _offset_}
+    columns = tuple(model.__table__.columns.keys())
+
+    def get_ordering_params(
+        _order_by_: Literal[columns] = Query(None, description="The field name to sort by."),
+        _direction_: Literal["asc", "desc"] = Query("asc", description="Sort results in 'asc' or 'desc' order.")
+    ) -> dict:
+        """Extract ordering parameters from request query parameters.
+
+        Args:
+            _order_by_: The field to order by.
+            _direction_: The direction to order by.
+
+        Returns:
+            dict: A dictionary containing the `order_by` and `direction` values.
+        """
+
+        return {"order_by": _order_by_, "direction": _direction_}
+
+    return Depends(get_ordering_params)
+
+
+def apply_ordering_params(query: Select, params: dict, response: Response) -> Select:
+    """Apply ordering to a database query.
+
+    Returns a copy of the provided query with ordering parameters applied.
+    This method is compatible with parameters returned by the `get_ordering_params` method.
+    Ordering is not applied for invalid params, but response headers are still set.
+
+    Args:
+        query: The database query to apply parameters to.
+        params: A dictionary containing parsed URL parameters.
+        response: The outgoing HTTP response object.
+
+    Returns:
+        A copy of the query modified to return ordered values.
+    """
+
+    order_by = params.get("order_by")
+    direction = params.get("direction")
+
+    # Set common response headers
+    response.headers["X-Order-By"] = str(order_by)
+    response.headers["X-Order-Direction"] = str(direction)
+
+    if order_by is None:
+        response.headers["X-Order-Applied"] = "false"
+        return query
+
+    # Default to ascending order for an invalid ordering direction
+    response.headers["X-Order-Applied"] = "true"
+    if direction == "desc":
+        return query.order_by(desc(order_by))
+
+    else:
+        return query.order_by(asc(order_by))
+
+
+def create_pagination_dependency(model: type[DBModel]) -> Callable[..., dict]:
+    """Create an injectable dependency for fetching pagination arguments from query parameters.
+
+    Args:
+        model: The database model to create the dependency for.
+
+    Returns:
+        An injectable FastAPI dependency.
+    """
+
+    def get_pagination_params(
+        _limit_: int = Query(0, ge=0, description="The maximum number of records to return."),
+        _offset_: int = Query(0, ge=0, description="The starting index of the returned records."),
+    ) -> dict[str, int]:
+        """Extract pagination parameters from request query parameters.
+
+        Args:
+            _limit_: The maximum number of records to return.
+            _offset_: The starting index of the returned records.
+
+        Returns:
+            dict: A dictionary containing the `limit` and `offset` values.
+        """
+
+        return {"limit": _limit_, "offset": _offset_}
+
+    return Depends(get_pagination_params)
 
 
 def apply_pagination_params(query: Select, params: dict[str, int], response: Response) -> Select:
@@ -94,57 +175,3 @@ def apply_pagination_params(query: Select, params: dict[str, int], response: Res
 
     response.headers["X-Pagination-Applied"] = "true"
     return query.offset(offset or 0).limit(limit)
-
-
-def get_ordering_params(
-    _order_by_: str = Query(None, description="The field name to sort by."),
-    _direction_: Literal["asc", "desc"] = Query("asc", description="Sort results in 'asc' or 'desc' order.")
-) -> dict:
-    """Extract ordering parameters from request query parameters.
-
-    Args:
-        _order_by_: The field to order by.
-        _direction_: The direction to order by.
-
-    Returns:
-        dict: A dictionary containing the `order_by` and `direction` values.
-    """
-
-    return {"order_by": _order_by_, "direction": _direction_}
-
-
-def apply_ordering_params(query: Select, params: dict, response: Response) -> Select:
-    """Apply ordering to a database query.
-
-    Returns a copy of the provided query with ordering parameters applied.
-    This method is compatible with parameters returned by the `get_ordering_params` method.
-    Ordering is not applied for invalid params, but response headers are still set.
-
-    Args:
-        query: The database query to apply parameters to.
-        params: A dictionary containing parsed URL parameters.
-        response: The outgoing HTTP response object.
-
-    Returns:
-        A copy of the query modified to return ordered values.
-    """
-
-    order_by = params.get("order_by")
-    direction = params.get("direction")
-
-    # Set response headers
-    response.headers["X-Order-By"] = str(order_by)
-    response.headers["X-Order-Direction"] = str(direction)
-    response.headers["X-Order-Applied"] = "true"
-
-    # Do not apply ordering for invalid column names and fail gracefully
-    if order_by not in query.columns.keys():
-        response.headers["X-Order-Applied"] = "false"
-        return query
-
-    # Default to ascending order for an invalid ordering direction
-    if direction == "desc":
-        return query.order_by(desc(order_by))
-
-    else:
-        return query.order_by(asc(order_by))

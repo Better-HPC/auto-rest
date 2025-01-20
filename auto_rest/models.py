@@ -182,7 +182,7 @@ def create_db_models(metadata: MetaData) -> dict[str, DBModel]:
     return models
 
 
-def create_db_interface(model: DBModel) -> type[ModelT]:
+def create_db_interface(model: type[DBModel]) -> type[ModelT]:
     """Create a Pydantic interface for a SQLAlchemy model.
 
     Args:
