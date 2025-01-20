@@ -4,9 +4,11 @@ parameters from incoming HTTP requests. These utilities ensure the consistent
 parsing, validation, and application of query parameters, and automatically
 update HTTP response headers to reflect applied query options.
 
-Parameter functions are designed in pairs. A *get* function is used to parse
-parameters from a FastAPI request and an *apply* function is used to apply
-the arguments onto a SQLAlchemy query.
+Parameter functions are designed in pairs of two. The first function is a
+factory for creating an injectable FastAPI dependency. The dependency
+is used to parse parameters from incoming requests and applies high level
+validation against the parsed values. The second function to applies the
+validated arguments onto a SQLAlchemy query and returns the updated query.
 
 !!! example "Example: Parameter Parsing and Application"
 
@@ -15,18 +17,18 @@ the arguments onto a SQLAlchemy query.
     is then passed to an *apply* function.
 
     ```python
-    from fastapi import FastAPI, Response, Depends
+    from fastapi import FastAPI, Response
     from sqlalchemy import select
-    from auto_rest.query_params import get_pagination_params, apply_pagination_params
+    from auto_rest.query_params import create_pagination_dependency, apply_pagination_params
 
     app = FastAPI()
 
     @app.get("/items/")
     async def list_items(
-        pagination_params: dict = Depends(get_pagination_params),
+        pagination_params: dict = create_pagination_dependency(model),
         response: Response
     ):
-        query = select(SomeModel)
+        query = select(model)
         query = apply_pagination_params(query, pagination_params, response)
         return ...  # Logic to further process and execute the query goes here
     ```
