@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from fastapi import Response
+from sqlalchemy import Column, Integer, MetaData, Table
 from sqlalchemy.sql import select
 from sqlalchemy.sql.expression import Select
 
@@ -11,10 +12,13 @@ class TestApplyPaginationParams(TestCase):
     """Unit tests for the `apply_pagination_params` function."""
 
     def setUp(self) -> None:
-        """Set up test structures."""
+        """Create a query against a dummy database table."""
+
+        # Dummy table to manipulate queries against
+        table = Table('my_table', MetaData(), Column('id', Integer, primary_key=True))
 
         self.response = Response()
-        self.query = select()
+        self.query = select(table)
 
     def test_valid_params(self) -> None:
         """Verify pagination parameters are applied to the query and returned as headers."""

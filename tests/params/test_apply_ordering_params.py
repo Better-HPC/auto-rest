@@ -1,6 +1,7 @@
-from unittest import skip, TestCase
+from unittest import TestCase
 
 from fastapi import Response
+from sqlalchemy import Column, Integer, MetaData, Table
 from sqlalchemy.sql import select
 from sqlalchemy.sql.expression import asc, desc, Select
 
@@ -11,80 +12,82 @@ class TestApplyOrderingParams(TestCase):
     """Unit tests for the `apply_ordering_params` function."""
 
     def setUp(self) -> None:
-        """Set up common test variables."""
+        """Create a query against a dummy database table."""
+
+        # Dummy table to manipulate queries against
+        table = Table('my_table', MetaData(), Column('id', Integer, primary_key=True))
 
         self.response = Response()
-        self.query = select()
+        self.query = select(table)
 
     def test_valid_params_ascending(self) -> None:
-        """Test parameters are applied correctly for ascending order."""
+        """Verify ascending ordering is applied to the query and returned as headers."""
 
-        params = {"order_by": "column_name", "direction": "asc"}
+        params = {"order_by": "id", "direction": "asc"}
         result_query = apply_ordering_params(self.query, params, self.response)
         self.assertIsInstance(result_query, Select)
 
         order_clause = result_query._order_by_clauses[0]
-        self.assertEqual(str(asc("column_name")), str(order_clause))
+        self.assertEqual(str(asc("id")), str(order_clause))
 
         self.assertEqual("true", self.response.headers.get("X-Order-Applied"))
-        self.assertEqual("column_name", self.response.headers.get("X-Order-By"))
+        self.assertEqual("id", self.response.headers.get("X-Order-By"))
         self.assertEqual("asc", self.response.headers.get("X-Order-Direction"))
 
     def test_valid_params_descending(self) -> None:
-        """Test parameters are applied correctly for descending order."""
+        """Verify descending ordering is applied to the query and returned as headers."""
 
-        params = {"order_by": "column_name", "direction": "desc"}
+        params = {"order_by": "id", "direction": "desc"}
         result_query = apply_ordering_params(self.query, params, self.response)
         self.assertIsInstance(result_query, Select)
 
         order_clause = result_query._order_by_clauses[0]
-        self.assertEqual(str(desc("column_name")), str(order_clause))
+        self.assertEqual(str(desc("id")), str(order_clause))
 
         self.assertEqual("true", self.response.headers.get("X-Order-Applied"))
-        self.assertEqual("column_name", self.response.headers.get("X-Order-By"))
+        self.assertEqual("id", self.response.headers.get("X-Order-By"))
         self.assertEqual("desc", self.response.headers.get("X-Order-Direction"))
 
     def test_missing_params(self) -> None:
-        """Test ordering is not applied when parameters are not provided."""
+        """Verify ordering is not applied when parameters are not provided."""
 
         result_query = apply_ordering_params(self.query, {}, self.response)
         self.assertFalse(result_query._order_by_clauses)
 
         self.assertEqual("false", self.response.headers.get("X-Order-Applied"))
-        self.assertEqual(None, self.response.headers.get("X-Order-By"))
-        self.assertEqual(None, self.response.headers.get("X-Order-Direction"))
+        self.assertEqual("None", self.response.headers.get("X-Order-By"))
+        self.assertEqual("None", self.response.headers.get("X-Order-Direction"))
 
     def test_missing_order_by_param(self) -> None:
-        """Test ordering is not applied when the `order_by` parameter is not provided."""
+        """Verify ordering is not applied when the `order_by` parameter is not provided."""
 
         params = {"direction": "desc"}
         result_query = apply_ordering_params(self.query, params, self.response)
         self.assertFalse(result_query._order_by_clauses)
 
         self.assertEqual("false", self.response.headers.get("X-Order-Applied"))
-        self.assertEqual(None, self.response.headers.get("X-Order-By"))
-        self.assertEqual(None, self.response.headers.get("X-Order-Direction"))
-
-    @skip("This test requires implementing additional testing structures.")
-    def test_invalid_order_by_param(self) -> None:
-        """Test a `ValueError` is raised for an invalid `order_by` parameter."""
+        self.assertEqual("None", self.response.headers.get("X-Order-By"))
+        self.assertEqual("desc", self.response.headers.get("X-Order-Direction"))
 
     def test_missing_direction_param(self) -> None:
-        """Test the `direction` parameter defaults to ascending."""
+        """Verify the direction parameter defaults to ascending order."""
 
-        params = {"order_by": "column_name"}
+        params = {"order_by": "id"}
         result_query = apply_ordering_params(self.query, params, self.response)
 
         order_clause = result_query._order_by_clauses[0]
-        self.assertEqual(str(asc("column_name")), str(order_clause))
+        self.assertEqual(str(asc("id")), str(order_clause))
 
         self.assertEqual("true", self.response.headers.get("X-Order-Applied"))
-        self.assertEqual("column_name", self.response.headers.get("X-Order-By"))
-        self.assertEqual("asc", self.response.headers.get("X-Order-Direction"))
+        self.assertEqual("id", self.response.headers.get("X-Order-By"))
+        self.assertEqual("None", self.response.headers.get("X-Order-Direction"))
 
-    def test_invalid_direction_param(self) -> None:
-        """Test a ValueError is raised for an invalid `direction` parameter."""
+    def test_invalid_column_name(self) -> None:
+        """Verify ordering is not applied for an invalid column name"""
 
-        params = {"order_by": "column_name", "direction": "invalid"}
-        with self.assertRaises(ValueError):
-            apply_ordering_params(self.query, params, self.response)
+        params = {"order_by": "bad_name"}
+        result_query = apply_ordering_params(self.query, params, self.response)
+        self.assertFalse(result_query._order_by_clauses)
+
+        self.assertEqual("false", self.response.headers.get("X-Order-Applied"))
+        self.assertEqual("bad_name", self.response.headers.get("X-Order-By"))

@@ -133,8 +133,8 @@ def apply_ordering_params(query: Select, params: dict, response: Response) -> Se
     direction = params.get("direction")
 
     # Set response headers
-    response.headers["X-Order-By"] = order_by
-    response.headers["X-Order-Direction"] = direction
+    response.headers["X-Order-By"] = str(order_by)
+    response.headers["X-Order-Direction"] = str(direction)
     response.headers["X-Order-Applied"] = "true"
 
     # Do not apply ordering for invalid column names and fail gracefully
