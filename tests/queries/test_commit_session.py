@@ -23,11 +23,11 @@ class TestCommitSession(IsolatedAsyncioTestCase):
         mock_session.commit.assert_called_once()
 
     async def test_commit_sync_session(self) -> None:
-        """Test committing a record with a synchronous session."""
+        """Verify records are committed with a synchronous session."""
 
         await self._test_session_commit(Session)
 
     async def test_commit_async_session(self) -> None:
-        """Test committing a record with an asynchronous session."""
+        """Verify records are committed with an asynchronous session."""
 
         await self._test_session_commit(AsyncSession)

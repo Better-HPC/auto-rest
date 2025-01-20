@@ -8,7 +8,7 @@ class TestConfigureCliLogging(TestCase):
     """Unit tests for the `configure_cli_logging` function."""
 
     def test_log_level_is_set(self) -> None:
-        """Test the logging level is configured."""
+        """Verify the logging level is configured to the correct level."""
 
         for log_level_str in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
             configure_cli_logging(log_level_str)
@@ -20,7 +20,7 @@ class TestConfigureCliLogging(TestCase):
             self.assertEqual(log_level_int, logging.getLogger().level)
 
     def test_log_format_is_set(self) -> None:
-        """Test the logging format is configured."""
+        """Verify the logging format is customized."""
 
         configure_cli_logging("INFO")
         handler = logging.getLogger().handlers[0]
@@ -29,7 +29,7 @@ class TestConfigureCliLogging(TestCase):
         self.assertEqual(handler.formatter._fmt, "%(levelprefix)s %(message)s")
 
     def test_invalid_log_level(self) -> None:
-        """Test an invalid logging level raises an error."""
+        """Verify an invalid logging level raises an error."""
 
         with self.assertRaisesRegex(ValueError, "Invalid logging level"):
             configure_cli_logging("INVALID")

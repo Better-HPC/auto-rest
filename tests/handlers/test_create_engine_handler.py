@@ -23,7 +23,7 @@ class TestCreateEngineHandler(TestCase):
         cls.client = TestClient(app)
 
     def test_engine_handler(self) -> None:
-        """Test the engine handler returns a 200 status and the engine configuration."""
+        """Verify the handler returns a 200 status and the engine configuration."""
 
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)

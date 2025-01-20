@@ -9,7 +9,7 @@ class TestCreateMetaRouter(TestCase):
     """Unit tests for the `create_meta_router` function."""
 
     def test_has_metadata_routes(self) -> None:
-        """Test the router supports GET requests against the `version`, `engine`, and `schema` endpoints."""
+        """Verify the router supports GET requests against the `version`, `engine`, and `schema` endpoints."""
 
         engine = create_engine("sqlite:///:memory:")
         metadata = MetaData()

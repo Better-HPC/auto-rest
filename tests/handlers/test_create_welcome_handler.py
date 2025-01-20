@@ -18,7 +18,7 @@ class TestCreateWelcomeHandler(TestCase):
         cls.client = TestClient(app)
 
     def test_welcome_handler(self) -> None:
-        """Test the version handler returns a 200 status and welcome message."""
+        """Verify the handler returns a 200 status and welcome message."""
 
         response = self.client.get("/")
         self.assertEqual(200, response.status_code)

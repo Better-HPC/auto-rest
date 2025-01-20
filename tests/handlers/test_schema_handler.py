@@ -23,7 +23,7 @@ class TestCreateSchemaHandler(TestCase):
         cls.client = TestClient(app)
 
     def test_schema_handler(self) -> None:
-        """Test the schema handler returns the correct database schema."""
+        """Verify the handler returns the correct database schema."""
 
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)

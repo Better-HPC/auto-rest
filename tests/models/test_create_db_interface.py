@@ -32,13 +32,13 @@ class TestCreateDbInterface(TestCase):
         cls.interface = create_db_interface(DummyOrmModel)
 
     def test_interface_fields(self) -> None:
-        """Test the generated Pydantic model has the correct fields."""
+        """Verify the generated Pydantic model has the correct fields."""
 
         self.assertTrue(issubclass(self.interface, pydantic.BaseModel))
         self.assertCountEqual(["id", "title", "rating", "created_at"], self.interface.__annotations__)
 
     def test_field_types(self) -> None:
-        """Test interface fields have the correct type annotations."""
+        """Verify interface fields have the correct type annotations."""
 
         self.assertEqual(self.interface.__annotations__["id"], int)
         self.assertEqual(self.interface.__annotations__["title"], str)
@@ -46,7 +46,7 @@ class TestCreateDbInterface(TestCase):
         self.assertEqual(self.interface.__annotations__["created_at"], date)
 
     def test_field_defaults(self) -> None:
-        """Test interface fields have the correct default values."""
+        """Verify interface fields have the correct default values."""
 
         # Verify fields without default values
         self.assertEqual(PydanticUndefined, self.interface.model_fields["id"].default)
