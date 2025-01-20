@@ -31,6 +31,7 @@ the arguments onto a SQLAlchemy query.
         return ...  # Logic to further process and execute the query goes here
     ```
 """
+
 from typing import Literal
 
 from fastapi import Query
@@ -79,20 +80,20 @@ def apply_pagination_params(query: Select, params: dict[str, int], response: Res
         A copy of the query modified to only return the paginated values.
     """
 
-    limit = params.get("limit", 0)
-    offset = params.get("offset", 0)
+    limit = params.get("limit")
+    offset = params.get("offset")
 
     # Set common response headers
     response.headers["X-Pagination-Limit"] = str(limit)
     response.headers["X-Pagination-Offset"] = str(offset)
 
     # Do not apply pagination if not requested
-    if limit == 0:
+    if limit in (0, None):
         response.headers["X-Pagination-Applied"] = "false"
         return query
 
     response.headers["X-Pagination-Applied"] = "true"
-    return query.offset(offset).limit(limit)
+    return query.offset(offset or 0).limit(limit)
 
 
 def get_ordering_params(
