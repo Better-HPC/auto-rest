@@ -35,7 +35,6 @@ the arguments onto a SQLAlchemy query.
 from typing import Literal
 
 from fastapi import Query
-from fastapi.exceptions import RequestValidationError
 from sqlalchemy import asc, desc
 from sqlalchemy.sql.selectable import Select
 from starlette.responses import Response
@@ -133,28 +132,17 @@ def apply_ordering_params(query: Select, params: dict, response: Response) -> Se
     order_by = params.get("order_by")
     direction = params.get("direction")
 
-    # Set common response headers
+    # Set response headers
     response.headers["X-Order-By"] = str(order_by)
     response.headers["X-Order-Direction"] = str(direction)
+    response.headers["X-Order-Applied"] = "true"
 
-    if order_by is None:
+    # Do not apply ordering for invalid column names and fail gracefully
+    if order_by not in query.columns.keys():
         response.headers["X-Order-Applied"] = "false"
         return query
 
-    # Provide a clear error message when dealing with invalid column names
-    columns = tuple(query.columns.keys())
-    if order_by not in columns:
-        raise RequestValidationError(
-            errors=[{
-                "loc": ("query", "order_by"),
-                "msg": f"Input should be one of {columns}.",
-                "type": "value_error",
-                "input": order_by,
-            }]
-        )
-
     # Default to ascending order for an invalid ordering direction
-    response.headers["X-Order-Applied"] = "true"
     if direction == "desc":
         return query.order_by(desc(order_by))
 
