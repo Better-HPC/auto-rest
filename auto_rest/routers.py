@@ -109,7 +109,6 @@ def create_model_router(engine: DBEngine, model: DBModel, writeable: bool = Fals
         endpoint=create_list_records_handler(engine, model),
         status_code=status.HTTP_200_OK,
         tags=[model.__name__],
-        openapi_extra=path_params_openapi
     )
 
     router.add_api_route(
@@ -131,7 +130,6 @@ def create_model_router(engine: DBEngine, model: DBModel, writeable: bool = Fals
         endpoint=create_post_record_handler(engine, model),
         status_code=status.HTTP_201_CREATED,
         tags=[model.__name__],
-        openapi_extra=path_params_openapi
     )
 
     router.add_api_route(
