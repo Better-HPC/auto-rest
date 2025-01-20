@@ -16,7 +16,7 @@ class DummyModel(declarative_base()):
 
 
 class TestGetOrderingParams(TestCase):
-    """Unit tests for the `get_ordering_params` function."""
+    """Unit tests for the `create_ordering_dependency` function."""
 
     @classmethod
     def setUpClass(cls) -> None:

@@ -16,7 +16,7 @@ class DummyModel(declarative_base()):
 
 
 class TestGetPaginationParams(TestCase):
-    """Unit tests for `get_pagination_params` function."""
+    """Unit tests for `create_pagination_dependency` function."""
 
     @classmethod
     def setUpClass(cls) -> None:
