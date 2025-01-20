@@ -55,7 +55,7 @@ from typing import Awaitable, Callable
 
 from fastapi import Depends, Response
 from pydantic import create_model
-from pydantic.main import ModelT
+from pydantic.main import BaseModel as PydanticModel
 from sqlalchemy import insert, MetaData, select
 from starlette.requests import Request
 
@@ -79,7 +79,7 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
-def create_welcome_handler() -> Callable[[], Awaitable[ModelT]]:
+def create_welcome_handler() -> Callable[[], Awaitable[PydanticModel]]:
     """Create an endpoint handler that returns an application welcome message.
 
     Returns:
@@ -96,7 +96,7 @@ def create_welcome_handler() -> Callable[[], Awaitable[ModelT]]:
     return welcome_handler
 
 
-def create_about_handler(name: str, version: str) -> Callable[[], Awaitable[ModelT]]:
+def create_about_handler(name: str, version: str) -> Callable[[], Awaitable[PydanticModel]]:
     """Create an endpoint handler that returns the application name and version number.
 
     Args:
@@ -104,7 +104,7 @@ def create_about_handler(name: str, version: str) -> Callable[[], Awaitable[Mode
         version: The returned version identifier.
 
     Returns:
-        An async function that returns aplication info.
+        An async function that returns application info.
     """
 
     interface = create_model("Version", version=(str, version), name=(str, name))
@@ -117,7 +117,7 @@ def create_about_handler(name: str, version: str) -> Callable[[], Awaitable[Mode
     return about_handler
 
 
-def create_engine_handler(engine: DBEngine) -> Callable[[], Awaitable[ModelT]]:
+def create_engine_handler(engine: DBEngine) -> Callable[[], Awaitable[PydanticModel]]:
     """Create an endpoint handler that returns configuration details for a database engine.
 
     Args:
@@ -141,7 +141,7 @@ def create_engine_handler(engine: DBEngine) -> Callable[[], Awaitable[ModelT]]:
     return meta_handler
 
 
-def create_schema_handler(metadata: MetaData) -> Callable[[], Awaitable[ModelT]]:
+def create_schema_handler(metadata: MetaData) -> Callable[[], Awaitable[PydanticModel]]:
     """Create an endpoint handler that returns the database schema.
 
     Args:
@@ -180,7 +180,7 @@ def create_schema_handler(metadata: MetaData) -> Callable[[], Awaitable[ModelT]]
     return schema_handler
 
 
-def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[list[ModelT]]]:
+def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[list[PydanticModel]]]:
     """Create an endpoint handler that returns a list of records from a database table.
 
     Args:
@@ -213,7 +213,7 @@ def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..
     return list_records_handler
 
 
-def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[ModelT]]:
+def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[PydanticModel]]:
     """Create a function for handling GET requests against a single record in the database.
 
     Args:
@@ -240,7 +240,7 @@ def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
     return get_record_handler
 
 
-def create_post_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[ModelT]]:
+def create_post_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[PydanticModel]]:
     """Create a function for handling POST requests against a record in the database.
 
     Args:
@@ -269,7 +269,7 @@ def create_post_record_handler(engine: DBEngine, model: DBModel) -> Callable[...
     return post_record_handler
 
 
-def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[ModelT]]:
+def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[PydanticModel]]:
     """Create a function for handling PUT requests against a record in the database.
 
     Args:
@@ -302,7 +302,7 @@ def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
     return put_record_handler
 
 
-def create_patch_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[ModelT]]:
+def create_patch_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[PydanticModel]]:
     """Create a function for handling PATCH requests against a record in the database.
 
     Args:

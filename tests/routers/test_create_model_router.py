@@ -2,12 +2,14 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
 
-from auto_rest.models import DBModel
 from auto_rest.routers import create_model_router
 
+Base = declarative_base()
 
-class SinglePKModel(DBModel):
+
+class SinglePKModel(Base):
     """Database model for a mock table with a single primary key."""
 
     __tablename__ = "single_pk_model"
@@ -16,7 +18,7 @@ class SinglePKModel(DBModel):
     name = Column(String)
 
 
-class MultiplePKModel(DBModel):
+class MultiplePKModel(Base):
     """Database model for a mock table with multiple primary key."""
 
     __tablename__ = "multiple_pk_model"

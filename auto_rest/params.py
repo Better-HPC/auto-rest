@@ -12,10 +12,6 @@ validated arguments onto a SQLAlchemy query and returns the updated query.
 
 !!! example "Example: Parameter Parsing and Application"
 
-    When handling URL parameters, a *get* function is injected as a dependency
-    into the signature of the request handler. The parsed parameter dictionary
-    is then passed to an *apply* function.
-
     ```python
     from fastapi import FastAPI, Response
     from sqlalchemy import select
