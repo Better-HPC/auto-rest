@@ -11,6 +11,8 @@ from auto_rest.params import create_pagination_dependency
 class DummyModel(declarative_base()):
     """A dummy database model used for test fixtures."""
 
+    __tablename__ = "dummy_table"
+
     id = Column(Integer, primary_key=True)
     col1 = Column(String)
 
