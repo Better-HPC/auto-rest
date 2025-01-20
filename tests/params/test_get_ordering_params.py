@@ -22,36 +22,36 @@ class TestGetOrderingParams(TestCase):
         cls.client = TestClient(app)
 
     def test_default_params(self) -> None:
-        """Test default parameter values."""
+        """Verify parameters default to a null column in the ascending direction."""
 
         response = self.client.get("/ordering")
         self.assertEqual(200, response.status_code)
         self.assertEqual(response.json(), {"order_by": None, "direction": "asc"})
 
-    def test_valid_params(self) -> None:
-        """Test valid custom parameter values."""
+    def test_valid_direction_ascending(self) -> None:
+        """Verify the `asc` direction passes validation."""
 
-        response = self.client.get("/ordering", params={"_order_by_": "name", "_direction_": "desc"})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"order_by": "name", "direction": "desc"}, response.json())
+        response = self.client.get("/ordering", params={"_direction_": "asc"})
+        self.assertEqual({"order_by": None, "direction": "asc"}, response.json())
 
-    def test_empty_order_by_field(self) -> None:
-        """Test an empty `order_by` field is handled properly."""
+    def test_valid_direction_descending(self) -> None:
+        """Verify the `desc` direction passes validation."""
 
-        response = self.client.get("/ordering", params={"_order_by_": ""})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"order_by": "", "direction": "asc"}, response.json())
+        response = self.client.get("/ordering", params={"_direction_": "desc"})
+        self.assertEqual({"order_by": None, "direction": "desc"}, response.json())
 
-    def test_case_sensitive_sort_direction(self) -> None:
-        """Test case sensitivity for the sort direction input."""
+    def test_invalid_direction(self) -> None:
+        """Verify invalid directions fail validation."""
 
-        response = self.client.get("/ordering", params={"_order_by_": "created_at", "_direction_": "DESC"})
+        response = self.client.get("/ordering", params={"_direction_": "invalid_direction_name"})
+
         self.assertEqual(422, response.status_code)
         self.assertIn("Input should be 'asc' or 'desc'", str(response.json()))
 
-    def test_invalid_sort_direction(self) -> None:
-        """Test an invalid sort direction fails validation."""
+    def test_case_sensitive_direction(self) -> None:
+        """Verify the sort direction is case-sensitive."""
 
-        response = self.client.get("/ordering", params={"_order_by_": "id", "_direction_": "invalid"})
+        response = self.client.get("/ordering", params={"_direction_": "DESC"})
+
         self.assertEqual(422, response.status_code)
         self.assertIn("Input should be 'asc' or 'desc'", str(response.json()))

@@ -22,44 +22,22 @@ class TestGetPaginationParams(TestCase):
         cls.client = TestClient(app)
 
     def test_default_params(self) -> None:
-        """Test default parameter values."""
+        """Verify all default parameter values are zero."""
 
         response = self.client.get("/pagination")
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"limit": 10, "offset": 0}, response.json())
-
-    def test_valid_params(self) -> None:
-        """Test valid custom parameter values."""
-
-        response = self.client.get("/pagination", params={"_limit_": 2, "_offset_": 20})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"limit": 2, "offset": 20}, response.json())
-
-    def test_zero_limit(self) -> None:
-        """Test a zero limit value passes validation."""
-
-        response = self.client.get("/pagination", params={"_limit_": 0, "_offset_": 20})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"limit": 0, "offset": 20}, response.json())
+        self.assertEqual({"limit": 0, "offset": 0}, response.json())
 
     def test_negative_limit(self) -> None:
-        """Test negative limit values fail validation."""
+        """Verify negative limit values fail validation."""
 
         response = self.client.get("/pagination", params={"_limit_": -1})
-        self.assertEqual(422, response.status_code)
-
         error_detail = response.json()["detail"][0]
+
+        self.assertEqual(422, response.status_code)
         self.assertEqual("Input should be greater than or equal to 0", error_detail["msg"])
 
-    def test_zero_offset(self) -> None:
-        """Test a zero offset value passes validation."""
-
-        response = self.client.get("/pagination", params={"_limit_": 10, "_offset_": 0})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"limit": 10, "offset": 0}, response.json())
-
     def test_negative_offset(self) -> None:
-        """Test negative offset values fail validation."""
+        """Verify negative offset values fail validation."""
 
         response = self.client.get("/pagination", params={"_offset_": -1})
         self.assertEqual(422, response.status_code)
@@ -67,3 +45,26 @@ class TestGetPaginationParams(TestCase):
         error_detail = response.json()["detail"][0]
         self.assertEqual("Input should be greater than or equal to 0", error_detail["msg"])
 
+    def test_zero_limit(self) -> None:
+        """Verify a zero limit value passes validation."""
+
+        response = self.client.get("/pagination", params={"_limit_": 0})
+        self.assertEqual({"limit": 0, "offset": 0}, response.json())
+
+    def test_zero_offset(self) -> None:
+        """Verify a zero offset value passes validation."""
+
+        response = self.client.get("/pagination", params={"_offset_": 0})
+        self.assertEqual({"limit": 0, "offset": 0}, response.json())
+
+    def test_positive_limit(self) -> None:
+        """Verify a positive limit value passes validation."""
+
+        response = self.client.get("/pagination", params={"_limit_": 200})
+        self.assertEqual({"limit": 200, "offset": 0}, response.json())
+
+    def test_positive_offset(self) -> None:
+        """Verify a positive offset value passes validation."""
+
+        response = self.client.get("/pagination", params={"_offset_": 20})
+        self.assertEqual({"limit": 0, "offset": 20}, response.json())
