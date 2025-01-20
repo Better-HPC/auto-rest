@@ -64,7 +64,7 @@ def create_ordering_dependency(model: type[DBModel]) -> Callable[..., dict]:
     columns = tuple(model.__table__.columns.keys())
 
     def get_ordering_params(
-        _order_by_: Literal[columns] = Query(None, description="The field name to sort by."),
+        _order_by_: Literal[*columns] = Query(None, description="The field name to sort by."),
         _direction_: Literal["asc", "desc"] = Query("asc", description="Sort results in 'asc' or 'desc' order.")
     ) -> dict:
         """Extract ordering parameters from request query parameters.
