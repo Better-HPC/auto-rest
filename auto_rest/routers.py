@@ -58,7 +58,7 @@ def create_meta_router(engine: DBEngine, metadata: MetaData, name: str, version:
     Args:
         engine: The database engine used to facilitate database interactions.
         metadata: The metadata object containing the database schema.
-        version: The application name.
+        name: The application name.
         version: The application versionnumber.
 
     Returns:

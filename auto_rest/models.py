@@ -36,7 +36,7 @@ import logging
 from pathlib import Path
 from typing import Callable
 
-from pydantic.main import create_model, ModelT
+from pydantic.main import create_model, BaseModel as PydanticModel
 from sqlalchemy import create_engine, Engine, MetaData, URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, Session
@@ -55,8 +55,10 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 
+Base = declarative_base()
+
 # Base classes and typing objects.
-DBModel = declarative_base()
+DBModel = type[Base]
 DBEngine = Engine | AsyncEngine
 DBSession = Session | AsyncSession
 
@@ -174,7 +176,7 @@ def create_db_models(metadata: MetaData) -> dict[str, DBModel]:
         logger.debug(f"> Creating model for table {table_name}.")
         models[table_name] = type(
             table_name.capitalize(),
-            (DBModel,),
+            (Base,),
             {"__table__": table},
         )
 
@@ -182,7 +184,7 @@ def create_db_models(metadata: MetaData) -> dict[str, DBModel]:
     return models
 
 
-def create_db_interface(model: DBModel) -> type[ModelT]:
+def create_db_interface(model: DBModel) -> type[PydanticModel]:
     """Create a Pydantic interface for a SQLAlchemy model.
 
     Args:
