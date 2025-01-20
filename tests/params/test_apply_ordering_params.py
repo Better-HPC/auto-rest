@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from fastapi import Response
-from fastapi.exceptions import RequestValidationError
 from sqlalchemy import Column, Integer, MetaData, Table
 from sqlalchemy.sql import select
 from sqlalchemy.sql.expression import asc, desc, Select
@@ -82,10 +81,3 @@ class TestApplyOrderingParams(TestCase):
         self.assertEqual("true", self.response.headers.get("X-Order-Applied"))
         self.assertEqual("id", self.response.headers.get("X-Order-By"))
         self.assertEqual("None", self.response.headers.get("X-Order-Direction"))
-
-    def test_invalid_column_name(self) -> None:
-        """Verify a validation error is raised for an invalid column name."""
-
-        params = {"order_by": "bad_name"}
-        with self.assertRaises(RequestValidationError):
-            apply_ordering_params(self.query, params, self.response)

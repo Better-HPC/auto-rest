@@ -1,13 +1,24 @@
 from unittest import TestCase
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
 
-from auto_rest.params import get_ordering_params
+from auto_rest.params import create_ordering_dependency
+
+
+class DummyModel(declarative_base()):
+    """A dummy database model used for test fixtures."""
+
+    __tablename__ = "dummy_table"
+
+    id = Column(Integer, primary_key=True)
+    col1 = Column(String)
 
 
 class TestGetOrderingParams(TestCase):
-    """Unit tests for the `get_ordering_params` function."""
+    """Unit tests for the `create_ordering_dependency` function."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -16,7 +27,7 @@ class TestGetOrderingParams(TestCase):
         app = FastAPI()
 
         @app.get("/ordering")
-        def ordering(params: dict = Depends(get_ordering_params)):
+        def ordering(params: dict = create_ordering_dependency(DummyModel)):
             return params
 
         cls.client = TestClient(app)

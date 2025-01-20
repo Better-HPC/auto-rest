@@ -196,8 +196,8 @@ def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..
     async def list_records_handler(
         response: Response,
         session: DBSession = Depends(create_session_iterator(engine)),
-        pagination_params: dict[str, int] = Depends(get_pagination_params),
-        ordering_params: dict[str, int] = Depends(get_ordering_params),
+        pagination_params: dict[str, int] = create_pagination_dependency(model),
+        ordering_params: dict[str, int] = create_ordering_dependency(model),
     ) -> list[interface]:
         """Fetch a list of records from the database.
 

@@ -1,13 +1,24 @@
 from unittest import TestCase
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
 
-from auto_rest.params import get_pagination_params
+from auto_rest.params import create_pagination_dependency
+
+
+class DummyModel(declarative_base()):
+    """A dummy database model used for test fixtures."""
+
+    __tablename__ = "dummy_table"
+
+    id = Column(Integer, primary_key=True)
+    col1 = Column(String)
 
 
 class TestGetPaginationParams(TestCase):
-    """Unit tests for `get_pagination_params` function."""
+    """Unit tests for `create_pagination_dependency` function."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -16,7 +27,7 @@ class TestGetPaginationParams(TestCase):
         app = FastAPI()
 
         @app.get("/pagination")
-        def pagination(params: dict = Depends(get_pagination_params)):
+        def pagination(params: dict = create_pagination_dependency(DummyModel)):
             return params
 
         cls.client = TestClient(app)
