@@ -3,7 +3,7 @@
 When running Auto-REST in production, it is strongly recommended to deploy the generated server behind a reverse proxy.
 In additional to their many implicit benefits, modern proxies offer advanced configuration options that Auto-REST alone does not.
 This section highlights key features administrators should consider when deploying Auto-REST.
-Examples are provided as starting points for estting up the Nginx proxy.
+Examples are provided as starting points for configuring an Nginx proxy.
 
 ## Enforcing TLS
 
