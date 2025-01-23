@@ -2,12 +2,13 @@
 
 When running Auto-REST in production, it is strongly recommended to deploy the generated server behind a reverse proxy.
 In additional to their many implicit benefits, modern proxies offer advanced configuration options that Auto-REST alone does not.
-This section highlights key features of Nginx that administrators should consider when deploying Auto-REST.
-It is not meant to replace the official Nginx documentation but to provide a useful starting point for configuration.
+This section highlights key features administrators should consider when deploying Auto-REST.
+Examples are provided as starting points for estting up the Nginx proxy.
 
 ## Enforcing TLS
 
-The following example demonstrates how to configure an Nginx proxy to enforce TLS.
+The following example demonstrates an Nginx configuration that enforces TLS.
+Unencrypted connections are prevented from accessing the API server and are redirected to a port requiring TLS encryption.
 It is assumed the API server is running on `http://localhost:8081` and SSL certificates are available under `/etc/ssl`.
 
 !!! example "Example: Redirecting to TLS"
@@ -43,11 +44,10 @@ It is assumed the API server is running on `http://localhost:8081` and SSL certi
 
 ## Enforcing Rate Limits
 
-Nginx provides rate-limiting capabilities to safeguard the server from excessive client requests.
+Rate-limiting is used to safeguard a server from excessive client requests.
 The configuration below demonstrates how to configure rate limiting using the `limit_req_zone` directive.
 The `api_limit` policy enforces a limit of 10 requests per second (`10r/s`) per user (`$binary_remote_addr`).
-The burst parameter allows a temporary burst of up to 20 requests, enabling brief surges in traffic before throttling
-takes effect.
+The burst parameter allows a temporary burst of up to 20 requests, allowing momentary surges before applying the policy.
 
 !!! example "Example: Nginx Rate Limiting"
 
@@ -62,7 +62,7 @@ takes effect.
 
 ## Enforcing CORS Policies
 
-Nginx offers support for enforcing Cross-Origin Resource Sharing (CORS) policies.
+Cross-Origin Resource Sharing (CORS) limits the server to respond only to requests originating from specific locations.
 The configuration below demonstrates how to implement a basic CORS policy using the `add_header` directive.
 This setup allows requests from any origin (`Access-Control-Allow-Origin: '*'`) and limits the supported HTTP methods.
 
