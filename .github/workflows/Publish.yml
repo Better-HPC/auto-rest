@@ -16,6 +16,7 @@ jobs:
 
     environment:
       name: ghcr
+      url: https://github.com/Better-HPC/auto-rest/pkgs/container/auto-rest
 
     steps:
       - name: Checkout source
@@ -85,6 +86,7 @@ jobs:
 
     environment:
       name: pypi
+      url: https://pypi.org/project/auto-rest-api/
 
     steps:
       - name: Set up Python
