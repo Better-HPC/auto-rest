@@ -42,6 +42,9 @@ jobs:
       - name: Define Docker metadata
         id: meta
         uses: docker/metadata-action@v5
+        env:
+          # Enables label support for multi-arch images
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
         with:
           images: ghcr.io/better-hpc/auto-rest
           tags: |
