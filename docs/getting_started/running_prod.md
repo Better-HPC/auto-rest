@@ -1,0 +1,79 @@
+# Running in Production
+
+When running Auto-REST in production, it is strongly recommended to deploy the generated server behind a reverse proxy.
+In additional to their many implicit benefits, modern proxies offer advanced configuration options that Auto-REST alone does not.
+This section highlights key features administrators should consider when deploying Auto-REST.
+Examples are provided as starting points for configuring an Nginx proxy.
+
+## Enforcing TLS
+
+The following example demonstrates an Nginx configuration that enforces TLS.
+Unencrypted connections are prevented from accessing the API server and are redirected to a port requiring TLS encryption.
+It is assumed the API server is running on `http://localhost:8081` and SSL certificates are available under `/etc/ssl`.
+
+!!! example "Example: Redirecting to TLS"
+
+    ```nginx
+    server {
+        listen 80;
+        server_name api.example.com;
+    
+        # Redirect HTTP to HTTPS
+        return 301 https://$host$request_uri;
+    }
+    
+    server {
+        listen 443 ssl;
+        server_name api.example.com;
+    
+        # SSL configuration
+        ssl_certificate /etc/ssl/certs/fullchain.pem;
+        ssl_certificate_key /etc/ssl/private/privkey.pem;
+    
+        # Proxy configuration
+        location / {
+            proxy_pass http://localhost:8081;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+    ```
+
+## Enforcing Rate Limits
+
+Rate-limiting is used to safeguard a server from excessive client requests.
+The configuration below demonstrates how to configure rate limiting using the `limit_req_zone` directive.
+The `api_limit` policy enforces a limit of 10 requests per second (`10r/s`) per user (`$binary_remote_addr`).
+The burst parameter allows a temporary burst of up to 20 requests, allowing momentary surges before applying the policy.
+
+!!! example "Example: Nginx Rate Limiting"
+
+    ```nginx
+    server {
+        limit_req_zone $binary_remote_addr zone=api_limit rate=10r/s;
+        location / {
+            limit_req zone=api_limit burst=20;
+        }
+    }
+    ```
+
+## Enforcing CORS Policies
+
+Cross-Origin Resource Sharing (CORS) limits the server to respond only to requests originating from specific locations.
+The configuration below demonstrates how to implement a basic CORS policy using the `add_header` directive.
+This setup allows requests from any origin (`Access-Control-Allow-Origin: '*'`) and limits the supported HTTP methods.
+
+!!! example "Example: Nginx CORS Configuration"
+
+    ```nginx
+    server {
+        location / {
+            add_header 'Access-Control-Allow-Origin' '*';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS, HEAD';
+            add_header 'Access-Control-Allow-Headers' 'Authorization, Content-Type';
+        }
+    }
+    ```
