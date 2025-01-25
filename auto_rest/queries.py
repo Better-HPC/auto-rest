@@ -10,7 +10,7 @@ handling and provides a streamlined interface for database interactions.
     Query utilities seamlessly support synchronous and asynchronous session types.
 
     ```python
-    query = select(SomeModel).where(SomeModel.id == item_id)
+    query = select(SomeTable).where(SomeTable.id == item_id)
 
     with Session(...) as sync_session:
         result = await execute_session_query(sync_session, query)
@@ -101,7 +101,7 @@ def get_record_or_404(result: Result) -> any:
         HTTPException: If the record is not found.
     """
 
-    if not (record := result.scalar_one_or_none()):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Record not found")
+    if record := result.fetchone():
+        return record
 
-    return record
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Record not found")

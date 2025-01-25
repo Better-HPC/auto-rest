@@ -1,25 +1,12 @@
 from datetime import date
 from unittest import TestCase
+from unittest.mock import MagicMock
 
 import pydantic
 from pydantic_core import PydanticUndefined
-from sqlalchemy import Column, Date, Float, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Date, Float, Integer, MetaData, String, Table
 
 from auto_rest.models import create_db_interface
-
-Base = declarative_base()
-
-
-class DummyOrmModel(Base):
-    """A dummy SQLAlchemy model used for testing."""
-
-    __tablename__ = "test_model"
-
-    id = Column(Integer, primary_key=True)
-    title = Column(String)
-    rating = Column(Float, default=5)
-    created_at = Column(Date, default=date.today)
 
 
 class TestCreateDbInterface(TestCase):
@@ -29,7 +16,16 @@ class TestCreateDbInterface(TestCase):
     def setUp(cls) -> None:
         """Create an interface instance."""
 
-        cls.interface = create_db_interface(DummyOrmModel)
+        cls.table = Table(
+            "test_model",
+            MetaData(),
+            Column("id", Integer, primary_key=True),
+            Column("title", String),
+            Column("rating", Float, default=5),
+            Column("created_at", Date, default=date.today),
+        )
+
+        cls.interface = create_db_interface(cls.table)
 
     def test_interface_fields(self) -> None:
         """Verify the generated Pydantic model has the correct fields."""

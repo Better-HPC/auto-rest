@@ -56,7 +56,7 @@ from typing import Awaitable, Callable
 from fastapi import Depends, Response
 from pydantic import create_model
 from pydantic.main import BaseModel as PydanticModel
-from sqlalchemy import insert, MetaData, select
+from sqlalchemy import insert, MetaData, select, Table
 from starlette.requests import Request
 
 from .models import *
@@ -180,51 +180,52 @@ def create_schema_handler(metadata: MetaData) -> Callable[[], Awaitable[Pydantic
     return schema_handler
 
 
-def create_list_records_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[list[PydanticModel]]]:
+def create_list_records_handler(engine: DBEngine, table: Table) -> Callable[..., Awaitable[list[PydanticModel]]]:
     """Create an endpoint handler that returns a list of records from a database table.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The ORM object to use for database manipulations.
+        table: The database table to query against.
 
     Returns:
         An async function that returns a list of records from the given database model.
     """
 
-    interface = create_db_interface(model)
+    interface = create_db_interface(table)
 
     async def list_records_handler(
         response: Response,
         session: DBSession = Depends(create_session_iterator(engine)),
-        pagination_params: dict[str, int] = create_pagination_dependency(model),
-        ordering_params: dict[str, int] = create_ordering_dependency(model),
-    ) -> list[interface]:
+        pagination_params: dict[str, int] = create_pagination_dependency(table),
+        ordering_params: dict[str, int] = create_ordering_dependency(table),
+    ):
         """Fetch a list of records from the database.
 
         URL query parameters are used to enable filtering, ordering, and paginating returned values.
         """
 
-        query = select(model)
+        query = select(table)
         query = apply_pagination_params(query, pagination_params, response)
         query = apply_ordering_params(query, ordering_params, response)
+
         result = await execute_session_query(session, query)
-        return [interface.model_validate(record.__dict__) for record in result.scalars().all()]
+        return [row._mapping for row in result.all()]
 
     return list_records_handler
 
 
-def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[PydanticModel]]:
+def create_get_record_handler(engine: DBEngine, table: Table) -> Callable[..., Awaitable[PydanticModel]]:
     """Create a function for handling GET requests against a single record in the database.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The ORM object to use for database manipulations.
+        table: The database table to query against.
 
     Returns:
-        An async function that returns a single record from the given database model.
+        An async function that returns a single record from the given database table.
     """
 
-    interface = create_db_interface(model)
+    interface = create_db_interface(table)
 
     async def get_record_handler(
         request: Request,
@@ -232,55 +233,52 @@ def create_get_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
     ) -> interface:
         """Fetch a single record from the database."""
 
-        query = select(model).filter_by(**request.path_params)
+        query = select(table).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
         record = get_record_or_404(result)
-        return interface.model_validate(record.__dict__)
+        return record
 
     return get_record_handler
 
 
-def create_post_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[PydanticModel]]:
+def create_post_record_handler(engine: DBEngine, table: Table) -> Callable[..., Awaitable[PydanticModel]]:
     """Create a function for handling POST requests against a record in the database.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The ORM object to use for database manipulations.
+        table: The database table to query against.
 
     Returns:
         An async function that handles record creation.
     """
 
-    interface = create_db_interface(model)
+    interface = create_db_interface(table)
 
     async def post_record_handler(
         data: interface,
         session: DBSession = Depends(create_session_iterator(engine)),
-    ) -> interface:
+    ) -> None:
         """Create a new record in the database."""
 
-        query = insert(model).values(**data.dict())
-        result = await execute_session_query(session, query)
-        record = get_record_or_404(result)
-
+        query = insert(table).values(**data.dict())
+        await execute_session_query(session, query)
         await commit_session(session)
-        return interface.model_validate(record.__dict__)
 
     return post_record_handler
 
 
-def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[PydanticModel]]:
+def create_put_record_handler(engine: DBEngine, table: Table) -> Callable[..., Awaitable[PydanticModel]]:
     """Create a function for handling PUT requests against a record in the database.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The ORM object to use for database manipulations.
+        table: The database table to query against.
 
     Returns:
         An async function that handles record updates.
     """
 
-    interface = create_db_interface(model)
+    interface = create_db_interface(table)
 
     async def put_record_handler(
         request: Request,
@@ -289,7 +287,7 @@ def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
     ) -> interface:
         """Replace record values in the database with the provided data."""
 
-        query = select(model).filter_by(**request.path_params)
+        query = select(table).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
         record = get_record_or_404(result)
 
@@ -302,18 +300,18 @@ def create_put_record_handler(engine: DBEngine, model: DBModel) -> Callable[...,
     return put_record_handler
 
 
-def create_patch_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[PydanticModel]]:
+def create_patch_record_handler(engine: DBEngine, table: Table) -> Callable[..., Awaitable[PydanticModel]]:
     """Create a function for handling PATCH requests against a record in the database.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The ORM object to use for database manipulations.
+        table: The database table to query against.
 
     Returns:
         An async function that handles record updates.
     """
 
-    interface = create_db_interface(model)
+    interface = create_db_interface(table)
 
     async def patch_record_handler(
         request: Request,
@@ -322,7 +320,7 @@ def create_patch_record_handler(engine: DBEngine, model: DBModel) -> Callable[..
     ) -> interface:
         """Update record values in the database with the provided data."""
 
-        query = select(model).filter_by(**request.path_params)
+        query = select(table).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
         record = get_record_or_404(result)
 
@@ -330,17 +328,17 @@ def create_patch_record_handler(engine: DBEngine, model: DBModel) -> Callable[..
             setattr(record, key, value)
 
         await commit_session(session)
-        return interface(record.__dict__)
+        return record
 
     return patch_record_handler
 
 
-def create_delete_record_handler(engine: DBEngine, model: DBModel) -> Callable[..., Awaitable[None]]:
+def create_delete_record_handler(engine: DBEngine, table: Table) -> Callable[..., Awaitable[None]]:
     """Create a function for handling DELETE requests against a record in the database.
 
     Args:
         engine: Database engine to use when executing queries.
-        model: The ORM object to use for database manipulations.
+        table: The database table to query against.
 
     Returns:
         An async function that handles record deletion.
@@ -352,7 +350,7 @@ def create_delete_record_handler(engine: DBEngine, model: DBModel) -> Callable[.
     ) -> None:
         """Delete a record from the database."""
 
-        query = select(model).filter_by(**request.path_params)
+        query = select(table).filter_by(**request.path_params)
         result = await execute_session_query(session, query)
         record = get_record_or_404(result)
 
