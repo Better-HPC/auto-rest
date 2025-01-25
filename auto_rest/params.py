@@ -60,7 +60,7 @@ def create_ordering_dependency(table: Table) -> Callable[..., dict]:
 
     def get_ordering_params(
         _order_by_: Literal[*columns] = Query(None, description="The field name to sort by."),
-        _direction_: Literal["asc", "desc"] = Query("asc", description="Sort results in 'asc' or 'desc' order.")
+        _direction_: Literal["asc", "desc"] = Query(None, description="Sort results in 'asc' or 'desc' order.")
     ) -> dict:
         """Extract ordering parameters from request query parameters.
 
@@ -124,8 +124,8 @@ def create_pagination_dependency(table: Table) -> Callable[..., dict]:
     """
 
     def get_pagination_params(
-        _limit_: int = Query(0, ge=0, description="The maximum number of records to return."),
-        _offset_: int = Query(0, ge=0, description="The starting index of the returned records."),
+        _limit_: int = Query(None, ge=0, description="The maximum number of records to return."),
+        _offset_: int = Query(None, ge=0, description="The starting index of the returned records."),
     ) -> dict[str, int]:
         """Extract pagination parameters from request query parameters.
 
