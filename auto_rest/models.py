@@ -5,7 +5,7 @@ on the popular SQLAlchemy package, it natively supports multiple
 Database Management Systems (DBMS) without requiring custom configuration
 or setup.
 
-!!! example "Example: Creating ORM objects"
+!!! example "Example: Mapping Database Metadata"
 
     Utility functions are provided for connecting to the database
     and mapping the underlying schema.
