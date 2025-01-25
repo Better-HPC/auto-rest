@@ -91,11 +91,6 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
     # Construct path parameters from primary key columns
     pk_columns = sorted(column.name for column in table.primary_key.columns)
     path_params_url = "/".join(f"{{{col_name}}}" for col_name in pk_columns)
-    path_params_openapi = {
-        "parameters": [
-            {"name": col_name, "in": "path", "required": True} for col_name in pk_columns
-        ]
-    }
 
     # Add route for read operations against the table
     router.add_api_route(
@@ -124,7 +119,6 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
             endpoint=create_get_record_handler(engine, table),
             status_code=status.HTTP_200_OK,
             tags=[table.name],
-            openapi_extra=path_params_openapi
         )
 
     # Add routes for write operations against individual records
@@ -135,7 +129,6 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
             endpoint=create_put_record_handler(engine, table),
             status_code=status.HTTP_200_OK,
             tags=[table.name],
-            openapi_extra=path_params_openapi
         )
 
         router.add_api_route(
@@ -144,7 +137,6 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
             endpoint=create_patch_record_handler(engine, table),
             status_code=status.HTTP_200_OK,
             tags=[table.name],
-            openapi_extra=path_params_openapi
         )
 
         router.add_api_route(
@@ -153,7 +145,6 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
             endpoint=create_delete_record_handler(engine, table),
             status_code=status.HTTP_200_OK,
             tags=[table.name],
-            openapi_extra=path_params_openapi
         )
 
     return router
