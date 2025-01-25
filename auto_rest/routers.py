@@ -24,15 +24,15 @@ routers to be added directly to an API application instance.
 """
 
 from fastapi import APIRouter
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, Table
 from starlette import status
 
 from auto_rest.handlers import *
-from auto_rest.models import DBEngine, DBModel
+from auto_rest.models import DBEngine
 
 __all__ = [
     "create_meta_router",
-    "create_model_router",
+    "create_table_router",
     "create_welcome_router",
 ]
 
@@ -74,22 +74,22 @@ def create_meta_router(engine: DBEngine, metadata: MetaData, name: str, version:
     return router
 
 
-def create_model_router(engine: DBEngine, model: DBModel, writeable: bool = False) -> APIRouter:
-    """Create an API router with endpoint handlers for the given database model.
+def create_table_router(engine: DBEngine, table: Table, writeable: bool = False) -> APIRouter:
+    """Create an API router with endpoint handlers for a given database table.
 
     Args:
         engine: The SQLAlchemy engine connected to the database.
-        model: The ORM model class representing a database table.
+        table: The database table to create API endpoints for.
         writeable: Whether the router should include support for write operations.
 
     Returns:
-        An APIRouter instance with routes for database operations on the model.
+        An APIRouter instance with routes for database operations on the table.
     """
 
     router = APIRouter()
 
     # Construct path parameters from primary key columns
-    pk_columns = sorted(column.name for column in model.__table__.primary_key.columns)
+    pk_columns = sorted(column.name for column in table.primary_key.columns)
     path_params_url = "/".join(f"{{{col_name}}}" for col_name in pk_columns)
     path_params_openapi = {
         "parameters": [
@@ -97,66 +97,63 @@ def create_model_router(engine: DBEngine, model: DBModel, writeable: bool = Fals
         ]
     }
 
-    # Raise an error if no primary key columns are found
-    # (SQLAlchemy should ensure this never happens)
-    if not pk_columns:  # pragma: no cover
-        raise RuntimeError(f"No primary key columns found for table {model.__tablename__}.")
-
-    # Define routes for read operations
+    # Add route for read operations against the table
     router.add_api_route(
         path="/",
         methods=["GET"],
-        endpoint=create_list_records_handler(engine, model),
+        endpoint=create_list_records_handler(engine, table),
         status_code=status.HTTP_200_OK,
-        tags=[model.__name__],
+        tags=[table.name],
     )
 
-    router.add_api_route(
-        path=f"/{path_params_url}/",
-        methods=["GET"],
-        endpoint=create_get_record_handler(engine, model),
-        status_code=status.HTTP_200_OK,
-        tags=[model.__name__],
-        openapi_extra=path_params_openapi
-    )
+    # Add route for write operations against the table
+    if writeable:
+        router.add_api_route(
+            path="/",
+            methods=["POST"],
+            endpoint=create_post_record_handler(engine, table),
+            status_code=status.HTTP_201_CREATED,
+            tags=[table.name],
+        )
 
-    if not writeable:
-        return router
+    # Add route for read operations against individual records
+    if pk_columns:
+        router.add_api_route(
+            path=f"/{path_params_url}/",
+            methods=["GET"],
+            endpoint=create_get_record_handler(engine, table),
+            status_code=status.HTTP_200_OK,
+            tags=[table.name],
+            openapi_extra=path_params_openapi
+        )
 
-    # Define routes for write operations
-    router.add_api_route(
-        path="/",
-        methods=["POST"],
-        endpoint=create_post_record_handler(engine, model),
-        status_code=status.HTTP_201_CREATED,
-        tags=[model.__name__],
-    )
+    # Add routes for write operations against individual records
+    if pk_columns and writeable:
+        router.add_api_route(
+            path=f"/{path_params_url}/",
+            methods=["PUT"],
+            endpoint=create_put_record_handler(engine, table),
+            status_code=status.HTTP_200_OK,
+            tags=[table.name],
+            openapi_extra=path_params_openapi
+        )
 
-    router.add_api_route(
-        path=f"/{path_params_url}/",
-        methods=["PUT"],
-        endpoint=create_put_record_handler(engine, model),
-        status_code=status.HTTP_200_OK,
-        tags=[model.__name__],
-        openapi_extra=path_params_openapi
-    )
+        router.add_api_route(
+            path=f"/{path_params_url}/",
+            methods=["PATCH"],
+            endpoint=create_patch_record_handler(engine, table),
+            status_code=status.HTTP_200_OK,
+            tags=[table.name],
+            openapi_extra=path_params_openapi
+        )
 
-    router.add_api_route(
-        path=f"/{path_params_url}/",
-        methods=["PATCH"],
-        endpoint=create_patch_record_handler(engine, model),
-        status_code=status.HTTP_200_OK,
-        tags=[model.__name__],
-        openapi_extra=path_params_openapi
-    )
-
-    router.add_api_route(
-        path=f"/{path_params_url}/",
-        methods=["DELETE"],
-        endpoint=create_delete_record_handler(engine, model),
-        status_code=status.HTTP_200_OK,
-        tags=[model.__name__],
-        openapi_extra=path_params_openapi
-    )
+        router.add_api_route(
+            path=f"/{path_params_url}/",
+            methods=["DELETE"],
+            endpoint=create_delete_record_handler(engine, table),
+            status_code=status.HTTP_200_OK,
+            tags=[table.name],
+            openapi_extra=path_params_openapi
+        )
 
     return router

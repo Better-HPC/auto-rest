@@ -15,7 +15,7 @@ class TestGetRecordOr404(IsolatedAsyncioTestCase):
         # Create a mock result where scalar_one_or_none() returns a valid record
         mock_result = MagicMock()
         mock_record = MagicMock()
-        mock_result.scalar_one_or_none.return_value = mock_record
+        mock_result.fetchone.return_value = mock_record
 
         # Call the function and assert the returned record is the mock record
         result = get_record_or_404(mock_result)
@@ -26,7 +26,7 @@ class TestGetRecordOr404(IsolatedAsyncioTestCase):
 
         # Create a mock result where scalar_one_or_none() returns None
         mock_result = MagicMock()
-        mock_result.scalar_one_or_none.return_value = None
+        mock_result.fetchone.return_value = None
 
         # Verify a 404 error is raised
         with self.assertRaises(HTTPException) as context:
