@@ -16,7 +16,7 @@ class TestCreateEngineHandler(TestCase):
 
         # Create a database engine and define the expected configuration
         cls.engine = create_engine("sqlite:///:memory:")
-        cls.config = {'database': ':memory:', 'dialect': 'sqlite', 'driver': 'pysqlite'}
+        cls.config = {"database": ":memory:", "dialect": "sqlite", "driver": "pysqlite"}
 
         app = FastAPI()
         app.add_api_route("/", create_engine_handler(cls.engine))

@@ -29,15 +29,14 @@ validated arguments onto a SQLAlchemy query and returns the updated query.
         return ...  # Logic to further process and execute the query goes here
     ```
 """
+
 from collections.abc import Callable
 from typing import Literal
 
 from fastapi import Depends, Query
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, Table
 from sqlalchemy.sql.selectable import Select
 from starlette.responses import Response
-
-from .models import DBModel
 
 __all__ = [
     "apply_ordering_params",
@@ -47,17 +46,17 @@ __all__ = [
 ]
 
 
-def create_ordering_dependency(model: type[DBModel]) -> Callable[..., dict]:
+def create_ordering_dependency(table: Table) -> Callable[..., dict]:
     """Create an injectable dependency for fetching ordering arguments from query parameters.
 
     Args:
-        model: The database model to create the dependency for.
+        table: The database table to create the dependency for.
 
     Returns:
         An injectable FastAPI dependency.
     """
 
-    columns = tuple(model.__table__.columns.keys())
+    columns = tuple(table.columns.keys())
 
     def get_ordering_params(
         _order_by_: Literal[*columns] = Query(None, description="The field name to sort by."),
@@ -114,11 +113,11 @@ def apply_ordering_params(query: Select, params: dict, response: Response) -> Se
         return query.order_by(asc(order_by))
 
 
-def create_pagination_dependency(model: type[DBModel]) -> Callable[..., dict]:
+def create_pagination_dependency(table: Table) -> Callable[..., dict]:
     """Create an injectable dependency for fetching pagination arguments from query parameters.
 
     Args:
-        model: The database model to create the dependency for.
+        table: The database table to create the dependency for.
 
     Returns:
         An injectable FastAPI dependency.

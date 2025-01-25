@@ -30,14 +30,14 @@ class TestCreateSchemaHandler(TestCase):
 
         schema = response.json().get("tables", {})
 
-        # Check 'test_table1' columns and properties
+        # Check `test_table1` columns and properties
         table1 = schema.get("test_table1", {})
         table1_columns = table1.get("columns", {})
         self.assertEqual("INTEGER", table1_columns["col1"]["type"])
         self.assertFalse(table1_columns["col1"]["nullable"])
         self.assertIsNone(table1_columns["col1"]["default"])
 
-        # Check 'test_table2' columns and properties
+        # Check `test_table2` columns and properties
         table2 = schema.get("test_table2", {})
         table2_columns = table2.get("columns", {})
         self.assertEqual("VARCHAR", table2_columns["col2"]["type"])

@@ -69,13 +69,15 @@ def run_application(
         app_version: version number for the generated OpenAPI schema.
     """
 
-    # Connect to and map the database.
     logger.info(f"Mapping database schema for {db_name}.")
+
+    # Resolve database connection settings
     db_url = create_db_url(driver=db_driver, host=db_host, port=db_port, database=db_name, username=db_user, password=db_pass)
     db_kwargs = yaml.safe_load(db_config.read_text()) if db_config else {}
+
+    # Connect to and map the database.
     db_conn = create_db_engine(db_url, **db_kwargs)
     db_meta = create_db_metadata(db_conn)
-    db_models = create_db_models(db_meta)
 
     # Build an empty application and dynamically add the requested functionality.
     logger.info("Creating API application.")
@@ -83,9 +85,9 @@ def run_application(
     app.include_router(create_welcome_router(), prefix="")
     app.include_router(create_meta_router(db_conn, db_meta, app_title, app_version), prefix="/meta")
 
-    for model_name, model in db_models.items():
-        logger.info(f"Adding `/db/{model_name}` endpoint.")
-        app.include_router(create_model_router(db_conn, model, enable_write), prefix=f"/db/{model_name}")
+    for table_name, table in db_meta.tables.items():
+        logger.info(f"Adding `/db/{table_name}` endpoint.")
+        app.include_router(create_table_router(db_conn, table, enable_write), prefix=f"/db/{table_name}")
 
     # Launch the API server.
     logger.info(f"Launching API server on http://{server_host}:{server_port}.")

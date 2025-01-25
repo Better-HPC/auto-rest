@@ -5,18 +5,16 @@ on the popular SQLAlchemy package, it natively supports multiple
 Database Management Systems (DBMS) without requiring custom configuration
 or setup.
 
-!!! example "Example: Creating ORM objects"
+!!! example "Example: Mapping Database Metadata"
 
-    Utility functions are provided for connecting to the database,
-    mapping the schema, and dynamically generating ORM models based on
-    the existing database structure.
+    Utility functions are provided for connecting to the database
+    and mapping the underlying schema.
 
     ```python
     connection_args = dict(...)
     db_url = create_db_url(**connection_args)
     db_conn = create_db_engine(db_url)
     db_meta = create_db_metadata(db_conn)
-    db_models = create_db_models(db_meta)
     ```
 
 Support for asynchronous operations is automatically determined based on
@@ -36,29 +34,24 @@ import logging
 from pathlib import Path
 from typing import Callable
 
-from pydantic.main import create_model, BaseModel as PydanticModel
-from sqlalchemy import create_engine, Engine, MetaData, URL
+from pydantic.main import BaseModel as PydanticModel, create_model
+from sqlalchemy import create_engine, Engine, MetaData, Table, URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import declarative_base, Session
+from sqlalchemy.orm import Session
 
 __all__ = [
     "DBEngine",
-    "DBModel",
     "DBSession",
     "create_db_engine",
     "create_db_interface",
     "create_db_metadata",
-    "create_db_models",
     "create_db_url",
     "create_session_iterator",
 ]
 
 logger = logging.getLogger(__name__)
 
-Base = declarative_base()
-
 # Base classes and typing objects.
-DBModel = type[Base]
 DBEngine = Engine | AsyncEngine
 DBSession = Session | AsyncSession
 
@@ -153,53 +146,34 @@ def create_db_metadata(engine: DBEngine) -> MetaData:
         asyncio.run(_async_reflect_metadata(engine, metadata))
 
     else:
-        metadata.reflect(bind=engine)
+        metadata.reflect(bind=engine, views=True)
 
     return metadata
 
 
-def create_db_models(metadata: MetaData) -> dict[str, DBModel]:
-    """Dynamically generate database models from a metadata instance.
-
-    Args:
-        metadata: A reflection of database metadata.
-
-    Returns:
-        A dictionary mapping table names to database models.
-    """
-
-    logger.debug("Building database models...")
-    models = {}
-
-    # Dynamically create a class for each table.
-    for table_name, table in metadata.tables.items():
-        logger.debug(f"> Creating model for table {table_name}.")
-        models[table_name] = type(
-            table_name.capitalize(),
-            (Base,),
-            {"__table__": table},
-        )
-
-    logger.debug(f"Successfully generated {len(models)} models.")
-    return models
-
-
-def create_db_interface(model: DBModel) -> type[PydanticModel]:
+def create_db_interface(table: Table) -> type[PydanticModel]:
     """Create a Pydantic interface for a SQLAlchemy model.
 
     Args:
-        model: A SQLAlchemy model to create an interface for.
+        table: The SQLAlchemy table to create an interface for.
 
     Returns:
-        A Pydantic model class with the same structure as the provided SQLAlchemy model.
+        A Pydantic model class with the same structure as the provided SQLAlchemy table.
     """
 
+    def get_column_type(col):
+        try:
+            return col.type.python_type
+
+        except NotImplementedError:
+            return any
+
     fields = {
-        col.name: (col.type.python_type, col.default if col.default is not None else ...)
-        for col in model.__table__.columns
+        name: (get_column_type(col), col.default if col.default is not None else ...)
+        for name, col in table.columns.items()
     }
 
-    return create_model(model.__name__, **fields)
+    return create_model(table.name, __config__=dict(arbitrary_types_allowed=True), **fields)
 
 
 def create_session_iterator(engine: DBEngine) -> Callable[[], DBSession]:
