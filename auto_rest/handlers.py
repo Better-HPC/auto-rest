@@ -294,7 +294,7 @@ def create_put_record_handler(engine: DBEngine, table: Table) -> Callable[..., A
         result = await execute_session_query(session, query)
         record = get_record_or_404(result)
 
-        for key, value in data.dict().items():
+        for key, value in data.model_dump().items():
             setattr(record, key, value)
 
         await commit_session(session)
@@ -328,7 +328,7 @@ def create_patch_record_handler(engine: DBEngine, table: Table) -> Callable[...,
         result = await execute_session_query(session, query)
         record = get_record_or_404(result)
 
-        for key, value in data.dict(exclude_unset=True).items():
+        for key, value in data.model_dump(exclude_unset=True).items():
             setattr(record, key, value)
 
         await commit_session(session)
