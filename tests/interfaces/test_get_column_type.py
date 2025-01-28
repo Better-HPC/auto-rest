@@ -38,7 +38,7 @@ class TestGetColumnType(TestCase):
             Column("time_col", Time, nullable=False): time,
             Column("binary_col", LargeBinary, nullable=False): bytes,
             Column("enum_col", Enum, nullable=False): str,
-            Column("pickle_col", PickleType, nullable=False): any,
+            Column("pickle_col", PickleType, nullable=False): Any,
             Column("array_col", ARRAY(String), nullable=False): list,
             Column("json_col", JSON, nullable=False): dict,
 
@@ -60,4 +60,4 @@ class TestGetColumnType(TestCase):
         type(mock_col.type).python_type = PropertyMock(side_effect=NotImplementedError)
 
         returned_type = get_column_type(mock_col)
-        self.assertIs(any, returned_type)
+        self.assertIs(Any, returned_type)
