@@ -1,11 +1,11 @@
-import unittest
+from unittest import TestCase
 
 from fastapi.middleware.cors import CORSMiddleware
 
 from auto_rest.app import create_app
 
 
-class TestCORSSettings(unittest.TestCase):
+class TestCORSSettings(TestCase):
     """Unit tests for the `create_app` method."""
 
     def setUp(self) -> None:

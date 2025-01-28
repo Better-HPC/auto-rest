@@ -57,8 +57,8 @@ from fastapi import Depends, Response
 from pydantic import create_model
 from pydantic.main import BaseModel as PydanticModel
 from sqlalchemy import insert, MetaData, select, Table
-from starlette.requests import Request
 
+from .interfaces import *
 from .models import *
 from .params import *
 from .queries import *
@@ -191,14 +191,14 @@ def create_list_records_handler(engine: DBEngine, table: Table) -> Callable[...,
         An async function that returns a list of records from the given database model.
     """
 
-    interface = create_db_interface(table)
+    interface = create_interface(table)
 
     async def list_records_handler(
         response: Response,
         session: DBSession = Depends(create_session_iterator(engine)),
         pagination_params: dict[str, int] = create_pagination_dependency(table),
         ordering_params: dict[str, int] = create_ordering_dependency(table),
-    ):
+    ) -> list[interface]:
         """Fetch a list of records from the database.
 
         URL query parameters are used to enable filtering, ordering, and paginating returned values.
@@ -225,15 +225,16 @@ def create_get_record_handler(engine: DBEngine, table: Table) -> Callable[..., A
         An async function that returns a single record from the given database table.
     """
 
-    interface = create_db_interface(table)
+    interface = create_interface(table)
+    pk_interface = create_interface(table, pk_only=True, mode='required')
 
     async def get_record_handler(
-        request: Request,
+        pk: pk_interface = Depends(),
         session: DBSession = Depends(create_session_iterator(engine)),
     ) -> interface:
         """Fetch a single record from the database."""
 
-        query = select(table).filter_by(**request.path_params)
+        query = select(table).filter_by(**pk.model_dump())
         result = await execute_session_query(session, query)
         record = get_record_or_404(result)
         return record
@@ -252,7 +253,7 @@ def create_post_record_handler(engine: DBEngine, table: Table) -> Callable[..., 
         An async function that handles record creation.
     """
 
-    interface = create_db_interface(table)
+    interface = create_interface(table)
 
     async def post_record_handler(
         data: interface,
@@ -278,20 +279,22 @@ def create_put_record_handler(engine: DBEngine, table: Table) -> Callable[..., A
         An async function that handles record updates.
     """
 
-    interface = create_db_interface(table)
+    interface = create_interface(table)
+    opt_interface = create_interface(table, mode='optional')
+    pk_interface = create_interface(table, pk_only=True, mode='required')
 
     async def put_record_handler(
-        request: Request,
-        data: interface,
+        data: opt_interface,
+        pk: pk_interface = Depends(),
         session: DBSession = Depends(create_session_iterator(engine)),
     ) -> interface:
         """Replace record values in the database with the provided data."""
 
-        query = select(table).filter_by(**request.path_params)
+        query = select(table).filter_by(**pk.model_dump())
         result = await execute_session_query(session, query)
         record = get_record_or_404(result)
 
-        for key, value in data.dict().items():
+        for key, value in data.model_dump().items():
             setattr(record, key, value)
 
         await commit_session(session)
@@ -311,20 +314,21 @@ def create_patch_record_handler(engine: DBEngine, table: Table) -> Callable[...,
         An async function that handles record updates.
     """
 
-    interface = create_db_interface(table)
+    interface = create_interface(table)
+    pk_interface = create_interface(table, pk_only=True, mode='required')
 
     async def patch_record_handler(
-        request: Request,
         data: interface,
+        pk: pk_interface = Depends(),
         session: DBSession = Depends(create_session_iterator(engine)),
     ) -> interface:
         """Update record values in the database with the provided data."""
 
-        query = select(table).filter_by(**request.path_params)
+        query = select(table).filter_by(**pk.model_dump())
         result = await execute_session_query(session, query)
         record = get_record_or_404(result)
 
-        for key, value in data.dict(exclude_unset=True).items():
+        for key, value in data.model_dump(exclude_unset=True).items():
             setattr(record, key, value)
 
         await commit_session(session)
@@ -344,13 +348,15 @@ def create_delete_record_handler(engine: DBEngine, table: Table) -> Callable[...
         An async function that handles record deletion.
     """
 
+    pk_interface = create_interface(table, pk_only=True, mode='required')
+
     async def delete_record_handler(
-        request: Request,
+        pk: pk_interface = Depends(),
         session: DBSession = Depends(create_session_iterator(engine)),
     ) -> None:
         """Delete a record from the database."""
 
-        query = select(table).filter_by(**request.path_params)
+        query = select(table).filter_by(**pk.model_dump())
         result = await execute_session_query(session, query)
         record = get_record_or_404(result)
 

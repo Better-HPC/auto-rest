@@ -34,8 +34,7 @@ import logging
 from pathlib import Path
 from typing import Callable
 
-from pydantic.main import BaseModel as PydanticModel, create_model
-from sqlalchemy import create_engine, Engine, MetaData, Table, URL
+from sqlalchemy import create_engine, Engine, MetaData, URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import Session
 
@@ -43,7 +42,6 @@ __all__ = [
     "DBEngine",
     "DBSession",
     "create_db_engine",
-    "create_db_interface",
     "create_db_metadata",
     "create_db_url",
     "create_session_iterator",
@@ -126,7 +124,7 @@ async def _async_reflect_metadata(engine: AsyncEngine, metadata: MetaData) -> No
     """Helper function used to reflect database metadata using an async engine."""
 
     async with engine.connect() as connection:
-        await connection.run_sync(metadata.reflect)
+        await connection.run_sync(metadata.reflect, views=True)
 
 
 def create_db_metadata(engine: DBEngine) -> MetaData:
@@ -149,31 +147,6 @@ def create_db_metadata(engine: DBEngine) -> MetaData:
         metadata.reflect(bind=engine, views=True)
 
     return metadata
-
-
-def create_db_interface(table: Table) -> type[PydanticModel]:
-    """Create a Pydantic interface for a SQLAlchemy model.
-
-    Args:
-        table: The SQLAlchemy table to create an interface for.
-
-    Returns:
-        A Pydantic model class with the same structure as the provided SQLAlchemy table.
-    """
-
-    def get_column_type(col):
-        try:
-            return col.type.python_type
-
-        except NotImplementedError:
-            return any
-
-    fields = {
-        name: (get_column_type(col), col.default if col.default is not None else ...)
-        for name, col in table.columns.items()
-    }
-
-    return create_model(table.name, __config__=dict(arbitrary_types_allowed=True), **fields)
 
 
 def create_session_iterator(engine: DBEngine) -> Callable[[], DBSession]:
