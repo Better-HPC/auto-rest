@@ -1,20 +1,18 @@
 """Pydantic models are used to facilitate data validation and to define
 interfaces for FastAPI endpoint handlers. The `interfaces` module
 provides utility functions for converting SQLAlchemy models into
-Pydantic interfaces. Dedicated utilities are provided for creating
-with varying levels of constraints on the generated interface fields.
+Pydantic interfaces. Interfaces can be created using different modes
+which force interface fields to be optional or read only.
 
 !!! example "Example: Creating an Interface"
 
-    The `create_interface_default` method creates an interface class where
-    fields are marked as required based on whether they are required in
-    the database model.  Other methods can be used to generate interfaces
-    where all fields are required or optional.
+    The `create_interface_default` method creates an interface class
+    based on a SQLAlchemy table.
 
     ```python
     default_interface = create_interface_default(database_model)
-    required_interface = create_interface_required(database_model)
-    optional_interface = create_interface_optional(database_model)
+    required_interface = create_interface_required(database_model, mode="required")
+    optional_interface = create_interface_optional(database_model, mode="optional")
     ```
 """
 from typing import Iterator, Literal

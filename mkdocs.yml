@@ -69,6 +69,7 @@ nav:
         - architecture/app.md
         - architecture/cli.md
         - architecture/handlers.md
+        - architecture/interfaces.md
         - architecture/models.md
         - architecture/params.md
         - architecture/queries.md
