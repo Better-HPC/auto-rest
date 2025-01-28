@@ -10,21 +10,20 @@ which force interface fields to be optional or read only.
     based on a SQLAlchemy table.
 
     ```python
-    default_interface = create_interface_default(database_model)
-    required_interface = create_interface_required(database_model, mode="required")
-    optional_interface = create_interface_optional(database_model, mode="optional")
+    default_interface = create_interface(database_model)
+    required_interface = create_interface(database_model, mode="required")
+    optional_interface = create_interface(database_model, mode="optional")
     ```
 """
-from typing import Iterator, Literal
+
+from typing import Any, Iterator, Literal
 
 from pydantic import BaseModel as PydanticModel, create_model
 from sqlalchemy import Column, Table
 
 __all__ = ["create_interface"]
 
-from sqlalchemy.sql.schema import ScalarElementColumnDefault
-
-MODES = Literal["default", "required", "optional"]
+MODE_TYPE = Literal["default", "required", "optional"]
 
 
 def iter_columns(table: Table, pk_only: bool = False) -> Iterator[Column]:
@@ -43,7 +42,7 @@ def iter_columns(table: Table, pk_only: bool = False) -> Iterator[Column]:
             yield column
 
 
-def get_column_type(col: Column) -> type[any]:
+def get_column_type(col: Column) -> type:
     """Return the Python type corresponding to a column's DB datatype.
 
     Returns the `any` type for DBMS drivers that do not support mapping DB
@@ -61,10 +60,10 @@ def get_column_type(col: Column) -> type[any]:
 
     # Catch any error, but list the expected ones explicitly
     except (NotImplementedError, Exception):
-        return any
+        return Any
 
 
-def get_column_default(col: Column, mode: MODES) -> any:
+def get_column_default(col: Column, mode: MODE_TYPE) -> any:
     """Return the default value for a column.
 
     Args:
@@ -97,7 +96,7 @@ def get_column_default(col: Column, mode: MODES) -> any:
 def create_interface(
     table: Table,
     pk_only: bool = False,
-    mode: MODES = "default"
+    mode: MODE_TYPE = "default"
 ) -> type[PydanticModel]:
     """Create a Pydantic interface for a SQLAlchemy model where all fields are required.
 
@@ -123,4 +122,4 @@ def create_interface(
         name_parts.insert(1, 'PK')
 
     interface_name = '-'.join(name_parts)
-    return create_model(interface_name, **fields)
+    return create_model(interface_name, __config__={'arbitrary_types_allowed': True}, **fields)
