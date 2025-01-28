@@ -15,7 +15,7 @@ class TestApplyOrderingParams(TestCase):
         """Create a query against a dummy database table."""
 
         # Dummy table to manipulate queries against
-        table = Table('my_table', MetaData(), Column('id', Integer, primary_key=True))
+        table = Table("my_table", MetaData(), Column("id", Integer, primary_key=True))
 
         self.response = Response()
         self.query = select(table)

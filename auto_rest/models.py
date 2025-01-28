@@ -124,7 +124,7 @@ async def _async_reflect_metadata(engine: AsyncEngine, metadata: MetaData) -> No
     """Helper function used to reflect database metadata using an async engine."""
 
     async with engine.connect() as connection:
-        await connection.run_sync(metadata.reflect)
+        await connection.run_sync(metadata.reflect, views=True)
 
 
 def create_db_metadata(engine: DBEngine) -> MetaData:

@@ -29,11 +29,11 @@ class TestGetOrderingParams(TestCase):
         cls.client = TestClient(app)
 
     def test_default_params(self) -> None:
-        """Verify parameters default to a null column in the ascending direction."""
+        """Verify default parameters are null."""
 
         response = self.client.get("/ordering")
         self.assertEqual(200, response.status_code)
-        self.assertEqual(response.json(), {"order_by": None, "direction": "asc"})
+        self.assertEqual(response.json(), {"order_by": None, "direction": None})
 
     def test_valid_direction_ascending(self) -> None:
         """Verify the `asc` direction passes validation."""

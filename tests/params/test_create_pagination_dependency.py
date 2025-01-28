@@ -33,10 +33,10 @@ class TestGetPaginationParams(TestCase):
         cls.client = TestClient(app)
 
     def test_default_params(self) -> None:
-        """Verify all default parameter values are zero."""
+        """Verify default parameters are null."""
 
         response = self.client.get("/pagination")
-        self.assertEqual({"limit": 0, "offset": 0}, response.json())
+        self.assertEqual({"limit": None, "offset": None}, response.json())
 
     def test_negative_limit(self) -> None:
         """Verify negative limit values fail validation."""
@@ -60,22 +60,22 @@ class TestGetPaginationParams(TestCase):
         """Verify a zero limit value passes validation."""
 
         response = self.client.get("/pagination", params={"_limit_": 0})
-        self.assertEqual({"limit": 0, "offset": 0}, response.json())
+        self.assertEqual({"limit": 0, "offset": None}, response.json())
 
     def test_zero_offset(self) -> None:
         """Verify a zero offset value passes validation."""
 
         response = self.client.get("/pagination", params={"_offset_": 0})
-        self.assertEqual({"limit": 0, "offset": 0}, response.json())
+        self.assertEqual({"limit": None, "offset": 0}, response.json())
 
     def test_positive_limit(self) -> None:
         """Verify a positive limit value passes validation."""
 
         response = self.client.get("/pagination", params={"_limit_": 200})
-        self.assertEqual({"limit": 200, "offset": 0}, response.json())
+        self.assertEqual({"limit": 200, "offset": None}, response.json())
 
     def test_positive_offset(self) -> None:
         """Verify a positive offset value passes validation."""
 
         response = self.client.get("/pagination", params={"_offset_": 20})
-        self.assertEqual({"limit": 0, "offset": 20}, response.json())
+        self.assertEqual({"limit": None, "offset": 20}, response.json())

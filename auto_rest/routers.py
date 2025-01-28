@@ -45,7 +45,13 @@ def create_welcome_router() -> APIRouter:
     """
 
     router = APIRouter()
-    router.add_api_route("/", create_welcome_handler(), methods=["GET"], include_in_schema=False)
+    router.add_api_route(
+        path="/",
+        methods=["GET"],
+        endpoint=create_welcome_handler(),
+        include_in_schema=False
+    )
+
     return router
 
 
@@ -68,9 +74,30 @@ def create_meta_router(engine: DBEngine, metadata: MetaData, name: str, version:
     router = APIRouter()
     tags = ["Application Metadata"]
 
-    router.add_api_route("/app", create_about_handler(name, version), methods=["GET"], tags=tags)
-    router.add_api_route("/engine", create_engine_handler(engine), methods=["GET"], tags=tags)
-    router.add_api_route("/schema", create_schema_handler(metadata), methods=["GET"], tags=tags)
+    router.add_api_route(
+        path="/app",
+        methods=["GET"],
+        endpoint=create_about_handler(name, version),
+        summary="Fetch application metadata.",
+        tags=tags
+    )
+
+    router.add_api_route(
+        path="/engine",
+        methods=["GET"],
+        endpoint=create_engine_handler(engine),
+        summary="Fetch database metadata.",
+        tags=tags
+    )
+
+    router.add_api_route(
+        path="/schema",
+        methods=["GET"],
+        endpoint=create_schema_handler(metadata),
+        summary="Fetch the database schema.",
+        tags=tags
+    )
+
     return router
 
 
@@ -98,6 +125,7 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
         methods=["GET"],
         endpoint=create_list_records_handler(engine, table),
         status_code=status.HTTP_200_OK,
+        summary="Fetch multiple records from the table.",
         tags=[table.name],
     )
 
@@ -108,6 +136,7 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
             methods=["POST"],
             endpoint=create_post_record_handler(engine, table),
             status_code=status.HTTP_201_CREATED,
+            summary="Create a new record.",
             tags=[table.name],
         )
 
@@ -118,6 +147,7 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
             methods=["GET"],
             endpoint=create_get_record_handler(engine, table),
             status_code=status.HTTP_200_OK,
+            summary="Fetch a single record from the table.",
             tags=[table.name],
         )
 
@@ -128,6 +158,7 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
             methods=["PUT"],
             endpoint=create_put_record_handler(engine, table),
             status_code=status.HTTP_200_OK,
+            summary="Replace a single record in the table.",
             tags=[table.name],
         )
 
@@ -136,6 +167,7 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
             methods=["PATCH"],
             endpoint=create_patch_record_handler(engine, table),
             status_code=status.HTTP_200_OK,
+            summary="Update a single record in the table.",
             tags=[table.name],
         )
 
@@ -144,6 +176,7 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
             methods=["DELETE"],
             endpoint=create_delete_record_handler(engine, table),
             status_code=status.HTTP_200_OK,
+            summary="Delete a single record from the table.",
             tags=[table.name],
         )
 
