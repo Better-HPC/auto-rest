@@ -61,8 +61,8 @@ nav:
   - Introduction: index.md
   - Getting Started:
       - getting_started/install.md
-      - getting_started/deploying.md
-      - getting_started/running_prod.md
+      - getting_started/launching.md
+      - getting_started/production.md
   - Architecture:
       - Overview: architecture/overview.md
       - Source Code:
