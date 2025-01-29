@@ -19,7 +19,7 @@ Summaries are provided below for individual modules.
 
 | Module                      | Description                                                                                                       |
 |-----------------------------|-------------------------------------------------------------------------------------------------------------------|
-| [app](app.md)               | Manages the initialization and highl level configuration of FastAPI applications.                                 |
+| [app](app.md)               | Manages the initialization and high level configuration of FastAPI applications.                                  |
 | [cli](cli.md)               | Defines the application command-line interface and handles parsing user inputs.                                   |
 | [handlers](handlers.md)     | Implements logic for handling individual requests, executing and returning user queries.                          |
 | [interfaces](interfaces.md) | Generates Pydantic interfaces from SQLAlchemy components, enabling support for FastAPI's typing hinting features. |
