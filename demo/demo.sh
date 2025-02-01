@@ -8,7 +8,7 @@
 # Define necessary file paths
 WORK_DIR=$(dirname "$0")
 DEMO_DATA="$WORK_DIR/data.sql"
-DB_NAME="${1:-blog.db}"
+DB_NAME="$WORK_DIR/blog.db"
 
 if [ -f "$DB_NAME" ]; then
 
