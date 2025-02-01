@@ -43,6 +43,67 @@ jobs:
         env:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
+  function-tests:
+    name: Func Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dbms: sqlite
+            db_url: sqlite:///tmp/auto-rest/sqlite.sql
+          - dbms: psql
+            db_url: sqlite:///tmp/auto-rest/sqlite.sql
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: auto_rest
+          POSTGRES_USER: ar_user
+          POSTGRES_PASSWORD: ar_password
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Fetch image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: auto-rest-docker
+          path: /tmp
+
+      - name: Load image
+        run: docker load --input /tmp/auto-rest.tar
+
+      - name: Setup SQLite
+        if: matrix.dbms == 'sqlite'
+        run: |
+          docker run -d -p 8081:8081 auto-rest \
+            --sqlite \
+            --db-name ./test.db \
+            --server-host 0.0.0.0 \
+            --server-port 8081
+
+      - name: Setup PostgreSQL
+        if: matrix.dbms == 'psql'
+        run: |
+          docker run -p 8081:8081 \
+            auto-rest \
+              --psql \
+              --db-host host.docker.internal \
+              --db-port 5432 \
+              --db-name auto_rest \
+              --db-user ar_user \
+              --db-pass ar_password \
+              --server-host 0.0.0.0 \
+              --server-port 8081
+
+      - name: Wait for API server
+        run: |
+          sleep 5
+          curl localhost:8081
+
   report-test-status:
     name: Report Test Status
     runs-on: ubuntu-latest

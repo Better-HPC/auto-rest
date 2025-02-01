@@ -56,3 +56,12 @@ mkdocstrings-python = "^1.13.0"
 
 [tool.poetry.scripts]
 auto-rest = "auto_rest.__main__:main"
+
+[tool.coverage.run]
+branch = true
+source = [
+    "auto_rest"
+]
+omit = [
+    "tests/*"
+]
