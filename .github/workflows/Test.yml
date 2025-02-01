@@ -54,7 +54,7 @@ jobs:
           - dbms: sqlite
             db_url: sqlite:///tmp/auto-rest/sqlite.sql
           - dbms: psql
-            db_url: sqlite:///tmp/auto-rest/sqlite.sql
+            db_url: postgresql+asyncpg://ar_user:ar_password@localhost:5432/auto_rest
 
     services:
       postgres:
