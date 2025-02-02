@@ -54,7 +54,7 @@ jobs:
           - dbms: sqlite
             db_url: sqlite:///tmp/auto-rest/sqlite.sql
           - dbms: psql
-            db_url: postgresql+asyncpg://ar_user:ar_password@postgres:5432/auto_rest
+            db_url: postgresql+asyncpg://ar_user:ar_password@localhost:5432/auto_rest
 
     services:
       postgres:
@@ -91,7 +91,7 @@ jobs:
           docker run -p 8081:8081 \
             auto-rest \
               --psql \
-              --db-host postgres \
+              --db-host host.docker.internal \
               --db-port 5432 \
               --db-name auto_rest \
               --db-user ar_user \
