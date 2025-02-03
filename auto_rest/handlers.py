@@ -51,16 +51,15 @@ This makes it easy to incorporate handlers into a FastAPI application.
 """
 
 import logging
-from typing import Awaitable, Callable
+from typing import Awaitable, Callable, Literal, Optional
 
-from fastapi import Depends, Response
+from fastapi import Depends, Query, Response
 from pydantic import create_model
 from pydantic.main import BaseModel as PydanticModel
 from sqlalchemy import insert, MetaData, select, Table
 
 from .interfaces import *
 from .models import *
-from .params import *
 from .queries import *
 
 __all__ = [
@@ -192,21 +191,30 @@ def create_list_records_handler(engine: DBEngine, table: Table) -> Callable[...,
     """
 
     interface = create_interface(table)
+    interface_opt = create_interface(table, mode="optional")
+    columns = tuple(table.columns.keys())
 
     async def list_records_handler(
         response: Response,
         session: DBSession = Depends(create_session_iterator(engine)),
-        pagination_params: dict[str, int] = create_pagination_dependency(table),
-        ordering_params: dict[str, int] = create_ordering_dependency(table),
+        _limit_: int = Query(0, ge=0, description="The maximum number of records to return."),
+        _offset_: int = Query(0, ge=0, description="The starting index of the returned records."),
+        _order_by_: Optional[Literal[*columns]] = Query(None, description="The field name to sort by."),
+        _direction_: Literal["asc", "desc"] = Query("asc", description="Sort results in 'asc' or 'desc' order.")
     ) -> list[interface]:
         """Fetch a list of records from the database.
 
         URL query parameters are used to enable filtering, ordering, and paginating returned values.
         """
 
+        response.headers["X-Pagination-Limit"] = str(_limit_)
+        response.headers["X-Pagination-Offset"] = str(_offset_)
+        response.headers["X-Order-By"] = str(_order_by_)
+        response.headers["X-Order-Direction"] = str(_direction_)
+
         query = select(table)
-        query = apply_pagination_params(query, pagination_params, response)
-        query = apply_ordering_params(query, ordering_params, response)
+        query = apply_pagination_params(query, _limit_, _offset_)
+        query = apply_ordering_params(query, _order_by_, _direction_)
 
         result = await execute_session_query(session, query)
         return [row._mapping for row in result.all()]

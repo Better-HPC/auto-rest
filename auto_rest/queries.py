@@ -19,20 +19,80 @@ handling and provides a streamlined interface for database interactions.
         result = await execute_session_query(async_session, query)
     ```
 """
+from typing import Literal
 
 from fastapi import HTTPException
-from sqlalchemy import Executable, Result
+from sqlalchemy import asc, desc, Executable, Result, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from auto_rest.models import DBSession
 
 __all__ = [
+    "apply_ordering_params",
+    "apply_pagination_params",
     "commit_session",
     "delete_session_record",
     "execute_session_query",
     "get_record_or_404"
 ]
+
+
+def apply_ordering_params(
+    query: Select,
+    order_by: str | None = None,
+    direction: Literal["desc", "asc"] = "asc"
+) -> Select:
+    """Apply ordering to a database query.
+
+    Returns a copy of the provided query with ordering parameters applied.
+
+    Args:
+        query: The database query to apply parameters to.
+        order_by: The name of the column to order by.
+        direction: The direction to order by (defaults to "asc").
+
+    Returns:
+        A copy of the query modified to return ordered values.
+    """
+
+    # Set common response headers
+
+    if order_by is None:
+        return query
+
+    # Default to ascending order for an invalid ordering direction
+    if direction == "desc":
+        return query.order_by(desc(order_by))
+
+    elif direction == "asc":
+        return query.order_by(asc(order_by))
+
+    raise ValueError(f"Invalid direction, use 'asc' or 'desc': {direction}")
+
+
+def apply_pagination_params(query: Select, limit: int = 0, offset: int = 0) -> Select:
+    """Apply pagination to a database query.
+
+    Returns a copy of the provided query with offset and limit parameters applied.
+
+    Args:
+        query: The database query to apply parameters to.
+        limit: The number of results to return.
+        offset: The offset to start with.
+
+    Returns:
+        A copy of the query modified to only return the paginated values.
+    """
+
+    if offset < 0:
+        raise ValueError("Offset cannot be negative")
+
+    # Do not apply pagination if not requested
+    if limit <= 0:
+        return query
+
+    return query.offset(offset or 0).limit(limit)
 
 
 async def commit_session(session: DBSession) -> None:
