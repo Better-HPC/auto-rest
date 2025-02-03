@@ -56,10 +56,11 @@ def apply_ordering_params(
         A copy of the query modified to return ordered values.
     """
 
-    # Set common response headers
-
     if order_by is None:
         return query
+
+    if order_by not in query.columns:
+        raise ValueError(f"Invalid column name: {order_by}")
 
     # Default to ascending order for an invalid ordering direction
     if direction == "desc":
@@ -85,11 +86,11 @@ def apply_pagination_params(query: Select, limit: int = 0, offset: int = 0) -> S
         A copy of the query modified to only return the paginated values.
     """
 
-    if offset < 0:
-        raise ValueError("Offset cannot be negative")
+    if offset < 0 or limit < 0:
+        raise ValueError("Pagination parameters cannot be negative")
 
     # Do not apply pagination if not requested
-    if limit <= 0:
+    if limit == 0:
         return query
 
     return query.offset(offset or 0).limit(limit)
