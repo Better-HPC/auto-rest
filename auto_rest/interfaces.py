@@ -16,7 +16,7 @@ which force interface fields to be optional or read only.
     ```
 """
 
-from typing import Any, Iterator, Literal
+from typing import Iterator, Literal
 
 from pydantic import BaseModel as PydanticModel, create_model
 from sqlalchemy import Column, Table
@@ -42,28 +42,7 @@ def iter_columns(table: Table, pk_only: bool = False) -> Iterator[Column]:
             yield column
 
 
-def get_column_type(col: Column) -> type:
-    """Return the Python type corresponding to a column's DB datatype.
-
-    Returns the `any` type for DBMS drivers that do not support mapping DB
-    types to Python primitives,
-
-    Args:
-        col: The column to determine a type for.
-
-    Returns:
-        The equivalent Python type for the column data.
-    """
-
-    try:
-        return col.type.python_type
-
-    # Catch any error, but list the expected ones explicitly
-    except (NotImplementedError, Exception):
-        return Any
-
-
-def get_column_default(col: Column, mode: MODE_TYPE) -> any:
+def create_field(col: Column, mode: MODE_TYPE = "default") -> tuple:
     """Return the default value for a column.
 
     Args:
@@ -74,30 +53,25 @@ def get_column_default(col: Column, mode: MODE_TYPE) -> any:
         The default value for the column.
     """
 
-    # Extract the default value from the SQLAlchemy wrapper class
-    sqla_default = col.default
-    default = getattr(sqla_default, "arg", None) or sqla_default
+    col_type = col.type.python_type
+    col_default = getattr(col.default, "arg", col.default)
 
     if mode == "required":
-        return ...
+        return col_type, ...
 
     elif mode == "optional":
-        return default
+        return col_type | None, col_default
+
+    elif mode == "default" and (col.nullable or col.default):
+        return col_type | None, col_default
 
     elif mode == "default":
-        if col.nullable or (col.default is not None):
-            return default
-
-        return ...
+        return col_type, ...
 
     raise RuntimeError(f"Unknown mode: {mode}")
 
 
-def create_interface(
-    table: Table,
-    pk_only: bool = False,
-    mode: MODE_TYPE = "default"
-) -> type[PydanticModel]:
+def create_interface(table: Table, pk_only: bool = False, mode: MODE_TYPE = "default") -> type[PydanticModel]:
     """Create a Pydantic interface for a SQLAlchemy model where all fields are required.
 
     Args:
@@ -110,10 +84,8 @@ def create_interface(
     """
 
     # Map field names to the column type and default value.
-    columns = iter_columns(table, pk_only)
     fields = {
-        col.name: (get_column_type(col), get_column_default(col, mode))
-        for col in columns
+        col.name: create_field(col, mode) for col in iter_columns(table, pk_only)
     }
 
     # Dynamically create a unique name for the interface

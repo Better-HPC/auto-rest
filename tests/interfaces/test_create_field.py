@@ -2,11 +2,11 @@ from unittest import TestCase
 
 from sqlalchemy import Column, String
 
-from auto_rest.interfaces import get_column_default
+from auto_rest.interfaces import create_field
 
 
-class TestGetColumnDefault(TestCase):
-    """Unit tests for the `get_column_default` method."""
+class TestCreateField(TestCase):
+    """Unit tests for the `create_field` method."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -26,10 +26,10 @@ class TestGetColumnDefault(TestCase):
         In `default` mode, returned values match the underlying database schema.
         """
 
-        returned_nullable = get_column_default(self.col_nullable, mode="default")
-        returned_required = get_column_default(self.col_required, mode="default")
-        returned_nullable_default = get_column_default(self.col_nullable_default, mode="default")
-        returned_required_default = get_column_default(self.col_required_default, mode="default")
+        returned_nullable = create_field(self.col_nullable, mode="default")
+        returned_required = create_field(self.col_required, mode="default")
+        returned_nullable_default = create_field(self.col_nullable_default, mode="default")
+        returned_required_default = create_field(self.col_required_default, mode="default")
 
         self.assertIs(returned_nullable, None)
         self.assertIs(returned_required, ...)
@@ -43,10 +43,10 @@ class TestGetColumnDefault(TestCase):
         `...` is used by the application to indicate required interface fields.
         """
 
-        returned_nullable = get_column_default(self.col_nullable, mode="required")
-        returned_required = get_column_default(self.col_required, mode="required")
-        returned_nullable_default = get_column_default(self.col_nullable_default, mode="required")
-        returned_required_default = get_column_default(self.col_required_default, mode="required")
+        returned_nullable = create_field(self.col_nullable, mode="required")
+        returned_required = create_field(self.col_required, mode="required")
+        returned_nullable_default = create_field(self.col_nullable_default, mode="required")
+        returned_required_default = create_field(self.col_required_default, mode="required")
 
         self.assertIs(returned_nullable, ...)
         self.assertIs(returned_required, ...)
@@ -60,10 +60,10 @@ class TestGetColumnDefault(TestCase):
         `None` is used by the application to indicate optional interface fields.
         """
 
-        returned_nullable = get_column_default(self.col_nullable, mode="optional")
-        returned_required = get_column_default(self.col_required, mode="optional")
-        returned_nullable_default = get_column_default(self.col_nullable_default, mode="optional")
-        returned_required_default = get_column_default(self.col_required_default, mode="optional")
+        returned_nullable = create_field(self.col_nullable, mode="optional")
+        returned_required = create_field(self.col_required, mode="optional")
+        returned_nullable_default = create_field(self.col_nullable_default, mode="optional")
+        returned_required_default = create_field(self.col_required_default, mode="optional")
 
         self.assertIsNone(returned_nullable)
         self.assertIsNone(returned_required)
@@ -74,4 +74,4 @@ class TestGetColumnDefault(TestCase):
         """Verify a `RuntimeError` error is raised for an unknown mode argument."""
 
         with self.assertRaises(RuntimeError):
-            get_column_default(self.col_nullable, mode="not a mode")
+            create_field(self.col_nullable, mode="not a mode")
