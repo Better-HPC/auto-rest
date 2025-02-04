@@ -24,7 +24,6 @@ Summaries are provided below for individual modules.
 | [handlers](handlers.md)     | Implements logic for handling individual requests, executing and returning user queries.                          |
 | [interfaces](interfaces.md) | Generates Pydantic interfaces from SQLAlchemy components, enabling support for FastAPI's typing hinting features. |
 | [models](models.md)         | Manages database interactions, including schema and table mappings.                                               |
-| [params](params.md)         | Handles the parsing and application of URL query parameters.                                                      |
 | [queries](queries.md)       | Provides wrappers around common, repeatable database queries.                                                     |
 | [routers](routers.md)       | Defines API routers, used to direct incoming request traffic to the correct handling logic.                       |
 

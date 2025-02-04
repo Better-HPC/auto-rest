@@ -71,7 +71,6 @@ nav:
         - architecture/handlers.md
         - architecture/interfaces.md
         - architecture/models.md
-        - architecture/params.md
         - architecture/queries.md
         - architecture/routers.md
   - Contributing:
