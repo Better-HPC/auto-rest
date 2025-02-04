@@ -37,16 +37,25 @@ def iter_columns(table: Table, pk_only: bool = False) -> Iterator[Column]:
         A column of the SQLAlchemy model.
     """
 
-    for column in table.columns:
+    for column in table.columns.values():
         if column.primary_key or not pk_only:
             yield column
 
 
-def create_field(col: Column, mode: MODE_TYPE = "default") -> tuple:
-    """Return the default value for a column.
+def create_field_definition(col: Column, mode: MODE_TYPE = "default") -> tuple[type[any], any]:
+    """Return a tuple with the type and default value for a database table column.
+
+    The returned tuple is compatible for use with Pydantic as a field definition
+    during dynamic model generation. The `mode` argument modifies returned
+    values to enforce different behavior in the generated Pydantic interface.
+
+    Modes:
+        default: Values are marked as (not)required based on the column schema.
+        required: Values are always marked required.
+        required: Values are always marked optional.
 
     Args:
-        col: The column to determine a default value for.
+        col: The column to return values for.
         mode: The mode to use when determining the default value.
 
     Returns:
@@ -74,6 +83,11 @@ def create_field(col: Column, mode: MODE_TYPE = "default") -> tuple:
 def create_interface(table: Table, pk_only: bool = False, mode: MODE_TYPE = "default") -> type[PydanticModel]:
     """Create a Pydantic interface for a SQLAlchemy model where all fields are required.
 
+    Modes:
+        default: Values are marked as (not)required based on the column schema.
+        required: Values are always marked required.
+        required: Values are always marked optional.
+
     Args:
         table: The SQLAlchemy table to create an interface for.
         pk_only: If True, only include primary key columns.
@@ -85,13 +99,12 @@ def create_interface(table: Table, pk_only: bool = False, mode: MODE_TYPE = "def
 
     # Map field names to the column type and default value.
     fields = {
-        col.name: create_field(col, mode) for col in iter_columns(table, pk_only)
+        col.name: create_field_definition(col, mode) for col in iter_columns(table, pk_only)
     }
 
-    # Dynamically create a unique name for the interface
-    name_parts = [table.name, mode.title()]
+    # Create a unique name for the interface
+    name = f"{table.name}-{mode.title()}"
     if pk_only:
-        name_parts.insert(1, 'PK')
+        name += '-PK'
 
-    interface_name = '-'.join(name_parts)
-    return create_model(interface_name, __config__={'arbitrary_types_allowed': True}, **fields)
+    return create_model(name, __config__={'arbitrary_types_allowed': True}, **fields)
