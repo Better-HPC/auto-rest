@@ -16,7 +16,7 @@ which force interface fields to be optional or read only.
     ```
 """
 
-from typing import Iterator, Literal
+from typing import Any, Iterator, Literal
 
 from pydantic import BaseModel as PydanticModel, create_model
 from sqlalchemy import Column, Table
@@ -62,7 +62,12 @@ def create_field_definition(col: Column, mode: MODE_TYPE = "default") -> tuple[t
         The default value for the column.
     """
 
-    col_type = col.type.python_type
+    try:
+        col_type = col.type.python_type
+
+    except NotImplementedError:
+        col_type = Any
+
     col_default = getattr(col.default, "arg", col.default)
 
     if mode == "required":

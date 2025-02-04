@@ -1,4 +1,6 @@
+from typing import Any
 from unittest import TestCase
+from unittest.mock import MagicMock, PropertyMock
 
 from sqlalchemy import Column, String
 
@@ -75,3 +77,16 @@ class TestCreateField(TestCase):
 
         with self.assertRaises(RuntimeError):
             create_field_definition(self.col_nullable, mode="not a mode")
+
+    def test_missing_driver_support(self) -> None:
+        """Verify the returned type defaults to `Any` when type casting is not supported by the driver."""
+
+        # Mock a column
+        mock_col = MagicMock(spec=Column)
+        mock_col.nullable = False
+        mock_col.default = None
+
+        # Mock a `NotImplementedError` error being thrown by the DB driver.
+        type(mock_col.type).python_type = PropertyMock(side_effect=NotImplementedError)
+
+        self.assertEqual((Any, ...), create_field_definition(mock_col))
