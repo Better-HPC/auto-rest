@@ -8,7 +8,7 @@ deploying Fast-API applications.
     ```python
     from auto_rest.app import create_app, run_server
 
-    app = create_app(app_title="My Application", app_version="1.2.3", enable_docs=True)
+    app = create_app(app_title="My Application", app_version="1.2.3")
     ... # Add endpoints to the application here
     run_server(app, host="127.0.0.1", port=8081)
     ```
@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 __all__ = ["create_app", "run_server"]
 
 
-def create_app(app_title: str, app_version: str, enable_docs: bool) -> FastAPI:
+def create_app(app_title: str, app_version: str) -> FastAPI:
     """Create and configure a FastAPI application instance.
 
     This function initializes a FastAPI app with a customizable title, version,
@@ -31,7 +31,6 @@ def create_app(app_title: str, app_version: str, enable_docs: bool) -> FastAPI:
     Args:
         app_title: The title of the FastAPI application.
         app_version: The version of the FastAPI application.
-        enable_docs: Whether to enable the `/docs/` endpoint.
 
     Returns:
         FastAPI: A configured FastAPI application instance.
@@ -40,7 +39,7 @@ def create_app(app_title: str, app_version: str, enable_docs: bool) -> FastAPI:
     app = FastAPI(
         title=app_title,
         version=app_version,
-        docs_url="/docs/" if enable_docs else None,
+        docs_url="/docs/",
         redoc_url=None,
     )
 
