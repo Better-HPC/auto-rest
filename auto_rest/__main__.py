@@ -34,8 +34,6 @@ def main() -> None:  # pragma: no cover
 
 
 def run_application(
-    enable_docs: bool,
-    enable_write: bool,
     db_driver: str,
     db_host: str,
     db_port: int,
@@ -54,8 +52,6 @@ def run_application(
     and accepts the same arguments as those provided in the CLI.
 
     Args:
-        enable_docs: Whether to enable the 'docs' API endpoint.
-        enable_write: Whether to enable support for write operations.
         db_driver: SQLAlchemy-compatible database driver.
         db_host: Database host address.
         db_port: Database port number.
@@ -81,13 +77,13 @@ def run_application(
 
     # Build an empty application and dynamically add the requested functionality.
     logger.info("Creating API application.")
-    app = create_app(app_title, app_version, enable_docs)
+    app = create_app(app_title, app_version)
     app.include_router(create_welcome_router(), prefix="")
     app.include_router(create_meta_router(db_conn, db_meta, app_title, app_version), prefix="/meta")
 
     for table_name, table in db_meta.tables.items():
         logger.info(f"Adding `/db/{table_name}` endpoint.")
-        app.include_router(create_table_router(db_conn, table, enable_write), prefix=f"/db/{table_name}")
+        app.include_router(create_table_router(db_conn, table), prefix=f"/db/{table_name}")
 
     # Launch the API server.
     logger.info(f"Launching API server on http://{server_host}:{server_port}.")

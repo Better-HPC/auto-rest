@@ -24,4 +24,4 @@ else
 fi
 
 # Launch the API server using auto-rest
-auto-rest --enable-docs --enable-write --sqlite --db-name "$DB_NAME" --app-title "Auto-REST Demo"
+auto-rest --sqlite --db-name "$DB_NAME" --app-title "Auto-REST Demo"

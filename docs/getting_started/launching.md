@@ -82,24 +82,6 @@ All values in the file are passed directly as arguments to the underlying `sqlal
     auto-rest --driver postgresql+asyncpg --db-config config.yml  ...
     ```
 
-## Enabling Optional Features
-
-Certain API features are disabled by default.
-The following table lists CLI flags for enabling optional functionality.
-
-| CLI Flag         | Description                                                                                          |
-|------------------|------------------------------------------------------------------------------------------------------|
-| `--enable-docs`  | Enables a `/docs/` endpoint with HTML documentation for all available endpoints.                     |
-| `--enable-write` | Enables support for write operations against database tables (`POST`, `PUT`, `PATCH`, and `DELETE`). |
-
-!!! example "Example: Enabling Optional Features"
-
-    The following example enables all optional endpoints and functionality.
-
-    ```shell
-        auto-rest --enable-docs --enable-write ...
-    ```
-
 ## Customizing Application Info
 
 The application title and version number are both configurable at runtime.

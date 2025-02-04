@@ -36,19 +36,10 @@ class TestCreateTableRouter(TestCase):
             Column("name", String),
         )
 
-    def test_read_only_router(self) -> None:
-        """Verify read-only routers only support HTTP GET operations."""
-
-        router = create_table_router(self.mock_engine, self.single_pk_table, writeable=False)
-        routes = [(route.path, method) for route in router.routes for method in route.methods]
-
-        expected_routes = [("/", "GET"), ("/{id}/", "GET"), ]
-        self.assertCountEqual(expected_routes, routes)
-
     def test_writable_router(self) -> None:
         """Verify writable routers support all common HTTP operations."""
 
-        router = create_table_router(self.mock_engine, self.single_pk_table, writeable=True)
+        router = create_table_router(self.mock_engine, self.single_pk_table)
         routes = [(route.path, method) for route in router.routes for method in route.methods]
         expected_routes = [
             ("/", "GET"),
@@ -64,7 +55,7 @@ class TestCreateTableRouter(TestCase):
     def test_multiple_primary_keys(self) -> None:
         """Verify router paths include path parameters for tables with multiple primary keys."""
 
-        router = create_table_router(self.mock_engine, self.multiple_pk_table, writeable=True)
+        router = create_table_router(self.mock_engine, self.multiple_pk_table)
         actual_routes = [(route.path, method) for route in router.routes for method in route.methods]
         expected_routes = [
             ("/", "GET"),
@@ -80,7 +71,7 @@ class TestCreateTableRouter(TestCase):
     def test_no_primary_keys(self) -> None:
         """Verify router paths do not include PK endpoints for tables with no primary keys."""
 
-        router = create_table_router(self.mock_engine, self.no_pk_table, writeable=True)
+        router = create_table_router(self.mock_engine, self.no_pk_table)
         actual_routes = [(route.path, method) for route in router.routes for method in route.methods]
         expected_routes = [
             ("/", "GET"),
