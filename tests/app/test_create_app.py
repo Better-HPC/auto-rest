@@ -11,7 +11,13 @@ class TestCORSSettings(TestCase):
     def setUp(self) -> None:
         """Create a new application instance for every test."""
 
-        self.app = create_app("TestApp", "1.0", enable_docs=True)
+        self.app = create_app("TestApp", "1.0")
+
+    def test_docs_url(self) -> None:
+        """Verify OpenAPI documentation is enabled."""
+
+        self.assertEqual("/docs/", self.app.docs_url)
+        self.assertIsNone(self.app.redoc_url)
 
     def test_cors_policy(self) -> None:
         """Verify the application CORS policy allows requests from any origin."""

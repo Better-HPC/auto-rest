@@ -64,24 +64,6 @@ class TestCreateCliParser(TestCase):
         args = self.parser.parse_args(["--driver", "custom-driver", "--db-name", "default"])
         self.assertEqual("custom-driver", args.db_driver)
 
-    def test_enable_docs_flag(self) -> None:
-        """Verify the `--enable-docs` flag stores its state."""
-
-        default_args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
-        self.assertFalse(default_args.enable_docs)
-
-        custom_args = self.parser.parse_args(["--sqlite", "--db-name", "default", "--enable-docs"])
-        self.assertTrue(custom_args.enable_docs)
-
-    def test_enable_write_flag(self) -> None:
-        """Verify the `--enable-write` flag stores its state."""
-
-        default_args = self.parser.parse_args(["--sqlite", "--db-name", "default"])
-        self.assertFalse(default_args.enable_write)
-
-        custom_args = self.parser.parse_args(["--sqlite", "--db-name", "default", "--enable-write"])
-        self.assertTrue(custom_args.enable_write)
-
     def test_db_settings(self) -> None:
         """Verify database-connection arguments and default values."""
 

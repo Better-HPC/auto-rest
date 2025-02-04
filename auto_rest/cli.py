@@ -95,10 +95,6 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
         help="Set the logging level."
     )
 
-    features = parser.add_argument_group(title="API features")
-    features.add_argument("--enable-docs", action="store_true", help="enable the 'docs' endpoint.")
-    features.add_argument("--enable-write", action="store_true", help="enable support for write operations.")
-
     driver = parser.add_argument_group("database type")
     db_type = driver.add_mutually_exclusive_group(required=True)
     db_type.add_argument("--sqlite", action="store_const", dest="db_driver", const="sqlite+aiosqlite", help="use a SQLite database driver.")

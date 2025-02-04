@@ -1,6 +1,6 @@
 # Auto-REST
 
-A command line tool for deploying dynamically generated REST APIs against relational databases.
+A light-weight CLI tool for deploying dynamically generated REST APIs against relational databases.
 See the [project documentation](https://better-hpc.github.io/auto-rest/) for detailed usage instructions.
 
 ## Supported Databases
@@ -36,10 +36,6 @@ Launch an API by providing connection arguments to a database of your choice.
 
 ```shell
 auto-rest \
-  # Enable optional endpoints / functionality
-  --enable-docs \
-  --enable-write \
-  # Define the database type and connection arguments
   --psql 
   --db-host localhost
   --db-port 5432

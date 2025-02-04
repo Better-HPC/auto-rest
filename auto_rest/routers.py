@@ -101,13 +101,12 @@ def create_meta_router(engine: DBEngine, metadata: MetaData, name: str, version:
     return router
 
 
-def create_table_router(engine: DBEngine, table: Table, writeable: bool = False) -> APIRouter:
+def create_table_router(engine: DBEngine, table: Table) -> APIRouter:
     """Create an API router with endpoint handlers for a given database table.
 
     Args:
         engine: The SQLAlchemy engine connected to the database.
         table: The database table to create API endpoints for.
-        writeable: Whether the router should include support for write operations.
 
     Returns:
         An APIRouter instance with routes for database operations on the table.
@@ -119,7 +118,7 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
     pk_columns = sorted(column.name for column in table.primary_key.columns)
     path_params_url = "/".join(f"{{{col_name}}}" for col_name in pk_columns)
 
-    # Add route for read operations against the table
+    # Add routes for operations against the table
     router.add_api_route(
         path="/",
         methods=["GET"],
@@ -129,16 +128,14 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
         tags=[table.name],
     )
 
-    # Add route for write operations against the table
-    if writeable:
-        router.add_api_route(
-            path="/",
-            methods=["POST"],
-            endpoint=create_post_record_handler(engine, table),
-            status_code=status.HTTP_201_CREATED,
-            summary="Create a new record.",
-            tags=[table.name],
-        )
+    router.add_api_route(
+        path="/",
+        methods=["POST"],
+        endpoint=create_post_record_handler(engine, table),
+        status_code=status.HTTP_201_CREATED,
+        summary="Create a new record.",
+        tags=[table.name],
+    )
 
     # Add route for read operations against individual records
     if pk_columns:
@@ -151,8 +148,6 @@ def create_table_router(engine: DBEngine, table: Table, writeable: bool = False)
             tags=[table.name],
         )
 
-    # Add routes for write operations against individual records
-    if pk_columns and writeable:
         router.add_api_route(
             path=f"/{path_params_url}/",
             methods=["PUT"],

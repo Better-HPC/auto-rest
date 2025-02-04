@@ -45,7 +45,6 @@ packages = [
     { include = "auto_rest" },
 ]
 
-
 [tool.poetry.group.tests.dependencies]
 coverage = "*"
 
@@ -59,9 +58,5 @@ auto-rest = "auto_rest.__main__:main"
 
 [tool.coverage.run]
 branch = true
-source = [
-    "auto_rest"
-]
-omit = [
-    "tests/*"
-]
+source = ["auto_rest"]
+omit = ["tests/*"]
