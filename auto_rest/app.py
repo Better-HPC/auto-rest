@@ -14,11 +14,33 @@ deploying Fast-API applications.
     ```
 """
 
+import logging
+
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import Response
 
 __all__ = ["create_app", "run_server"]
+
+logger = logging.getLogger("auto-rest")
+
+
+async def logging_middleware(request: Request, call_next: callable) -> Response:
+    """FastAPI middleware for the logging response status codes.
+
+    Args:
+        request: The incoming HTTP request.
+        call_next: The next middleware in the middleware chain.
+
+    Returns:
+        The outgoing HTTP response.
+    """
+
+    response = await call_next(request)
+    level = logging.INFO if response.status_code < 400 else logging.ERROR
+    logger.log(level, f"{request.method} ({response.status_code}) {request.url.path}")
+    return response
 
 
 def create_app(app_title: str, app_version: str) -> FastAPI:
@@ -43,10 +65,11 @@ def create_app(app_title: str, app_version: str) -> FastAPI:
         redoc_url=None,
     )
 
+    app.middleware("http")(logging_middleware)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
         allow_credentials=True,
+        allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -54,7 +77,7 @@ def create_app(app_title: str, app_version: str) -> FastAPI:
     return app
 
 
-def run_server(app: FastAPI, host: str, port: int) -> None: # pragma: no cover
+def run_server(app: FastAPI, host: str, port: int) -> None:  # pragma: no cover
     """Deploy a FastAPI application server.
 
     Args:
