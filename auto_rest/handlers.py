@@ -75,7 +75,7 @@ __all__ = [
     "create_welcome_handler",
 ]
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("auto-rest")
 
 
 def create_welcome_handler() -> Callable[[], Awaitable[PydanticModel]]:

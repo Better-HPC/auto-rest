@@ -19,6 +19,7 @@ handling and provides a streamlined interface for database interactions.
         result = await execute_session_query(async_session, query)
     ```
 """
+
 from typing import Literal
 
 from fastapi import HTTPException

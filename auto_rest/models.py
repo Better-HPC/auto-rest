@@ -34,6 +34,7 @@ import logging
 from pathlib import Path
 from typing import Callable
 
+import yaml
 from sqlalchemy import create_engine, Engine, MetaData, URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import Session
@@ -45,13 +46,32 @@ __all__ = [
     "create_db_metadata",
     "create_db_url",
     "create_session_iterator",
+    "parse_db_settings"
 ]
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("auto-rest")
 
 # Base classes and typing objects.
 DBEngine = Engine | AsyncEngine
 DBSession = Session | AsyncSession
+
+
+def parse_db_settings(path: Path) -> dict[str, any]:
+    """Parse engine configuration settings from a given file path.
+
+    Args:
+        path: Path to the configuration file.
+
+    Returns:
+        Engine configuration settings.
+    """
+
+    if path:
+        logger.debug(f"Parsing engine configuration from {path}.")
+        return yaml.safe_load(path.read_text())
+
+    logger.debug("No connection file specified.")
+    return {}
 
 
 def create_db_url(
@@ -76,21 +96,23 @@ def create_db_url(
         A fully qualified database URL.
     """
 
-    logger.debug("Resolving database URL.")
-
     # Handle special case where SQLite uses file paths.
     if "sqlite" in driver:
         path = Path(database).resolve()
-        return URL.create(drivername=driver, database=str(path))
+        url = URL.create(drivername=driver, database=str(path))
 
-    return URL.create(
-        drivername=driver,
-        username=username,
-        password=password,
-        host=host,
-        port=port,
-        database=database,
-    )
+    else:
+        url = URL.create(
+            drivername=driver,
+            username=username,
+            password=password,
+            host=host,
+            port=port,
+            database=database,
+        )
+
+    logger.debug(f"Resolved URL: {url}")
+    return url
 
 
 def create_db_engine(url: URL, **kwargs: dict[str: any]) -> DBEngine:
