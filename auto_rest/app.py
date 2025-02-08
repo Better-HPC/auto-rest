@@ -39,7 +39,7 @@ async def logging_middleware(request: Request, call_next: callable) -> Response:
 
     response = await call_next(request)
     level = logging.INFO if response.status_code < 400 else logging.ERROR
-    logger.log(level, f"{request.method} ({response.status_code}) {request.url.path}")
+    logger.log(level, f"{request.method} ({response.status_code}) {request.client.host} - {request.url.path}")
     return response
 
 
