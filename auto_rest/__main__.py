@@ -37,7 +37,7 @@ def run_application(cli_args: list[str] = None, /) -> None:  # pragma: no cover
     parsed from STDIN by default, unless specified in the function call.
 
     Args:
-        *: A list of commandline arguments used to run the application.
+        A list of commandline arguments used to run the application.
     """
 
     # Parse application arguments
