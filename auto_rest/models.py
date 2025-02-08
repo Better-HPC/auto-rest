@@ -56,7 +56,7 @@ DBEngine = Engine | AsyncEngine
 DBSession = Session | AsyncSession
 
 
-def parse_db_settings(path: Path) -> dict[str, any]:
+def parse_db_settings(path: Path | None) -> dict[str, any]:
     """Parse engine configuration settings from a given file path.
 
     Args:
@@ -66,9 +66,9 @@ def parse_db_settings(path: Path) -> dict[str, any]:
         Engine configuration settings.
     """
 
-    if path:
+    if path is not None:
         logger.debug(f"Parsing engine configuration from {path}.")
-        return yaml.safe_load(path.read_text())
+        return yaml.safe_load(path.read_text()) or dict()
 
     logger.debug("No connection file specified.")
     return {}
