@@ -2,8 +2,6 @@
 
 import logging
 
-import yaml
-
 from .app import *
 from .cli import *
 from .models import *
@@ -47,7 +45,7 @@ def run_application(cli_args: list[str] = None, /) -> None:  # pragma: no cover
     configure_cli_logging(args.log_level)
 
     logger.info(f"Resolving database connection settings.")
-    db_kwargs = yaml.safe_load(args.db_config.read_text()) if args.db_config else {}
+    db_kwargs = parse_db_settings(args.db_config)
     db_url = create_db_url(
         driver=args.db_driver,
         host=args.db_host,
@@ -61,14 +59,12 @@ def run_application(cli_args: list[str] = None, /) -> None:  # pragma: no cover
     db_conn = create_db_engine(db_url, **db_kwargs)
     db_meta = create_db_metadata(db_conn)
 
-    logger.info("Creating API application.")
+    logger.info("Creating application.")
     app = create_app(args.app_title, args.app_version)
     app.include_router(create_welcome_router(), prefix="")
     app.include_router(create_meta_router(db_conn, db_meta, args.app_title, args.app_version), prefix="/meta")
-
     for table_name, table in db_meta.tables.items():
-        logger.debug(f"Adding `/db/{table_name}` endpoint.")
         app.include_router(create_table_router(db_conn, table), prefix=f"/db/{table_name}")
 
-    logger.info(f"Launching API server on http://{args.server_host}:{args.server_port}.")
+    logger.info(f"Launching server on http://{args.server_host}:{args.server_port}.")
     run_server(app, args.server_host, args.server_port)
