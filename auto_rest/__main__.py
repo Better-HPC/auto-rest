@@ -1,7 +1,6 @@
 """Application entrypoint triggered by calling the packaged CLI command."""
 
 import logging
-from pathlib import Path
 
 import yaml
 
@@ -16,15 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 def main() -> None:  # pragma: no cover
-    """Parse command-line arguments and launch an API server."""
+    """Application entry point called executing the command line interface.
+
+    This is a wrapper around the `run_application` function used to provide
+    graceful error handling.
+    """
 
     try:
-        parser = create_cli_parser()
-        args = vars(parser.parse_args())
-        log_level = args.pop("log_level")
-
-        configure_cli_logging(log_level)
-        run_application(**args)
+        run_application()
 
     except KeyboardInterrupt:
         pass
@@ -33,58 +31,44 @@ def main() -> None:  # pragma: no cover
         logger.critical(str(e), exc_info=True)
 
 
-def run_application(
-    db_driver: str,
-    db_host: str,
-    db_port: int,
-    db_name: str,
-    db_user: str,
-    db_pass: str,
-    db_config: Path | None,
-    server_host: str,
-    server_port: int,
-    app_title: str,
-    app_version: str,
-) -> None:  # pragma: no cover
+def run_application(cli_args: list[str] = None, /) -> None:  # pragma: no cover
     """Run an Auto-REST API server.
 
     This function is equivalent to launching an API server from the command line
-    and accepts the same arguments as those provided in the CLI.
+    and accepts the same arguments as those provided in the CLI. Arguments are
+    parsed from STDIN by default, unless specified in the function call.
 
     Args:
-        db_driver: SQLAlchemy-compatible database driver.
-        db_host: Database host address.
-        db_port: Database port number.
-        db_name: Database name.
-        db_user: Database authentication username.
-        db_pass: Database authentication password.
-        db_config: Path to a database configuration file.
-        server_host: API server host address.
-        server_port: API server port number.
-        app_title: title for the generated OpenAPI schema.
-        app_version: version number for the generated OpenAPI schema.
+        *: A list of commandline arguments used to run the application.
     """
 
-    logger.info(f"Mapping database schema for {db_name}.")
+    # Parse application arguments
+    args = create_cli_parser().parse_args(cli_args)
+    configure_cli_logging(args.log_level)
 
-    # Resolve database connection settings
-    db_url = create_db_url(driver=db_driver, host=db_host, port=db_port, database=db_name, username=db_user, password=db_pass)
-    db_kwargs = yaml.safe_load(db_config.read_text()) if db_config else {}
+    logger.info(f"Resolving database connection settings.")
+    db_kwargs = yaml.safe_load(args.db_config.read_text()) if args.db_config else {}
+    db_url = create_db_url(
+        driver=args.db_driver,
+        host=args.db_host,
+        port=args.db_port,
+        database=args.db_name,
+        username=args.db_user,
+        password=args.db_pass
+    )
 
-    # Connect to and map the database.
+    logger.info("Mapping database schema.")
     db_conn = create_db_engine(db_url, **db_kwargs)
     db_meta = create_db_metadata(db_conn)
 
-    # Build an empty application and dynamically add the requested functionality.
     logger.info("Creating API application.")
-    app = create_app(app_title, app_version)
+    app = create_app(args.app_title, args.app_version)
     app.include_router(create_welcome_router(), prefix="")
-    app.include_router(create_meta_router(db_conn, db_meta, app_title, app_version), prefix="/meta")
+    app.include_router(create_meta_router(db_conn, db_meta, args.app_title, args.app_version), prefix="/meta")
 
     for table_name, table in db_meta.tables.items():
-        logger.info(f"Adding `/db/{table_name}` endpoint.")
+        logger.debug(f"Adding `/db/{table_name}` endpoint.")
         app.include_router(create_table_router(db_conn, table), prefix=f"/db/{table_name}")
 
-    # Launch the API server.
-    logger.info(f"Launching API server on http://{server_host}:{server_port}.")
-    run_server(app, server_host, server_port)
+    logger.info(f"Launching API server on http://{args.server_host}:{args.server_port}.")
+    run_server(app, args.server_host, args.server_port)
