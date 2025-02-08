@@ -62,10 +62,12 @@ def configure_cli_logging(level: str) -> None:
     handler.setFormatter(DefaultFormatter(fmt="%(levelprefix)s %(message)s"))
     logging.basicConfig(
         force=True,
-        level=level,
         format="%(levelprefix)s %(message)s",
         handlers=[handler],
     )
+
+    logging.getLogger("auto-rest").setLevel(level)
+    logging.getLogger("sqlalchemy").setLevel(1000)
 
 
 def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:

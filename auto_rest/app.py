@@ -86,4 +86,5 @@ def run_server(app: FastAPI, host: str, port: int) -> None:  # pragma: no cover
         port: The port number for the server to listen on.
     """
 
-    uvicorn.run(app, host=host, port=port, log_level="error")
+    # Uvicorn overwrites its logging level when run and needs to be manually disabled here.
+    uvicorn.run(app, host=host, port=port, log_level=1000)
