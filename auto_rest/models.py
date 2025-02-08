@@ -47,7 +47,7 @@ __all__ = [
     "create_session_iterator",
 ]
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("auto-rest")
 
 # Base classes and typing objects.
 DBEngine = Engine | AsyncEngine

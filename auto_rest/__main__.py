@@ -11,7 +11,7 @@ from .routers import *
 
 __all__ = ["main", "run_application"]
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("auto-rest")
 
 
 def main() -> None:  # pragma: no cover
