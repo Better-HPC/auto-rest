@@ -13,7 +13,7 @@ logger = logging.getLogger("auto-rest")
 
 
 def main() -> None:  # pragma: no cover
-    """Application entry point called executing the command line interface.
+    """Application entry point called when executing the command line interface.
 
     This is a wrapper around the `run_application` function used to provide
     graceful error handling.
