@@ -12,23 +12,8 @@ handler logic to be customized and reused across multiple endpoints.
     welcome_handler = create_welcome_handler()
     ```
 
-Handler functions are defined as asynchronous coroutines.
-This provides improved performance when handling large numbers of
-incoming requests.
-
-!!! example "Example: Async Handlers"
-
-    Python requires asynchronous coroutines to be run from an asynchronous
-    context. In the following example, this is achieved using `asyncio.run`.
-
-    ```python
-    import asyncio
-
-    return_value = asyncio.run(welcome_handler())
-    ```
-
-Handlers are specifically designed to integrate with the FastAPI framework,
-including support for FastAPI's type hinting and data validation capabilities.
+Handlers are designed to integrate with the FastAPI framework, including
+support for FastAPI's type hinting and data validation capabilities.
 This makes it easy to incorporate handlers into a FastAPI application.
 
 !!! example "Example: Adding a Handler to an Application"
