@@ -9,7 +9,7 @@ from .routers import *
 
 __all__ = ["main", "run_application"]
 
-logger = logging.getLogger("auto-rest")
+logger = logging.getLogger("auto_rest")
 
 
 def main() -> None:  # pragma: no cover

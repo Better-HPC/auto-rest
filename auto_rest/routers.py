@@ -38,7 +38,7 @@ __all__ = [
     "create_welcome_router",
 ]
 
-logger = logging.getLogger("auto-rest")
+logger = logging.getLogger("auto_rest")
 
 
 def create_welcome_router() -> APIRouter:

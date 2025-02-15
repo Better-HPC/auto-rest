@@ -31,13 +31,11 @@ Python `logging` library.
 """
 
 import importlib.metadata
-import logging
+import logging.config
 from argparse import ArgumentParser, HelpFormatter
 from pathlib import Path
 
-from uvicorn.logging import DefaultFormatter
-
-__all__ = ["VERSION", "configure_cli_logging", "create_cli_parser"]
+__all__ = ["configure_cli_logging", "create_cli_parser"]
 
 VERSION = importlib.metadata.version("auto-rest-api")
 
@@ -49,7 +47,7 @@ def configure_cli_logging(level: str) -> None:
     logging configurations.
 
     Args:
-        level: The Python logging level.
+        level: The Python logging level (e.g., "DEBUG", "INFO", etc.).
     """
 
     # Normalize and validate the logging level.
@@ -57,17 +55,57 @@ def configure_cli_logging(level: str) -> None:
     if level not in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
         raise ValueError(f"Invalid logging level: {level}")
 
-    # Set up logging with a stream handler.
-    handler = logging.StreamHandler()
-    handler.setFormatter(DefaultFormatter(fmt="%(levelprefix)s %(message)s"))
-    logging.basicConfig(
-        force=True,
-        format="%(levelprefix)s %(message)s",
-        handlers=[handler],
-    )
-
-    logging.getLogger("auto-rest").setLevel(level)
-    logging.getLogger("sqlalchemy").setLevel(1000)
+    msg_prefix = "%(log_color)s%(levelname)-8s%(reset)s (%(asctime)s) [%(correlation_id)s] "
+    logging.config.dictConfig({
+        "version": 1,
+        "disable_existing_loggers": True,
+        "filters": {
+            "correlation_id": {
+                "()": "asgi_correlation_id.CorrelationIdFilter",
+                "uuid_length": 8,
+                "default_value": "-" * 8
+            },
+        },
+        "formatters": {
+            "app": {
+                "()": "colorlog.ColoredFormatter",
+                "format": msg_prefix + "%(message)s",
+            },
+            "access": {
+                "()": "colorlog.ColoredFormatter",
+                "format": msg_prefix + "%(ip)s:%(port)s - %(method)s %(endpoint)s - %(message)s",
+            }
+        },
+        "handlers": {
+            "app": {
+                "class": "colorlog.StreamHandler",
+                "formatter": "app",
+                "filters": ["correlation_id"],
+            },
+            "access": {
+                "class": "colorlog.StreamHandler",
+                "formatter": "access",
+                "filters": ["correlation_id"],
+            }
+        },
+        "loggers": {
+            "auto_rest": {
+                "handlers": ["app"],
+                "level": level,
+                "propagate": False
+            },
+            "auto_rest.access": {
+                "handlers": ["access"],
+                "level": level,
+                "propagate": False
+            },
+            "auto_rest.query": {
+                "handlers": ["app"],
+                "level": level,
+                "propagate": False
+            }
+        }
+    })
 
 
 def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:

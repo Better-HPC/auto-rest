@@ -50,7 +50,6 @@ This makes it easy to incorporate handlers into a FastAPI application.
     should always be tested within the context of a FastAPI application.
 """
 
-import logging
 from typing import Awaitable, Callable, Literal, Optional
 
 from fastapi import Depends, Query, Response
@@ -74,8 +73,6 @@ __all__ = [
     "create_schema_handler",
     "create_welcome_handler",
 ]
-
-logger = logging.getLogger("auto-rest")
 
 
 def create_welcome_handler() -> Callable[[], Awaitable[PydanticModel]]:
@@ -191,7 +188,6 @@ def create_list_records_handler(engine: DBEngine, table: Table) -> Callable[...,
     """
 
     interface = create_interface(table)
-    interface_opt = create_interface(table, mode="optional")
     columns = tuple(table.columns.keys())
 
     async def list_records_handler(

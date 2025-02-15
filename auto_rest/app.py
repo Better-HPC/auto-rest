@@ -15,19 +15,21 @@ deploying Fast-API applications.
 """
 
 import logging
+from http import HTTPStatus
 
 import uvicorn
+from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import Response
 
 __all__ = ["create_app", "run_server"]
 
-logger = logging.getLogger("auto-rest")
+logger = logging.getLogger("auto_rest.access")
 
 
 async def logging_middleware(request: Request, call_next: callable) -> Response:
-    """FastAPI middleware for the logging response status codes.
+    """FastAPI middleware for logging response status codes.
 
     Args:
         request: The incoming HTTP request.
@@ -37,9 +39,27 @@ async def logging_middleware(request: Request, call_next: callable) -> Response:
         The outgoing HTTP response.
     """
 
-    response = await call_next(request)
-    level = logging.INFO if response.status_code < 400 else logging.ERROR
-    logger.log(level, f"{request.method} ({response.status_code}) {request.client.host} - {request.url.path}")
+    # Extract metadata from the request
+    request_meta = {
+        "ip": request.client.host,
+        "port": request.client.port,
+        "method": request.method,
+        "endpoint": request.url.path,
+    }
+
+    # Execute handling logic
+    try:
+        response = await call_next(request)
+
+    except Exception as exc:
+        logger.error(str(exec), exc_info=exc, extra=request_meta)
+        raise
+
+    # Log the outgoing response
+    status = HTTPStatus(response.status_code)
+    level = logging.INFO if status < 400 else logging.ERROR
+    logger.log(level, f"{status} {status.phrase}", extra=request_meta)
+
     return response
 
 
@@ -66,6 +86,7 @@ def create_app(app_title: str, app_version: str) -> FastAPI:
     )
 
     app.middleware("http")(logging_middleware)
+    app.add_middleware(CorrelationIdMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_credentials=True,

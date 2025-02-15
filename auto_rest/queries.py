@@ -20,6 +20,7 @@ handling and provides a streamlined interface for database interactions.
     ```
 """
 
+import logging
 from typing import Literal
 
 from fastapi import HTTPException
@@ -37,6 +38,8 @@ __all__ = [
     "execute_session_query",
     "get_record_or_404"
 ]
+
+logger = logging.getLogger("auto_rest.query")
 
 
 def apply_ordering_params(
@@ -124,6 +127,7 @@ async def delete_session_record(session: DBSession, record: Result) -> None:
         record: The record to be deleted.
     """
 
+    logger.debug("Deleting record.")
     if isinstance(session, AsyncSession):
         await session.delete(record)
 
@@ -144,6 +148,7 @@ async def execute_session_query(session: DBSession, query: Executable) -> Result
         The result of the executed query.
     """
 
+    logger.debug(str(query).replace("\n", " "))
     if isinstance(session, AsyncSession):
         return await session.execute(query)
 

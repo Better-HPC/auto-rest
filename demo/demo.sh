@@ -3,7 +3,7 @@
 # This script demonstrates the `auto-rest` utility using a SQLite database
 # populated with dummy data. The database schema is designed for a blog,
 # with tables for authors, posts, and comments. The script populates the
-# database and launches an API server using `auto-rest`.
+# database with demo data and launches an API server using `auto-rest`.
 
 # Define necessary file paths
 WORK_DIR=$(dirname "$0")
