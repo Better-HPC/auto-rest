@@ -49,7 +49,7 @@ __all__ = [
     "parse_db_settings"
 ]
 
-logger = logging.getLogger("auto-rest")
+logger = logging.getLogger("auto_rest")
 
 # Base classes and typing objects.
 DBEngine = Engine | AsyncEngine
@@ -70,7 +70,7 @@ def parse_db_settings(path: Path | None) -> dict[str, any]:
         logger.debug(f"Parsing engine configuration from {path}.")
         return yaml.safe_load(path.read_text()) or dict()
 
-    logger.debug("No connection file specified.")
+    logger.debug("No configuration file specified.")
     return {}
 
 
@@ -128,8 +128,6 @@ def create_db_engine(url: URL, **kwargs: dict[str: any]) -> DBEngine:
     Returns:
         A SQLAlchemy `Engine` or `AsyncEngine` instance.
     """
-
-    logger.debug(f"Building database engine for {url}.")
 
     if url.get_dialect().is_async:
         engine = create_async_engine(url, **kwargs)
