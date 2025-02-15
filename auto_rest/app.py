@@ -14,11 +14,53 @@ deploying Fast-API applications.
     ```
 """
 
+import logging
+from http import HTTPStatus
+
 import uvicorn
-from fastapi import FastAPI
+from asgi_correlation_id import CorrelationIdMiddleware
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import Response
 
 __all__ = ["create_app", "run_server"]
+
+logger = logging.getLogger("auto_rest.access")
+
+
+async def logging_middleware(request: Request, call_next: callable) -> Response:
+    """FastAPI middleware for logging response status codes.
+
+    Args:
+        request: The incoming HTTP request.
+        call_next: The next middleware in the middleware chain.
+
+    Returns:
+        The outgoing HTTP response.
+    """
+
+    # Extract metadata from the request
+    request_meta = {
+        "ip": request.client.host,
+        "port": request.client.port,
+        "method": request.method,
+        "endpoint": request.url.path,
+    }
+
+    # Execute handling logic
+    try:
+        response = await call_next(request)
+
+    except Exception as exc:
+        logger.error(str(exec), exc_info=exc, extra=request_meta)
+        raise
+
+    # Log the outgoing response
+    status = HTTPStatus(response.status_code)
+    level = logging.INFO if status < 400 else logging.ERROR
+    logger.log(level, f"{status} {status.phrase}", extra=request_meta)
+
+    return response
 
 
 def create_app(app_title: str, app_version: str) -> FastAPI:
@@ -43,10 +85,12 @@ def create_app(app_title: str, app_version: str) -> FastAPI:
         redoc_url=None,
     )
 
+    app.middleware("http")(logging_middleware)
+    app.add_middleware(CorrelationIdMiddleware)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
         allow_credentials=True,
+        allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -54,7 +98,7 @@ def create_app(app_title: str, app_version: str) -> FastAPI:
     return app
 
 
-def run_server(app: FastAPI, host: str, port: int) -> None: # pragma: no cover
+def run_server(app: FastAPI, host: str, port: int) -> None:  # pragma: no cover
     """Deploy a FastAPI application server.
 
     Args:
@@ -63,4 +107,5 @@ def run_server(app: FastAPI, host: str, port: int) -> None: # pragma: no cover
         port: The port number for the server to listen on.
     """
 
-    uvicorn.run(app, host=host, port=port, log_level="error")
+    # Uvicorn overwrites its logging level when run and needs to be manually disabled here.
+    uvicorn.run(app, host=host, port=port, log_level=1000)

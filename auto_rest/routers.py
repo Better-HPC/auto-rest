@@ -23,6 +23,8 @@ routers to be added directly to an API application instance.
     ```
 """
 
+import logging
+
 from fastapi import APIRouter
 from sqlalchemy import MetaData, Table
 from starlette import status
@@ -36,6 +38,8 @@ __all__ = [
     "create_welcome_router",
 ]
 
+logger = logging.getLogger("auto_rest")
+
 
 def create_welcome_router() -> APIRouter:
     """Create an API router for returning a welcome message.
@@ -43,6 +47,8 @@ def create_welcome_router() -> APIRouter:
     Returns:
         An `APIRouter` with a single route for retrieving a welcome message.
     """
+
+    logger.debug("Creating welcome endpoint.")
 
     router = APIRouter()
     router.add_api_route(
@@ -70,6 +76,8 @@ def create_meta_router(engine: DBEngine, metadata: MetaData, name: str, version:
     Returns:
         An `APIRouter` with a routes for retrieving application metadata.
     """
+
+    logger.debug("Creating metadata endpoints.")
 
     router = APIRouter()
     tags = ["Application Metadata"]
@@ -112,6 +120,7 @@ def create_table_router(engine: DBEngine, table: Table) -> APIRouter:
         An APIRouter instance with routes for database operations on the table.
     """
 
+    logger.debug(f"Creating endpoints for table `{table.name}`.")
     router = APIRouter()
 
     # Construct path parameters from primary key columns
