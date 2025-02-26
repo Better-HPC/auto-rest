@@ -55,7 +55,7 @@ from typing import Awaitable, Callable, Literal, Optional
 from fastapi import Depends, Query, Response
 from pydantic import create_model
 from pydantic.main import BaseModel as PydanticModel
-from sqlalchemy import insert, MetaData, select, Table
+from sqlalchemy import asc, desc, func, insert, MetaData, select, Table
 
 from .interfaces import *
 from .models import *
@@ -203,14 +203,20 @@ def create_list_records_handler(engine: DBEngine, table: Table) -> Callable[...,
         URL query parameters are used to enable filtering, ordering, and paginating returned values.
         """
 
-        response.headers["X-Pagination-Limit"] = str(_limit_)
-        response.headers["X-Pagination-Offset"] = str(_offset_)
-        response.headers["X-Order-By"] = str(_order_by_)
-        response.headers["X-Order-Direction"] = str(_direction_)
+        # Set headers
+        response.headers["x-pagination-limit"] = str(_limit_)
+        response.headers["x-pagination-offset"] = str(_offset_)
+        response.headers["x-order-by"] = str(_order_by_)
+        response.headers["x-order-direction"] = str(_direction_)
 
+        # Fetch data per the request parameters
         query = select(table)
-        query = apply_pagination_params(query, _limit_, _offset_)
-        query = apply_ordering_params(query, _order_by_, _direction_)
+        if _limit_ > 0:
+            query = query.offset(_offset_).limit(_limit_)
+
+        if _order_by_ is not None:
+            direction = {'desc': desc, 'asc': asc}[_direction_]
+            query = query.order_by(direction(_order_by_))
 
         result = await execute_session_query(session, query)
         return [row._mapping for row in result.all()]
