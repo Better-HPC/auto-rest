@@ -44,7 +44,7 @@ async def logging_middleware(request: Request, call_next: callable) -> Response:
         "ip": request.client.host,
         "port": request.client.port,
         "method": request.method,
-        "endpoint": request.url.path,
+        "endpoint": f"{request.url.path}?{request.url.query}",
     }
 
     # Execute handling logic
