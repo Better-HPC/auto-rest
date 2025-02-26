@@ -203,9 +203,14 @@ def create_list_records_handler(engine: DBEngine, table: Table) -> Callable[...,
         URL query parameters are used to enable filtering, ordering, and paginating returned values.
         """
 
+        # Determine total record count
+        total_count_query = select(func.count()).select_from(table)
+        total_count = await execute_session_query(session, total_count_query)
+
         # Set headers
         response.headers["x-pagination-limit"] = str(_limit_)
         response.headers["x-pagination-offset"] = str(_offset_)
+        response.headers["x-pagination-total"] = str(total_count.first()[0])
         response.headers["x-order-by"] = str(_order_by_)
         response.headers["x-order-direction"] = str(_direction_)
 
