@@ -21,9 +21,9 @@ class TestCreateMetaRouter(TestCase):
         routes = [(route.path, method) for route in router.routes for method in route.methods]
 
         expected_routes = [
-            ("/app", "GET"),
-            ("/engine", "GET"),
-            ("/schema", "GET"),
+            ("/app/", "GET"),
+            ("/engine/", "GET"),
+            ("/schema/", "GET"),
         ]
 
         self.assertCountEqual(expected_routes, routes)

@@ -83,7 +83,7 @@ def create_meta_router(engine: DBEngine, metadata: MetaData, name: str, version:
     tags = ["Application Metadata"]
 
     router.add_api_route(
-        path="/app",
+        path="/app/",
         methods=["GET"],
         endpoint=create_about_handler(name, version),
         summary="Fetch application metadata.",
@@ -91,7 +91,7 @@ def create_meta_router(engine: DBEngine, metadata: MetaData, name: str, version:
     )
 
     router.add_api_route(
-        path="/engine",
+        path="/engine/",
         methods=["GET"],
         endpoint=create_engine_handler(engine),
         summary="Fetch database metadata.",
@@ -99,7 +99,7 @@ def create_meta_router(engine: DBEngine, metadata: MetaData, name: str, version:
     )
 
     router.add_api_route(
-        path="/schema",
+        path="/schema/",
         methods=["GET"],
         endpoint=create_schema_handler(metadata),
         summary="Fetch the database schema.",
