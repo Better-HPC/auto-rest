@@ -44,8 +44,11 @@ async def logging_middleware(request: Request, call_next: callable) -> Response:
         "ip": request.client.host,
         "port": request.client.port,
         "method": request.method,
-        "endpoint": f"{request.url.path}?{request.url.query}",
+        "endpoint": request.url.path,
     }
+
+    if request.url.query:
+        request_meta["endpoint"] += "?" + request.url.query
 
     # Execute handling logic
     try:
