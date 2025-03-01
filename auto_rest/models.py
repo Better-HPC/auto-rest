@@ -32,7 +32,7 @@ connection and session handling are configured accordingly.
 import asyncio
 import logging
 from pathlib import Path
-from typing import Callable
+from typing import AsyncGenerator, Callable, Generator
 
 import yaml
 from sqlalchemy import create_engine, Engine, MetaData, URL
@@ -169,7 +169,7 @@ def create_db_metadata(engine: DBEngine) -> MetaData:
     return metadata
 
 
-def create_session_iterator(engine: DBEngine) -> Callable[[], DBSession]:
+def create_session_iterator(engine: DBEngine) -> Callable[[], Generator[Session, None, None] | AsyncGenerator[AsyncSession, None]]:
     """Create a generator for database sessions.
 
     Returns a synchronous or asynchronous function depending on whether
@@ -185,12 +185,12 @@ def create_session_iterator(engine: DBEngine) -> Callable[[], DBSession]:
     """
 
     if isinstance(engine, AsyncEngine):
-        async def session_iterator() -> AsyncSession:
+        async def session_iterator() -> AsyncGenerator[AsyncSession, None]:
             async with AsyncSession(bind=engine, autocommit=False, autoflush=True) as session:
                 yield session
 
     else:
-        def session_iterator() -> Session:
+        def session_iterator() -> Generator[Session, None, None]:
             with Session(bind=engine, autocommit=False, autoflush=True) as session:
                 yield session
 

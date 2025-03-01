@@ -188,20 +188,41 @@ def create_list_records_handler(engine: DBEngine, table: Table) -> Callable[...,
     """
 
     interface = create_interface(table)
-    columns = tuple(table.columns.keys())
+    interface_opt = create_interface(table, mode="optional")
+    col_names = tuple(table.columns.keys())
 
     async def list_records_handler(
         response: Response,
         session: DBSession = Depends(create_session_iterator(engine)),
+        filters: interface_opt = Depends(),
         _limit_: int = Query(0, ge=0, description="The maximum number of records to return."),
         _offset_: int = Query(0, ge=0, description="The starting index of the returned records."),
-        _order_by_: Optional[Literal[*columns]] = Query(None, description="The field name to sort by."),
-        _direction_: Literal["asc", "desc"] = Query("asc", description="Sort results in 'asc' or 'desc' order.")
+        _order_by_: Optional[Literal[*col_names]] = Query(None, description="The field name to sort by."),
+        _direction_: Literal["asc", "desc"] = Query("asc", description="Sort results in 'asc' or 'desc' order."),
     ) -> list[interface]:
         """Fetch a list of records from the database.
 
         URL query parameters are used to enable filtering, ordering, and paginating returned values.
         """
+
+        query = select(table)
+
+        # Fetch data per the request parameters
+        for param, value in filters.model_dump():
+            if param in col_names:
+                column = getattr(table.c, param)
+                if value == "_NULL":
+                    query = query.filter(column.is_(None))
+
+                else:
+                    query = query.filter(column.ilike(f"%{value}%"))
+
+        if _limit_ > 0:
+            query = query.offset(_offset_).limit(_limit_)
+
+        if _order_by_ is not None:
+            direction = {'desc': desc, 'asc': asc}[_direction_]
+            query = query.order_by(direction(_order_by_))
 
         # Determine total record count
         total_count_query = select(func.count()).select_from(table)
@@ -214,17 +235,8 @@ def create_list_records_handler(engine: DBEngine, table: Table) -> Callable[...,
         response.headers["x-order-by"] = str(_order_by_)
         response.headers["x-order-direction"] = str(_direction_)
 
-        # Fetch data per the request parameters
-        query = select(table)
-        if _limit_ > 0:
-            query = query.offset(_offset_).limit(_limit_)
-
-        if _order_by_ is not None:
-            direction = {'desc': desc, 'asc': asc}[_direction_]
-            query = query.order_by(direction(_order_by_))
-
-        result = await execute_session_query(session, query)
-        return [row._mapping for row in result.all()]
+        # noinspection PyTypeChecker
+        return await execute_session_query(session, query)
 
     return list_records_handler
 
@@ -257,7 +269,7 @@ def create_get_record_handler(engine: DBEngine, table: Table) -> Callable[..., A
     return get_record_handler
 
 
-def create_post_record_handler(engine: DBEngine, table: Table) -> Callable[..., Awaitable[PydanticModel]]:
+def create_post_record_handler(engine: DBEngine, table: Table) -> Callable[..., Awaitable[None]]:
     """Create a function for handling POST requests against a record in the database.
 
     Args:
@@ -276,7 +288,7 @@ def create_post_record_handler(engine: DBEngine, table: Table) -> Callable[..., 
     ) -> None:
         """Create a new record in the database."""
 
-        query = insert(table).values(**data.dict())
+        query = insert(table).values(**data.model_dump())
         await execute_session_query(session, query)
         await commit_session(session)
 

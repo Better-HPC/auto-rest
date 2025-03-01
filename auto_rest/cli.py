@@ -35,7 +35,7 @@ import logging.config
 from argparse import ArgumentParser, HelpFormatter
 from pathlib import Path
 
-__all__ = ["configure_cli_logging", "create_cli_parser"]
+__all__ = ["configure_cli_logging", "create_cli_parser", "VERSION"]
 
 VERSION = importlib.metadata.version("auto-rest-api")
 

@@ -76,6 +76,7 @@ class TestCreateField(TestCase):
         """Verify a `RuntimeError` error is raised for an unknown mode argument."""
 
         with self.assertRaises(RuntimeError):
+            # noinspection PyTypeChecker
             create_field_definition(self.col_nullable, mode="not a mode")
 
     def test_missing_driver_support(self) -> None:
