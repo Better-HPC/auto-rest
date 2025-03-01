@@ -34,4 +34,5 @@ class TestCreateDbEngine(TestCase):
         """Verify invalid database URLs raise an error."""
 
         with self.assertRaises(Exception):
+            # noinspection PyTypeChecker
             create_db_engine("invalid_url")
