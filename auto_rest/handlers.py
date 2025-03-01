@@ -211,7 +211,7 @@ def create_list_records_handler(engine: DBEngine, table: Table) -> Callable[...,
         for param, value in filters.model_dump():
             if param in col_names:
                 column = getattr(table.c, param)
-                if value == "_NULL":
+                if value.lower() == "_null_":
                     query = query.filter(column.is_(None))
 
                 else:
