@@ -188,13 +188,13 @@ def create_list_records_handler(engine: DBEngine, table: Table) -> Callable[...,
     """
 
     interface = create_interface(table)
-    interface_opt = create_interface(table, mode="optional")
+    opt_interface = create_optional_interface(table)
     col_names = tuple(table.columns.keys())
 
     async def list_records_handler(
         response: Response,
         session: DBSession = Depends(create_session_iterator(engine)),
-        filters: interface_opt = Depends(),
+        filters: opt_interface = Depends(),
         _limit_: int = Query(0, ge=0, description="The maximum number of records to return."),
         _offset_: int = Query(0, ge=0, description="The starting index of the returned records."),
         _order_by_: Optional[Literal[*col_names]] = Query(None, description="The field name to sort by."),
@@ -253,7 +253,7 @@ def create_get_record_handler(engine: DBEngine, table: Table) -> Callable[..., A
     """
 
     interface = create_interface(table)
-    pk_interface = create_interface(table, pk_only=True, mode='required')
+    pk_interface = create_pk_interface(table)
 
     async def get_record_handler(
         pk: pk_interface = Depends(),
@@ -307,8 +307,8 @@ def create_put_record_handler(engine: DBEngine, table: Table) -> Callable[..., A
     """
 
     interface = create_interface(table)
-    opt_interface = create_interface(table, mode='optional')
-    pk_interface = create_interface(table, pk_only=True, mode='required')
+    opt_interface = create_optional_interface(table)
+    pk_interface = create_pk_interface(table)
 
     async def put_record_handler(
         data: opt_interface,
@@ -342,7 +342,7 @@ def create_patch_record_handler(engine: DBEngine, table: Table) -> Callable[...,
     """
 
     interface = create_interface(table)
-    pk_interface = create_interface(table, pk_only=True, mode='required')
+    pk_interface = create_pk_interface(table)
 
     async def patch_record_handler(
         data: interface,
@@ -375,7 +375,7 @@ def create_delete_record_handler(engine: DBEngine, table: Table) -> Callable[...
         An async function that handles record deletion.
     """
 
-    pk_interface = create_interface(table, pk_only=True, mode='required')
+    pk_interface = create_pk_interface(table)
 
     async def delete_record_handler(
         pk: pk_interface = Depends(),
