@@ -4,14 +4,12 @@ provides utility functions for converting SQLAlchemy models into
 Pydantic interfaces.
 """
 
-from typing import Any, Iterator, Literal
+from typing import Any, Iterator
 
 from pydantic import BaseModel as PydanticModel, create_model
 from sqlalchemy import Column, Table
 
 __all__ = ["create_interface", "create_optional_interface", "create_pk_interface"]
-
-MODE_TYPE = Literal["default", "required", "optional"]
 
 
 def iter_columns(table: Table, pk_only: bool = False) -> Iterator[Column]:
@@ -30,7 +28,7 @@ def iter_columns(table: Table, pk_only: bool = False) -> Iterator[Column]:
             yield column
 
 
-def _get_col_type(col: Column) -> type[any]:
+def get_col_type(col: Column) -> type[any]:
     """Determine the Python type corresponding to a SQLAlchemy column.
 
     Some database drivers do not support type casting to native Python types.
@@ -45,6 +43,7 @@ def _get_col_type(col: Column) -> type[any]:
 
     try:
         col_type = col.type.python_type
+
     except NotImplementedError:
         return Any
 
@@ -78,7 +77,11 @@ def create_pk_interface(table: Table) -> type[PydanticModel]:
         A Pydantic model class where each field corresponds to a primary key column.
     """
 
-    fields = {col.name: (_get_col_type(col), ...) for col in iter_columns(table, pk_only=True)}
+    fields = {
+        col.name: (get_col_type(col), ...)
+        for col in iter_columns(table, pk_only=True)
+    }
+
     return create_model(f"{table.name}-PK", __config__={'arbitrary_types_allowed': True}, **fields)
 
 
@@ -92,7 +95,11 @@ def create_optional_interface(table: Table) -> type[PydanticModel]:
         A Pydantic model class where each field corresponds to a column, with nullable types.
     """
 
-    fields = {col.name: (_get_col_type(col) | None, _get_col_default(col)) for col in iter_columns(table)}
+    fields = {
+        col.name: (get_col_type(col) | None, _get_col_default(col))
+        for col in iter_columns(table)
+    }
+
     return create_model(f"{table.name}-Optional", __config__={'arbitrary_types_allowed': True}, **fields)
 
 
@@ -106,5 +113,9 @@ def create_interface(table: Table) -> type[PydanticModel]:
         A Pydantic model class where each field corresponds to a column, with default values if available.
     """
 
-    fields = {col.name: (_get_col_type(col), _get_col_default(col)) for col in iter_columns(table)}
+    fields = {
+        col.name: (get_col_type(col), _get_col_default(col))
+        for col in iter_columns(table)
+    }
+
     return create_model(f"{table.name}", __config__={'arbitrary_types_allowed': True}, **fields)
