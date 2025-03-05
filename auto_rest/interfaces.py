@@ -4,7 +4,7 @@ provides utility functions for converting SQLAlchemy models into
 Pydantic interfaces.
 """
 
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 from pydantic import BaseModel as PydanticModel, create_model
 from sqlalchemy import Column, Table
@@ -47,13 +47,13 @@ def get_col_type(col: Column) -> type[any]:
     except NotImplementedError:
         return Any
 
-    if col.nullable or col.default:
+    if col.nullable or col.default or col.server_default:
         col_type |= None
 
     return col_type
 
 
-def _get_col_default(col: Column) -> any:
+def get_col_default(col: Column) -> any:
     """Retrieve the default value for a SQLAlchemy column.
 
     Args:
@@ -63,8 +63,27 @@ def _get_col_default(col: Column) -> any:
         The default value of the column.
     """
 
-    # Some SQLAlchemy default values are wrapped in the `arg` attribute.
-    return getattr(col.default, "arg", col.default)
+    # SQLAlchemy employs two mechanisms for storing defaults.
+    # Make a good faith effort to parse server side (SQL) defaults but
+    # fall back to Python side defaults, which defaults to `None`.
+    server_default = getattr(col.server_default, "arg", col.server_default)
+    python_default = getattr(col.default, "arg", col.default)
+
+    try:
+        if isinstance(server_default, Callable):
+            return server_default
+
+        elif col.server_default is not None:
+            server_default = str(server_default).strip("'").strip('"')
+            return col.type.python_type(server_default)
+
+    # NotImplementedError: Python typing not supported by the database driver
+    # ValueError: Tried and failed to cast server default into Python object
+    # Exception: Unexpected error due to edge case with unknown cause
+    except (NotImplementedError, ValueError, Exception):
+        pass
+
+    return python_default
 
 
 def create_pk_interface(table: Table) -> type[PydanticModel]:
@@ -96,7 +115,7 @@ def create_optional_interface(table: Table) -> type[PydanticModel]:
     """
 
     fields = {
-        col.name: (get_col_type(col) | None, _get_col_default(col))
+        col.name: (get_col_type(col) | None, get_col_default(col))
         for col in iter_columns(table)
     }
 
@@ -114,7 +133,7 @@ def create_interface(table: Table) -> type[PydanticModel]:
     """
 
     fields = {
-        col.name: (get_col_type(col), _get_col_default(col))
+        col.name: (get_col_type(col), get_col_default(col))
         for col in iter_columns(table)
     }
 
