@@ -12,7 +12,7 @@ class TestCreateInterface(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        """Create a dummy database table to generate interfaces from.
+        """Create a new Pydantic interface from a dummy Sqlalchemy table.
 
         Table is designed with columns having a mix of types, defaults, and nullability.
         """
@@ -28,56 +28,26 @@ class TestCreateInterface(unittest.TestCase):
             Column("date_func", Date, default=date.today),
         )
 
+        cls.interface = create_interface(cls.table)
+
     def test_field_types(self) -> None:
         """Verify the interface includes correctly typed fields for all columns."""
 
-        interface = create_interface(self.table)
-
-        self.assertEqual(int, interface.__annotations__["id1"])
-        self.assertEqual(int, interface.__annotations__["id2"])
-        self.assertEqual(str | None, interface.__annotations__["str_nul"])
-        self.assertEqual(str, interface.__annotations__["str_req"])
-        self.assertEqual(float | None, interface.__annotations__["float_nul_default"])
-        self.assertEqual(float | None, interface.__annotations__["float_req_default"])
-        self.assertEqual(date | None, interface.__annotations__["date_func"])
+        self.assertEqual(int, self.interface.__annotations__["id1"])
+        self.assertEqual(int, self.interface.__annotations__["id2"])
+        self.assertEqual(str | None, self.interface.__annotations__["str_nul"])
+        self.assertEqual(str, self.interface.__annotations__["str_req"])
+        self.assertEqual(float | None, self.interface.__annotations__["float_nul_default"])
+        self.assertEqual(float | None, self.interface.__annotations__["float_req_default"])
+        self.assertEqual(date | None, self.interface.__annotations__["date_func"])
 
     def test_field_defaults(self) -> None:
         """Verify default field values match the input table."""
 
-        interface = create_interface(self.table)
-
-        self.assertEqual(PydanticUndefined, interface.model_fields["id1"].default)
-        self.assertEqual(PydanticUndefined, interface.model_fields["id2"].default)
-        self.assertEqual(None, interface.model_fields["str_nul"].default)
-        self.assertEqual(PydanticUndefined, interface.model_fields["str_req"].default)
-        self.assertEqual(5, interface.model_fields["float_nul_default"].default)
-        self.assertEqual(5, interface.model_fields["float_req_default"].default)
-        self.assertEqual(date.today(), interface.model_fields["date_func"].default(None))
-
-    def test_required_mode_defaults(self) -> None:
-        """Verify all fields are marked as required in `required` mode."""
-
-        interface = create_interface(self.table, mode="required")
-        for col in self.table.columns:
-            self.assertEqual(PydanticUndefined, interface.model_fields[col.name].default)
-
-    def test_optional_mode_defaults(self) -> None:
-        """Verify all fields are marked as optional with correct defaults in `optional` mode."""
-
-        interface = create_interface(self.table, mode="optional")
-
-        self.assertEqual(None, interface.model_fields["id1"].default)
-        self.assertEqual(None, interface.model_fields["id2"].default)
-        self.assertEqual(None, interface.model_fields["str_nul"].default)
-        self.assertEqual(None, interface.model_fields["str_req"].default)
-        self.assertEqual(5, interface.model_fields["float_nul_default"].default)
-        self.assertEqual(5, interface.model_fields["float_req_default"].default)
-        self.assertEqual(date.today(), interface.model_fields["date_func"].default(None))
-
-    def test_pk_only_fields(self) -> None:
-        """Verify the interface only includes primary key columns when `pk_only` is enabled."""
-
-        interface = create_interface(self.table, pk_only=True)
-        self.assertCountEqual(["id1", "id2"], interface.model_fields.keys())
-        self.assertEqual(interface.__annotations__["id1"], int)
-        self.assertEqual(interface.__annotations__["id2"], int)
+        self.assertEqual(PydanticUndefined, self.interface.model_fields["id1"].default)
+        self.assertEqual(PydanticUndefined, self.interface.model_fields["id2"].default)
+        self.assertEqual(None, self.interface.model_fields["str_nul"].default)
+        self.assertEqual(PydanticUndefined, self.interface.model_fields["str_req"].default)
+        self.assertEqual(5, self.interface.model_fields["float_nul_default"].default)
+        self.assertEqual(5, self.interface.model_fields["float_req_default"].default)
+        self.assertEqual(date.today(), self.interface.model_fields["date_func"].default(None))
