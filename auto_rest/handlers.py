@@ -208,10 +208,10 @@ def create_list_records_handler(engine: DBEngine, table: Table) -> Callable[...,
         query = select(table)
 
         # Fetch data per the request parameters
-        for param, value in filters.model_dump():
-            if param in col_names:
+        for param, value in filters:
+            if value is not None:
                 column = getattr(table.c, param)
-                if value == "_NULL":
+                if value.lower() == "_null_":
                     query = query.filter(column.is_(None))
 
                 else:
