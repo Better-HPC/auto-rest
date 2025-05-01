@@ -52,8 +52,8 @@ coverage = "*"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6.1"
-mkdocs-material = "^9.5.49"
-mkdocstrings-python = "^1.13.0"
+mkdocs-material = "^9.6.12"
+mkdocstrings-python = "^1.16.10"
 
 [tool.poetry.scripts]
 auto-rest = "auto_rest.__main__:main"
