@@ -325,7 +325,7 @@ def create_put_record_handler(engine: DBEngine, table: Table) -> Callable[..., A
             setattr(record, key, value)
 
         await commit_session(session)
-        return interface.model_validate(record.__dict__)
+        return record
 
     return put_record_handler
 

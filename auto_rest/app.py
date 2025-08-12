@@ -55,7 +55,7 @@ async def logging_middleware(request: Request, call_next: callable) -> Response:
         response = await call_next(request)
 
     except Exception as exc:
-        logger.error(str(exec), exc_info=exc, extra=request_meta)
+        logger.error(str(exc), exc_info=exc, extra=request_meta)
         raise
 
     # Log the outgoing response
