@@ -52,7 +52,7 @@ def create_field_definition(col: Column, mode: MODE_TYPE = "default") -> tuple[t
     Modes:
         default: Values are marked as (not)required based on the column schema.
         required: Values are always marked required.
-        required: Values are always marked optional.
+        optional: Values are always marked optional.
 
     Args:
         col: The column to return values for.
@@ -91,7 +91,7 @@ def create_interface(table: Table, pk_only: bool = False, mode: MODE_TYPE = "def
     Modes:
         default: Values are marked as (not)required based on the column schema.
         required: Values are always marked required.
-        required: Values are always marked optional.
+        optional: Values are always marked optional.
 
     Args:
         table: The SQLAlchemy table to create an interface for.
