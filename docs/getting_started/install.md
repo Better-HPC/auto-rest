@@ -1,15 +1,15 @@
 # Install and Setup
 
 Auto-REST is available for installation from the Python Package Index (PyPI).
-Using the `pipx` package manager is strongly recommended, however the standard `pip` utility can also be used.
+Using the `pipx` package manager is recommended, however the standard `pip` utility can also be used.
 
-=== "pipx (recommended)"
+=== "pipx (standalone)"
 
     ```shell
     pipx install auto-rest-api
     ```
 
-=== "pip (not recommended)"
+=== "pip (dependency)"
 
     ```shell
     pip install auto-rest-api
