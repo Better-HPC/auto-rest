@@ -56,21 +56,21 @@ map the database schema, and deploy a customized API server.
 
 ## Using Custom Drivers
 
-Users can extend Auto-Rest to support additional database systems using third party database drivers.
-To use an alternate driver, specify the registered driver name at runtime.
+Users can extend Auto-REST to support additional database systems using third party drivers.
+To use an alternate driver, specify the protocol and registered driver name at runtime.
 
 !!! example "Example: Using a Custom Database Driver"
 
     The `--driver` option allows users to leverage specific database drivers.
-    In the following example, the `postgresql+asyncpg` driver is used for a PostgreSQL database.
+    In the following example, the `asyncpg` driver is used for a PostgreSQL database.
 
     ```shell
     auto-rest --driver postgresql+asyncpg ...
     ```
 
-Some database drivers support extra configuration options not available through the `auto-rest` CLI.
-These options are typically driver specific and are provided using a YAML config file.
-All values in the file are passed directly as arguments to the underlying `sqlalchemy.create_engine` call
+Some database drivers support extra options not available through the `auto-rest` CLI.
+These values are typically driver specific and are passed to the application using a YAML config file.
+All values in the file are directly passed as arguments to the underlying `sqlalchemy.create_engine` call
 (or `create_async_engine` for asynchronous drivers).
 
 !!! example "Example: Specifying a Database Config"

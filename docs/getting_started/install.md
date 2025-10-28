@@ -29,12 +29,12 @@ The table below lists the supported database systems along with their default dr
 | Microsoft SQL Server | `mssql+aiomysql`     |
 
 
-Auto-REST also supports generic database drivers compatible with the SQLAlchemy framework.
-To add a new driver, install it in the same environment as the Auto-REST utility.
+Auto-REST is designed to support any database driver compatible with the SQLAlchemy framework.
+To add support for a new driver, install it in the same environment as the Auto-REST utility.
 
 !!! danger "Important: Driver Support"
 
-    SQLAlchemy does not enforce minimum feature requirements for database drivers
+    SQLAlchemy does not enforce minimum feature requirements for database drivers.
     Some drivers may omit functionality or expose limitations inherent to the underlying DBMS.
     As a result, specific Auto-REST features may be unavailable when unsupported by the selected driver.
     
