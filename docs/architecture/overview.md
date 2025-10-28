@@ -8,9 +8,9 @@ Auto-REST is built on three key frameworks.
 
 ## Package Architecture
 
-Auto-REST uses a functional programming paradigm with heavy use of the factory design pattern.
-In this approach, factory functions are used to dynamically generate application components on an as-needed basis.
-This enables a flexible architecture capable of adapting to the underlying database structure.
+Auto-REST uses a functional programming paradigm with heavy emphasis on the factory design pattern.
+Inder this approach, factory functions are used to dynamically generate application components on an as-needed basis.
+This enables a flexible architecture capable of adapting to the target database and its schema.
 
 Functions are grouped together into modules based on their common responsibilities.
 The `__main__` module serves as the application entry point triggered by the command line.
