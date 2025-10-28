@@ -54,6 +54,11 @@ map the database schema, and deploy a customized API server.
         auto-rest --mssql --db-host localhost --db-port 1433 --db-name my_database
         ```
 
+The Auto-REST server automatically produces an OpenAPI specification for the deployed API.
+Users can access the API's interactive documentation via the `/docs/` endpoint or the raw JSON specification at `/openapi.json`.
+Administrators should review the generated documentation to verify all database tables are correctly represented within
+the API.
+
 ## Using Custom Drivers
 
 Users can extend Auto-REST to support additional database systems using third party drivers.
@@ -84,13 +89,13 @@ All values in the file are directly passed as arguments to the underlying `sqlal
 
 ## Customizing Application Info
 
-The application title and version number are both configurable at runtime.
+The API name and version number are both configurable at runtime.
 These values are reflected across multiple endpoints, including the dynamically generated OpenAPI documentation.
-By default, the application title is set to `Auto-REST` and the version is set to the current Auto-REST version.
+By default, the API title is set to `Auto-REST` and the version is set to the current Auto-REST version.
 
 !!! example "Example: Customizing Application Info"
 
-    Use the `--app-title` and `--app-version` arguments to customize the application name and version.
+    Use the `--app-title` and `--app-version` arguments to customize the API name and version.
 
     ```shell
     auto-rest --app-title "My Application Name" --app-version 1.2.3 ...
