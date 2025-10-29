@@ -6,8 +6,11 @@ which force interface fields to be optional or read only.
 
 !!! example "Example: Creating an Interface"
 
-    The `create_interface_default` method creates an interface class
-    based on a SQLAlchemy table.
+    The `create_interface` method creates a Pydantic interface class derived
+    from a SQLAlchemy table. By default, interface fields are marked as
+    required based on the underlying schema. The `mode` argument is used to
+    override field definitions and make all fields in the interface either
+    `optional` or `required` regardless of the schema definition.
 
     ```python
     default_interface = create_interface(database_model)
