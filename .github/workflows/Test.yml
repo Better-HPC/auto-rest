@@ -13,48 +13,50 @@ jobs:
 
     services:
       mysql:
-        image: mysql
+        image: mysql:latest
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: testdb
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpass
         ports: [ "3306:3306" ]
         options: >-
-          --health-cmd "mysqladmin ping -h localhost -proot"
+          --health-cmd "mysqladmin ping -h localhost -ptestpass"
           --health-interval 5s
           --health-timeout 2s
           --health-retries 5
 
       postgres:
-        image: postgres
+        image: postgres:latest
         env:
-          POSTGRES_USER: root
-          POSTGRES_PASSWORD: root
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
           POSTGRES_DB: testdb
         ports: [ "5432:5432" ]
         options: >-
-          --health-cmd "pg_isready -U root"
+          --health-cmd "pg_isready -U testuser"
           --health-interval 5s
           --health-timeout 2s
           --health-retries 5
 
       mssql:
-        image: mcr.microsoft.com/mssql/server
+        image: mcr.microsoft.com/mssql/server:2022-latest
         env:
           ACCEPT_EULA: "Y"
-          SA_PASSWORD: "SqlPassword123!"
+          SA_PASSWORD: "StrongPassword123!"
         ports: [ "1433:1433" ]
         options: >-
-          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P SqlPassword123! -Q 'select 1'"
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P StrongPassword123! -Q 'select 1'"
           --health-interval 10s
           --health-timeout 3s
           --health-retries 5
 
       oracle:
-        image: gvenzl/oracle-xe
+        image: gvenzl/oracle-xe:21.3.0-slim
         env:
-          ORACLE_PASSWORD: oracle
           APP_USER: testuser
-          APP_USER_PASSWORD: oracle
+          APP_USER_PASSWORD: testpass
+          ORACLE_PASSWORD: testpass
         ports: [ "1521:1521" ]
         options: >-
           --health-cmd "/opt/oracle/checkDBStatus.sh"
@@ -63,42 +65,43 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
-
-        # Install tooling needed for all DBs
-      - name: Install Clients
+      - name: Install database clients
         run: |
           sudo apt-get update
           sudo apt-get install -y mysql-client postgresql-client unixodbc-dev freetds-bin
-          
-          - name: Initialize Databases
-            run: |
-              case "${{ matrix.db }}" in
-          
-              sqlite)
-                sqlite3 test.db < tests/seed/init.sql
-                ;;
-                      
-              mysql)
-                mysql -h 127.0.0.1 -uroot -proot testdb < tests/seed/init.sql
-                ;;
-          
-              postgres)
-                psql postgresql://root:root@127.0.0.1:5432/testdb \
-                  -f tests/seed/init.sql
-                ;;
-          
-              mssql)
-                /opt/mssql-tools/bin/sqlcmd \
-                  -S 127.0.0.1 -U sa -P SqlPassword123! \
-                  -i tests/seed/init.sql
-                ;;
-          
-              oracle)
-                sqlplus testuser/oracle@//127.0.0.1/XEPDB1 @tests/seed/init.sql
-                ;;
-          
-              esac
+
+      - name: Initialize Databases
+        run: |
+          case "${{ matrix.db }}" in
+
+          sqlite)
+            sqlite3 test.db < tests/seed/init.sql
+            ;;
+
+          mysql)
+            mysql -h 127.0.0.1 -utestuser -ptestpass testdb < tests/seed/init.sql
+            ;;
+
+          postgres)
+            psql postgres://testuser:testpass@127.0.0.1:5432/testdb \
+              -f tests/seed/init.sql
+            ;;
+
+          mssql)
+            # Create testuser
+            /opt/mssql-tools18/bin/sqlcmd -C \
+              -S 127.0.0.1 -U sa -P StrongPassword123! \
+              -Q "CREATE LOGIN testuser WITH PASSWORD='testpass'; CREATE USER testuser FOR LOGIN testuser; ALTER ROLE db_owner ADD MEMBER testuser;"
+            /opt/mssql-tools18/bin/sqlcmd -C \
+              -S 127.0.0.1 -U testuser -P testpass \
+              -i tests/seed/init.sql
+            ;;
+
+          oracle)
+            sqlplus testuser/testpass@//127.0.0.1/XEPDB1 @tests/seed/init.sql
+            ;;
+
+          esac
 
   unit-tests:
     name: Unit Tests
