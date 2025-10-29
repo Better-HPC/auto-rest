@@ -11,64 +11,96 @@ jobs:
       matrix:
         db: [ sqlite, mysql, postgres, mssql, oracle ]
 
-    services:
-      mysql:
-        image: mysql:latest
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: testdb
-          MYSQL_USER: testuser
-          MYSQL_PASSWORD: testpass
-        ports: [ "3306:3306" ]
-        options: >-
-          --health-cmd "mysqladmin ping -h localhost -ptestpass"
-          --health-interval 5s
-          --health-timeout 2s
-          --health-retries 5
-
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: testdb
-        ports: [ "5432:5432" ]
-        options: >-
-          --health-cmd "pg_isready -U testuser"
-          --health-interval 5s
-          --health-timeout 2s
-          --health-retries 5
-
-      mssql:
-        image: mcr.microsoft.com/mssql/server:2022-latest
-        env:
-          ACCEPT_EULA: "Y"
-          SA_PASSWORD: "StrongPassword123!"
-        ports: [ "1433:1433" ]
-        options: >-
-          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P StrongPassword123! -Q 'select 1'"
-          --health-interval 10s
-          --health-timeout 3s
-          --health-retries 5
-
-      oracle:
-        image: gvenzl/oracle-xe:21.3.0-slim
-        env:
-          APP_USER: testuser
-          APP_USER_PASSWORD: testpass
-          ORACLE_PASSWORD: testpass
-        ports: [ "1521:1521" ]
-        options: >-
-          --health-cmd "/opt/oracle/checkDBStatus.sh"
-          --health-interval 10s
-          --health-timeout 3s
-          --health-retries 5
-
     steps:
       - name: Install database clients
         run: |
           sudo apt-get update
-          sudo apt-get install -y mysql-client postgresql-client unixodbc-dev freetds-bin
+          sudo apt-get install -y \
+            mysql-client \
+            postgresql-client \
+            unixodbc-dev \
+            freetds-bin \
+            sqlcmd \
+            sqlite3
+
+      - name: Launch ${matrix.db} container
+        run: |
+          case "${{ matrix.db }}" in
+
+          mysql)
+            docker run -d --name db -p 3306:3306 \
+              -e MYSQL_ROOT_PASSWORD=root \
+              -e MYSQL_DATABASE=testdb \
+              -e MYSQL_USER=testuser \
+              -e MYSQL_PASSWORD=testpass \
+              mysql:latest
+            ;;
+
+          postgres)
+            docker run -d --name db -p 5432:5432 \
+              -e POSTGRES_USER=testuser \
+              -e POSTGRES_PASSWORD=testpass \
+              -e POSTGRES_DB=testdb \
+              postgres:latest
+            ;;
+
+          mssql)
+            docker run -d --name db -p 1433:1433 \
+              -e ACCEPT_EULA=Y \
+              -e SA_PASSWORD=StrongPassword123! \
+              mcr.microsoft.com/mssql/server:2022-latest
+            ;;
+
+          oracle)
+            docker run -d --name db -p 1521:1521 \
+              -e APP_USER=testuser \
+              -e APP_USER_PASSWORD=testpass \
+              -e ORACLE_PASSWORD=testpass \
+              gvenzl/oracle-xe:21.3.0-slim
+            ;;
+
+          sqlite)
+            # No container required
+            ;;
+          esac
+
+      - name: Wait for database readiness
+        run: |
+          case "${{ matrix.db }}" in
+
+          mysql)
+            for i in {1..30}; do
+              mysqladmin ping -h127.0.0.1 -ptestpass && break
+              sleep 2
+            done
+            ;;
+
+          postgres)
+            for i in {1..30}; do
+              pg_isready -U testuser -h127.0.0.1 && break
+              sleep 2
+            done
+            ;;
+
+          mssql)
+            for i in {1..30}; do
+              /opt/mssql-tools18/bin/sqlcmd -C \
+                -S 127.0.0.1 -U sa -P StrongPassword123! \
+                -Q "SELECT 1" && break
+              sleep 2
+            done
+            ;;
+
+          oracle)
+            for i in {1..60}; do
+              docker logs db 2>&1 | grep -q "DATABASE IS READY TO USE" && break
+              sleep 5
+            done
+            ;;
+
+          sqlite)
+            ;;
+          esac
 
       - name: Initialize Databases
         run: |
@@ -79,7 +111,7 @@ jobs:
             ;;
 
           mysql)
-            mysql -h 127.0.0.1 -utestuser -ptestpass testdb < tests/seed/init.sql
+            mysql -h127.0.0.1 -utestuser -ptestpass testdb < tests/seed/init.sql
             ;;
 
           postgres)
@@ -88,10 +120,12 @@ jobs:
             ;;
 
           mssql)
-            # Create testuser
             /opt/mssql-tools18/bin/sqlcmd -C \
               -S 127.0.0.1 -U sa -P StrongPassword123! \
-              -Q "CREATE LOGIN testuser WITH PASSWORD='testpass'; CREATE USER testuser FOR LOGIN testuser; ALTER ROLE db_owner ADD MEMBER testuser;"
+              -Q "CREATE LOGIN testuser WITH PASSWORD='testpass';
+                  CREATE USER testuser FOR LOGIN testuser;
+                  ALTER ROLE db_owner ADD MEMBER testuser;"
+
             /opt/mssql-tools18/bin/sqlcmd -C \
               -S 127.0.0.1 -U testuser -P testpass \
               -i tests/seed/init.sql
