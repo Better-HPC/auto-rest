@@ -18,9 +18,6 @@ jobs:
           sudo apt-get install -y \
             mysql-client \
             postgresql-client \
-            unixodbc-dev \
-            freetds-bin \
-            sqlcmd \
             sqlite3
 
       - name: Launch ${matrix.db} container
