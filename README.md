@@ -9,7 +9,7 @@ Auto-REST provides built-in support for the database types listed below.
 Support for additional databases can be added by installing the corresponding database drivers.
 See the official documentation for instructions.
 
-| Flag       | Default Driver               | Database Type        |
+| CLI Flag   | Default Driver               | Database Type        |
 |------------|------------------------------|----------------------|
 | `--sqlite` | `sqlite+aiosqlite`           | SQLite               |
 | `--psql`   | `postgresql+asyncpg`         | PostgreSQL           |
@@ -20,19 +20,19 @@ See the official documentation for instructions.
 
 ## Quickstart
 
-Install the command line utility using your favorite Python package manager.
+Install the CLI using your preferred Python package manager:
 
 ```shell
 pipx install auto-rest-api
 ```
 
-Check the package installed correctly.
+Verify that the installation completed successfully:
 
 ```shell
 auto-rest --help
 ```
 
-Launch an API by providing connection arguments to a database of your choice.
+Launch an API by supplying connection parameters for your target database:
 
 ```shell
 auto-rest \
@@ -44,4 +44,4 @@ auto-rest \
   --db-password secure123!
 ```
 
-Navigate `localhost:8081/docs/` to view the OpenAPI documentation for your dynamically generated REST API!
+Navigate to `localhost:8081/docs/` and view the OpenAPI documentation for your dynamically generated REST API!
