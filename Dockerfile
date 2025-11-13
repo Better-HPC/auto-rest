@@ -1,9 +1,19 @@
-FROM python:3.11-slim
+FROM python:3.11-alpine AS build
+
+WORKDIR /build
+COPY . .
+
+# Install build dependencies and compile source
+RUN apk add --no-cache gcc musl-dev python3-dev libffi-dev
+RUN pip wheel --no-cache-dir --wheel-dir /wheels .
+
+FROM python:3.11-alpine
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-COPY . /build
-RUN pip install /build && rm -rf /build
+COPY --from=build /wheels /wheels
+
+RUN pip install --no-compile --no-cache-dir /wheels/* && rm -rf /wheels
 
 ENTRYPOINT ["auto-rest"]
