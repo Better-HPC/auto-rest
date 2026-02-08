@@ -36,26 +36,6 @@ jobs:
           poetry run coverage report --omit="tests/*"
           poetry run coverage xml --omit="tests/*" -o coverage.xml
 
-      - name: Report partial coverage results
-        if: github.event_name != 'release'
-        shell: bash
-        run: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --partial -l Python -r coverage.xml
-        env:
-          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-
-  # Tell codacy we are done reporting test coverage
-  report-code-coverage:
-    name: Report Coverage
-    needs: unit-tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Finish reporting coverage
-        shell: bash
-        run: bash <(curl -Ls https://coverage.codacy.com/get.sh) final
-        env:
-          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
-
   report-test-status:
     name: Report Test Status
     runs-on: ubuntu-latest
