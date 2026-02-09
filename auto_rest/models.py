@@ -32,7 +32,7 @@ connection and session handling are configured accordingly.
 import asyncio
 import logging
 from pathlib import Path
-from typing import AsyncGenerator, Callable, Generator
+from typing import Any, AsyncGenerator, Callable, Generator
 
 import yaml
 from sqlalchemy import create_engine, Engine, MetaData, URL
@@ -56,7 +56,7 @@ DBEngine = Engine | AsyncEngine
 DBSession = Session | AsyncSession
 
 
-def parse_db_settings(path: Path | None) -> dict[str, any]:
+def parse_db_settings(path: Path | None) -> dict[str, Any]:
     """Parse engine configuration settings from a given file path.
 
     Args:
@@ -68,7 +68,7 @@ def parse_db_settings(path: Path | None) -> dict[str, any]:
 
     if path is not None:
         logger.debug(f"Parsing engine configuration from {path}.")
-        return yaml.safe_load(path.read_text()) or dict()
+        return yaml.safe_load(path.read_text()) or {}
 
     logger.debug("No configuration file specified.")
     return {}

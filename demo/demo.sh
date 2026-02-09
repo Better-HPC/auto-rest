@@ -10,7 +10,7 @@ WORK_DIR=$(dirname "$0")
 DEMO_DATA="$WORK_DIR/data.sql"
 DB_NAME="$WORK_DIR/blog.db"
 
-if [ -f "$DB_NAME" ]; then
+if [[ -f "$DB_NAME" ]]; then
 
   # Only overwrite existing database with user permission
   read -p "The file '$DB_NAME' already exists. Do you want to replace it? (y/N): " choice

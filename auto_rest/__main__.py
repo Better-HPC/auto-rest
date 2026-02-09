@@ -44,7 +44,7 @@ def run_application(cli_args: list[str] = None, /) -> None:  # pragma: no cover
     args = create_cli_parser().parse_args(cli_args)
     configure_cli_logging(args.log_level)
 
-    logger.info(f"Resolving database connection settings.")
+    logger.info("Resolving database connection settings.")
     db_kwargs = parse_db_settings(args.db_config)
     db_url = create_db_url(
         driver=args.db_driver,

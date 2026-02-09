@@ -48,7 +48,7 @@ class TestCreateInterface(unittest.TestCase):
 
         self.assertEqual(PydanticUndefined, interface.model_fields["id1"].default)
         self.assertEqual(PydanticUndefined, interface.model_fields["id2"].default)
-        self.assertEqual(None, interface.model_fields["str_nul"].default)
+        self.assertIsNone(interface.model_fields["str_nul"].default)
         self.assertEqual(PydanticUndefined, interface.model_fields["str_req"].default)
         self.assertEqual(5, interface.model_fields["float_nul_default"].default)
         self.assertEqual(5, interface.model_fields["float_req_default"].default)
@@ -66,10 +66,10 @@ class TestCreateInterface(unittest.TestCase):
 
         interface = create_interface(self.table, mode="optional")
 
-        self.assertEqual(None, interface.model_fields["id1"].default)
-        self.assertEqual(None, interface.model_fields["id2"].default)
-        self.assertEqual(None, interface.model_fields["str_nul"].default)
-        self.assertEqual(None, interface.model_fields["str_req"].default)
+        self.assertIsNone(interface.model_fields["id1"].default)
+        self.assertIsNone(interface.model_fields["id2"].default)
+        self.assertIsNone(interface.model_fields["str_nul"].default)
+        self.assertIsNone(interface.model_fields["str_req"].default)
         self.assertEqual(5, interface.model_fields["float_nul_default"].default)
         self.assertEqual(5, interface.model_fields["float_req_default"].default)
         self.assertEqual(date.today(), interface.model_fields["date_func"].default(None))
