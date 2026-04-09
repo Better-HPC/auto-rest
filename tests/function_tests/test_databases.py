@@ -1,7 +1,7 @@
 """Functional tests for each supported database type.
 
 Each class wires up the CLI args for its database. The shared test logic
-lives in AutoRestFunctionalTestBase. Add DB-specific tests here by
+lives in AutoRestMetadataEndpointTests, FunctionalTestBase. Add DB-specific tests here by
 overriding or extending within the relevant class.
 
 Environment variables used (all have defaults for local dev):
@@ -14,14 +14,14 @@ Environment variables used (all have defaults for local dev):
 
 import os
 
-from .base import AutoRestFunctionalTestBase
+from .base import FunctionalTestBase, MetadataEndpointTests
 
 
 def _env(key: str, default: str) -> str:
     return os.environ.get(key, default)
 
 
-class TestSQLite(AutoRestFunctionalTestBase):
+class TestSQLite(MetadataEndpointTests, FunctionalTestBase):
     """Functional tests against a SQLite database."""
 
     port = 8081
@@ -31,7 +31,7 @@ class TestSQLite(AutoRestFunctionalTestBase):
     ]
 
 
-class TestPostgreSQL(AutoRestFunctionalTestBase):
+class TestPostgreSQL(MetadataEndpointTests, FunctionalTestBase):
     """Functional tests against a PostgreSQL database."""
 
     port = 8082
@@ -45,7 +45,7 @@ class TestPostgreSQL(AutoRestFunctionalTestBase):
     ]
 
 
-class TestMySQL(AutoRestFunctionalTestBase):
+class TestMySQL(MetadataEndpointTests, FunctionalTestBase):
     """Functional tests against a MySQL database."""
 
     port = 8083
@@ -59,7 +59,7 @@ class TestMySQL(AutoRestFunctionalTestBase):
     ]
 
 
-class TestMSSQL(AutoRestFunctionalTestBase):
+class TestMSSQL(MetadataEndpointTests, FunctionalTestBase):
     """Functional tests against a Microsoft SQL Server database."""
 
     port = 8084

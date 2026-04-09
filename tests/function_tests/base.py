@@ -8,7 +8,7 @@ from typing import ClassVar
 import requests
 
 
-class AutoRestFunctionalTestBase(unittest.TestCase):
+class FunctionalTestBase(unittest.TestCase):
     """Base class for functional tests against a running auto-rest server.
 
     Subclasses must define `cli_args` with the full list of CLI arguments
@@ -44,6 +44,7 @@ class AutoRestFunctionalTestBase(unittest.TestCase):
             cls._process.terminate()
             try:
                 cls._process.wait(timeout=10)
+
             except subprocess.TimeoutExpired:
                 cls._process.kill()
 
@@ -57,46 +58,50 @@ class AutoRestFunctionalTestBase(unittest.TestCase):
                 r = requests.get(cls.base_url() + "/", timeout=1)
                 if r.status_code == 200:
                     return
+
             except requests.ConnectionError:
                 pass
+
             time.sleep(0.5)
 
         cls._process.kill()
-        raise RuntimeError(f"auto-rest did not start within {cls.startup_timeout}s. "
-                           f"stderr: {cls._process.stderr.read().decode()}")
+        raise RuntimeError(
+            f"auto-rest did not start within {cls.startup_timeout}s. "
+            f"stderr: {cls._process.stderr.read().decode()}")
 
-    # ------------------------------------------------------------------
-    # Reusable assertions shared across all DB test classes
-    # ------------------------------------------------------------------
+
+class MetadataEndpointTests:
 
     def test_welcome_endpoint(self) -> None:
-        """GET / returns a welcome message."""
+        """Verify GET `/` returns a welcome message."""
 
         r = requests.get(self.base_url() + "/")
         self.assertEqual(r.status_code, 200)
         self.assertIn("message", r.json())
 
     def test_meta_app_endpoint(self) -> None:
-        """GET /meta/app/ returns name and version fields."""
+        """Verify GET `/meta/app/` returns name and version fields."""
 
         r = requests.get(self.base_url() + "/meta/app/")
         self.assertEqual(r.status_code, 200)
+
         body = r.json()
         self.assertIn("name", body)
         self.assertIn("version", body)
 
     def test_meta_engine_endpoint(self) -> None:
-        """GET /meta/engine/ returns dialect, driver, and database fields."""
+        """Verify GET `/meta/engine/` returns dialect, driver, and database fields."""
 
         r = requests.get(self.base_url() + "/meta/engine/")
         self.assertEqual(r.status_code, 200)
+
         body = r.json()
         self.assertIn("dialect", body)
         self.assertIn("driver", body)
         self.assertIn("database", body)
 
     def test_meta_schema_endpoint(self) -> None:
-        """GET /meta/schema/ returns a tables object."""
+        """Verify GET `/meta/schema/` returns a tables object."""
 
         r = requests.get(self.base_url() + "/meta/schema/")
         self.assertEqual(r.status_code, 200)
