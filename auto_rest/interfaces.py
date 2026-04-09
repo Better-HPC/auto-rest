@@ -53,7 +53,7 @@ def create_field_definition(col: Column, mode: MODE_TYPE = "default") -> tuple[t
     values to enforce different behavior in the generated Pydantic interface.
 
     Modes:
-        default: Values are marked as (not)required based on the column schema.
+        default: Values are marked as (not) required based on the column schema.
         required: Values are always marked required.
         optional: Values are always marked optional.
 
