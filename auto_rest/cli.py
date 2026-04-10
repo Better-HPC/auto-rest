@@ -141,7 +141,7 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
     db_type.add_argument("--psql", action="store_const", dest="db_driver", const="postgresql+asyncpg", help="use a PostgreSQL database driver.")
     db_type.add_argument("--mysql", action="store_const", dest="db_driver", const="mysql+aiomysql", help="use a MySQL database driver.")
     db_type.add_argument("--oracle", action="store_const", dest="db_driver", const="oracle+oracledb", help="use an Oracle database driver.")
-    db_type.add_argument("--mssql", action="store_const", dest="db_driver", const="mssql+pymssql", help="use a Microsoft database driver.")
+    db_type.add_argument("--mssql", action="store_const", dest="db_driver", const="mssql+mssqlpython", help="use a Microsoft database driver.")
     db_type.add_argument("--driver", action="store", dest="db_driver", help="use a custom database driver.")
 
     database = parser.add_argument_group("database settings")

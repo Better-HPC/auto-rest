@@ -27,7 +27,7 @@ classifiers = [
 requires-python = ">=3.11,<4"
 dependencies = [
     "aiomysql==0.3.2",
-    "pymssql==2.3.13",
+    "mssql-python==1.5.0",
     "aiosqlite==0.22.1",
     "asgi-correlation-id==4.3.4",
     "asyncpg==0.31.0",
