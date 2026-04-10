@@ -52,7 +52,7 @@ class TestCreateCliParser(TestCase):
             "psql": "postgresql+asyncpg",
             "mysql": "mysql+aiomysql",
             "oracle": "oracle+oracledb",
-            "mssql": "mssql+aioodbc",
+            "mssql": "mssql+pymssql",
         }
 
         # Test built in drivers
