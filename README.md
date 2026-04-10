@@ -13,9 +13,9 @@ See the official documentation for instructions.
 |------------|------------------------------|----------------------|
 | `--sqlite` | `sqlite+aiosqlite`           | SQLite               |
 | `--psql`   | `postgresql+asyncpg`         | PostgreSQL           |
-| `--mysql`  | `mysql+asyncmy`              | MySQL                |
+| `--mysql`  | `mysql+aiomysql`             | MySQL                |
 | `--oracle` | `oracle+oracledb`            | Oracle               |
-| `--mssql`  | `mssql+aiomysql`             | Microsoft SQL Server |
+| `--mssql`  | `mssql+pymssql`              | Microsoft SQL Server |
 | `--driver` | Custom driver (user-defined) | Custom               |
 
 ## Quickstart
