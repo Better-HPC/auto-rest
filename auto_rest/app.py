@@ -90,9 +90,12 @@ def create_app(app_title: str, app_version: str) -> FastAPI:
 
     app.middleware("http")(logging_middleware)
     app.add_middleware(CorrelationIdMiddleware)
+
+    # CORS is intentionally permissive here. Origin restrictions and credential
+    # handling should be enforced at the proxy level, not the application level.
     app.add_middleware(
         CORSMiddleware,
-        allow_credentials=True,
+        allow_credentials=False,
         allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],
