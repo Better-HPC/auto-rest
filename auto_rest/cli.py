@@ -30,6 +30,7 @@ Python `logging` library.
     ```
 """
 
+import functools
 import importlib.metadata
 import logging.config
 from argparse import ArgumentParser, HelpFormatter
@@ -118,7 +119,7 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
         An argument parser instance.
     """
 
-    formatter = lambda prog: HelpFormatter(prog, max_help_position=29)
+    formatter = functools.partial(HelpFormatter, max_help_position=29)
     parser = ArgumentParser(
         prog="auto-rest",
         description="Automatically map database schemas and deploy per-table REST API endpoints.",
