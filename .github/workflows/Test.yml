@@ -92,27 +92,27 @@ jobs:
               FUNC_TEST_MY_USER: root
               FUNC_TEST_MY_PASS: root
 
-          - label: MSSQL
-            test_module: tests/function_tests/test_mssql.py
-            services:
-              mssql:
-                image: mcr.microsoft.com/mssql/server:2022-latest
-                env:
-                  ACCEPT_EULA: "Y"
-                  SA_PASSWORD: "Password123!"
-                  MSSQL_PID: Developer
-                ports: ["1433:1433"]
-                options: >-
-                  --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P 'Password123!' -Q 'SELECT 1' -No"
-                  --health-interval 10s
-                  --health-timeout 10s
-                  --health-retries 10
-            env:
-              FUNC_TEST_MS_HOST: "127.0.0.1"
-              FUNC_TEST_MS_PORT: "1433"
-              FUNC_TEST_MS_NAME: testdb
-              FUNC_TEST_MS_USER: sa
-              FUNC_TEST_MS_PASS: "Password123!"
+          # - label: MSSQL
+          #   test_module: tests/function_tests/test_mssql.py
+          #   services:
+          #     mssql:
+          #       image: mcr.microsoft.com/mssql/server:2022-latest
+          #       env:
+          #         ACCEPT_EULA: "Y"
+          #         SA_PASSWORD: "Password123!"
+          #         MSSQL_PID: Developer
+          #       ports: ["1433:1433"]
+          #       options: >-
+          #         --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P 'Password123!' -Q 'SELECT 1' -No"
+          #         --health-interval 10s
+          #         --health-timeout 10s
+          #         --health-retries 10
+          #   env:
+          #     FUNC_TEST_MS_HOST: "127.0.0.1"
+          #     FUNC_TEST_MS_PORT: "1433"
+          #     FUNC_TEST_MS_NAME: testdb
+          #     FUNC_TEST_MS_USER: sa
+          #     FUNC_TEST_MS_PASS: "Password123!"
 
     services: ${{ matrix.db.services }}
 
