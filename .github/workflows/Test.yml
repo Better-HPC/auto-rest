@@ -32,14 +32,115 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          poetry run coverage run -m unittest discover 
-          poetry run coverage report --omit="tests/*"
-          poetry run coverage xml --omit="tests/*" -o coverage.xml
+          poetry run coverage run -m unittest discover tests/unit_tests
+          poetry run coverage report --omit="tests/unit_tests/*"
+          poetry run coverage xml --omit="tests/unit_tests/*" -o coverage.xml
+
+  function-tests:
+    name: ${{ matrix.db.label }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        db:
+          - label: SQLite
+            test_module: tests/function_tests/test_sqlite.py
+            services: {}
+            env: {}
+
+          - label: PostgreSQL
+            test_module: tests/function_tests/test_postgresql.py
+            services:
+              postgres:
+                image: postgres:16
+                env:
+                  POSTGRES_DB: testdb
+                  POSTGRES_USER: postgres
+                  POSTGRES_PASSWORD: postgres
+                ports: ["5432:5432"]
+                options: >-
+                  --health-cmd pg_isready
+                  --health-interval 5s
+                  --health-timeout 5s
+                  --health-retries 10
+            env:
+              FUNC_TEST_PG_HOST: "127.0.0.1"
+              FUNC_TEST_PG_PORT: "5432"
+              FUNC_TEST_PG_NAME: testdb
+              FUNC_TEST_PG_USER: postgres
+              FUNC_TEST_PG_PASS: postgres
+
+          - label: MySQL
+            test_module: tests/function_tests/test_mysql.py
+            services:
+              mysql:
+                image: mysql:8
+                env:
+                  MYSQL_DATABASE: testdb
+                  MYSQL_ROOT_PASSWORD: root
+                ports: ["3306:3306"]
+                options: >-
+                  --health-cmd "mysqladmin ping -h 127.0.0.1"
+                  --health-interval 5s
+                  --health-timeout 5s
+                  --health-retries 10
+            env:
+              FUNC_TEST_MY_HOST: "127.0.0.1"
+              FUNC_TEST_MY_PORT: "3306"
+              FUNC_TEST_MY_NAME: testdb
+              FUNC_TEST_MY_USER: root
+              FUNC_TEST_MY_PASS: root
+
+          # - label: MSSQL
+          #   test_module: tests/function_tests/test_mssql.py
+          #   services:
+          #     mssql:
+          #       image: mcr.microsoft.com/mssql/server:2022-latest
+          #       env:
+          #         ACCEPT_EULA: "Y"
+          #         SA_PASSWORD: "Password123!"
+          #         MSSQL_PID: Developer
+          #       ports: ["1433:1433"]
+          #       options: >-
+          #         --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P 'Password123!' -Q 'SELECT 1' -No"
+          #         --health-interval 10s
+          #         --health-timeout 10s
+          #         --health-retries 10
+          #   env:
+          #     FUNC_TEST_MS_HOST: "127.0.0.1"
+          #     FUNC_TEST_MS_PORT: "1433"
+          #     FUNC_TEST_MS_NAME: testdb
+          #     FUNC_TEST_MS_USER: sa
+          #     FUNC_TEST_MS_PASS: "Password123!"
+
+    services: ${{ matrix.db.services }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: false
+
+      - name: Install dependencies
+        run: poetry install --with tests
+
+      - name: Run function tests (${{ matrix.db.label }})
+        env: ${{ matrix.db.env }}
+        run: python -m unittest ${{ matrix.db.test_module }}
 
   report-test-status:
     name: Report Test Status
     runs-on: ubuntu-latest
-    needs: [ unit-tests ]
+    needs: [ unit-tests, function-tests ]
     if: always()
 
     steps:
