@@ -45,10 +45,12 @@ jobs:
       matrix:
         db:
           - label: SQLite
+            test_module: tests/function_tests/test_sqlite.py
             services: {}
             env: {}
 
           - label: PostgreSQL
+            test_module: tests/function_tests/test_psql.py
             services:
               postgres:
                 image: postgres:16
@@ -70,6 +72,7 @@ jobs:
               FUNC_TEST_PG_PASS: postgres
 
           - label: MySQL
+            test_module: tests/function_tests/test_mysql.py
             services:
               mysql:
                 image: mysql:8
@@ -90,6 +93,7 @@ jobs:
               FUNC_TEST_MY_PASS: root
 
           - label: MSSQL
+            test_module: tests/function_tests/test_mssql.py
             services:
               mssql:
                 image: mcr.microsoft.com/mssql/server:2022-latest
@@ -129,17 +133,9 @@ jobs:
       - name: Install dependencies
         run: poetry install --with tests
 
-      - name: Create MSSQL test database
-        if: matrix.db.label == 'MSSQL'
-        run: |
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S 127.0.0.1 -U sa -P 'Password123!' \
-            -Q "CREATE DATABASE testdb" -No
-
       - name: Run function tests (${{ matrix.db.label }})
         env: ${{ matrix.db.env }}
-        run: |
-          python -m unittest discover -s tests/function_tests
+        run: python -m unittest ${{ matrix.db.test_module }}
 
   report-test-status:
     name: Report Test Status
