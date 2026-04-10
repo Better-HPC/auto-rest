@@ -32,9 +32,9 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          poetry run coverage run -m unittest discover 
-          poetry run coverage report --omit="tests/*"
-          poetry run coverage xml --omit="tests/*" -o coverage.xml
+          poetry run coverage run -m unittest discover tests/unit_tests
+          poetry run coverage report --omit="tests/unit_tests/*"
+          poetry run coverage xml --omit="tests/unit_tests/*" -o coverage.xml
 
   function-tests:
     name: ${{ matrix.db.label }}
@@ -139,7 +139,7 @@ jobs:
       - name: Run function tests (${{ matrix.db.label }})
         env: ${{ matrix.db.env }}
         run: |
-          python -m unittest discover -s tests/function_tests -v
+          python -m unittest discover -s tests/function_tests
 
   report-test-status:
     name: Report Test Status

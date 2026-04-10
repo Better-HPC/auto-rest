@@ -2,7 +2,7 @@
 
 import os
 
-from .base import FunctionalTestBase, MetadataEndpointTests
+from tests.function_tests.base import FunctionalTestBase, MetadataEndpointTests
 
 
 def _env(key: str, default: str) -> str:
