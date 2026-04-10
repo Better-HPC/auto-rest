@@ -50,9 +50,9 @@ class TestCreateCliParser(TestCase):
         db_drivers = {
             "sqlite": "sqlite+aiosqlite",
             "psql": "postgresql+asyncpg",
-            "mysql": "mysql+asyncmy",
+            "mysql": "mysql+aiomysql",
             "oracle": "oracle+oracledb",
-            "mssql": "mssql+aiomysql",
+            "mssql": "mssql+aioodbc",
         }
 
         # Test built in drivers
