@@ -32,7 +32,7 @@ Default drivers and their corresponding database systems are listed in the table
 | PostgreSQL           | `postgresql+asyncpg` |
 | MySQL                | `mysql+aiomysql`     |
 | Oracle               | `oracle+oracledb`    |
-| Microsoft SQL Server | `mssql+mssqlpython`  |
+| Microsoft SQL Server | `mssql+pymssql`      |
 
 Auto-REST is designed to support any database driver compatible with the SQLAlchemy framework.
 To add support for a new driver, install it in the same environment as the Auto-REST utility.

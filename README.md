@@ -15,7 +15,7 @@ See the official documentation for instructions.
 | `--psql`   | `postgresql+asyncpg`         | PostgreSQL           |
 | `--mysql`  | `mysql+aiomysql`             | MySQL                |
 | `--oracle` | `oracle+oracledb`            | Oracle               |
-| `--mssql`  | `mssql+mssqlpython`          | Microsoft SQL Server |
+| `--mssql`  | `mssql+pymssql`              | Microsoft SQL Server |
 | `--driver` | Custom driver (user-defined) | Custom               |
 
 ## Quickstart
