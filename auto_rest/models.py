@@ -164,7 +164,7 @@ def create_db_metadata(engine: DBEngine) -> MetaData:
         asyncio.run(_async_reflect_metadata(engine, metadata))
 
     else:
-        metadata.reflect(bind=engine, views=True)
+        metadata.reflect(engine, views=True)
 
     return metadata
 
@@ -186,12 +186,12 @@ def create_session_iterator(engine: DBEngine) -> Callable[[], Generator[Session,
 
     if isinstance(engine, AsyncEngine):
         async def session_iterator() -> AsyncGenerator[AsyncSession, None]:
-            async with AsyncSession(bind=engine, autocommit=False, autoflush=True) as session:
+            async with AsyncSession(engine, autoflush=True) as session:
                 yield session
 
     else:
         def session_iterator() -> Generator[Session, None, None]:
-            with Session(bind=engine, autocommit=False, autoflush=True) as session:
+            with Session(engine, autoflush=True) as session:
                 yield session
 
     return session_iterator
