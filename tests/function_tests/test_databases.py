@@ -1,16 +1,4 @@
-"""Functional tests for each supported database type.
-
-Each class wires up the CLI args for its database. The shared test logic
-lives in AutoRestMetadataEndpointTests, FunctionalTestBase. Add DB-specific tests here by
-overriding or extending within the relevant class.
-
-Environment variables used (all have defaults for local dev):
-    FUNC_TEST_DB_NAME   - database name / SQLite file path
-    FUNC_TEST_DB_HOST   - database host
-    FUNC_TEST_DB_PORT   - database port (int)
-    FUNC_TEST_DB_USER   - database username
-    FUNC_TEST_DB_PASS   - database password
-"""
+"""Functional tests for each supported database type."""
 
 import os
 
@@ -18,6 +6,13 @@ from .base import FunctionalTestBase, MetadataEndpointTests
 
 
 def _env(key: str, default: str) -> str:
+    """Helper function for getting environment variables.
+
+    Args:
+        key: The environment variable name.
+        default: The value to return if a variable is not set.
+    """
+
     return os.environ.get(key, default)
 
 

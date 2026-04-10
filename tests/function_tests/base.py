@@ -1,4 +1,4 @@
-"""Base class for functional tests that spin up a live auto-rest server."""
+"""Base classes for function tests against a live database and auto-rest server."""
 
 import subprocess
 import time
@@ -26,6 +26,8 @@ class FunctionalTestBase(unittest.TestCase):
 
     @classmethod
     def base_url(cls) -> str:
+        """The base url for the deployed auto-rest server."""
+
         return f"http://{cls.host}:{cls.port}"
 
     @classmethod
@@ -71,6 +73,7 @@ class FunctionalTestBase(unittest.TestCase):
 
 
 class MetadataEndpointTests:
+    """Function tests for metadata endpoints."""
 
     def test_welcome_endpoint(self) -> None:
         """Verify GET `/` returns a welcome message."""

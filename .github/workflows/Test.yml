@@ -136,10 +136,10 @@ jobs:
             -S 127.0.0.1 -U sa -P 'Password123!' \
             -Q "CREATE DATABASE testdb" -No
 
-      - name: Run functional tests (${{ matrix.db.label }})
+      - name: Run function tests (${{ matrix.db.label }})
         env: ${{ matrix.db.env }}
         run: |
-          python -m unittest discover -s tests/functional -v
+          python -m unittest discover -s tests/function_tests -v
 
   report-test-status:
     name: Report Test Status
