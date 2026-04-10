@@ -1,4 +1,4 @@
-"""Base classes for function tests against a live database and auto-rest server."""
+"""Base classes for function tests against a live database server."""
 
 import subprocess
 import time
@@ -9,11 +9,13 @@ import requests
 
 
 class FunctionalTestBase(unittest.TestCase):
-    """Base class for functional tests against a running auto-rest server.
+    """Base class for function tests against a running database server.
 
-    Subclasses must define `cli_args` with the full list of CLI arguments
-    needed to launch auto-rest against their target database. The server
-    is started once per test class (setUpClass) and torn down afterwards.
+    Deploys an Auto-Rest server and executes function tests against the
+    dynamically generated API. Subclasses must define `cli_args` with the
+    full list of CLI arguments needed to launch `auto-rest` against the
+    target database. The server is started once per test class (setUpClass)
+    and torn down after all test methods are executed.
     """
 
     cli_args: ClassVar[list[str]] = []
@@ -22,6 +24,7 @@ class FunctionalTestBase(unittest.TestCase):
     port: ClassVar[int] = 8081
     startup_timeout: ClassVar[int] = 30  # seconds
 
+    # Track the spawned auto-rest server
     _process: ClassVar[subprocess.Popen | None] = None
 
     @classmethod
@@ -73,7 +76,7 @@ class FunctionalTestBase(unittest.TestCase):
 
 
 class MetadataEndpointTests:
-    """Function tests for metadata endpoints."""
+    """Mixin class used to execute function tests against metadata endpoints."""
 
     def test_welcome_endpoint(self) -> None:
         """Verify GET `/` returns a welcome message."""
@@ -104,7 +107,7 @@ class MetadataEndpointTests:
         self.assertIn("database", body)
 
     def test_meta_schema_endpoint(self) -> None:
-        """Verify GET `/meta/schema/` returns a tables object."""
+        """Verify GET `/meta/schema/` returns a tables field."""
 
         r = requests.get(self.base_url() + "/meta/schema/")
         self.assertEqual(r.status_code, 200)

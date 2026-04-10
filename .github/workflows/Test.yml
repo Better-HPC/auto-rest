@@ -50,7 +50,7 @@ jobs:
             env: {}
 
           - label: PostgreSQL
-            test_module: tests/function_tests/test_psql.py
+            test_module: tests/function_tests/test_postgresql.py
             services:
               postgres:
                 image: postgres:16
