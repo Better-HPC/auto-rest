@@ -122,7 +122,7 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
     formatter = functools.partial(HelpFormatter, max_help_position=29)
     parser = ArgumentParser(
         prog="auto-rest",
-        description="Automatically map database schemas and deploy per-table REST API endpoints.",
+        description="Automatically map database schemas and deploy per-table API endpoints.",
         exit_on_error=exit_on_error,
         formatter_class=formatter
     )
@@ -133,43 +133,44 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
         default="INFO",
         type=lambda x: x.upper(),
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-        help="Set the logging level."
+        help="Set the logging level"
     )
 
-    driver = parser.add_argument_group("database type")
+    driver = parser.add_argument_group("database type", description="The driver to use when connecting to the database.")
     db_type = driver.add_mutually_exclusive_group(required=True)
-    db_type.add_argument("--sqlite", action="store_const", dest="db_driver", const="sqlite+aiosqlite", help="use a SQLite database driver.")
-    db_type.add_argument("--psql", action="store_const", dest="db_driver", const="postgresql+asyncpg", help="use a PostgreSQL database driver.")
-    db_type.add_argument("--mysql", action="store_const", dest="db_driver", const="mysql+aiomysql", help="use a MySQL database driver.")
-    db_type.add_argument("--oracle", action="store_const", dest="db_driver", const="oracle+oracledb", help="use an Oracle database driver.")
-    db_type.add_argument("--mssql", action="store_const", dest="db_driver", const="mssql+pymssql", help="use a Microsoft database driver.")
-    db_type.add_argument("--driver", action="store", dest="db_driver", help="use a custom database driver.")
+    db_type.add_argument("--sqlite", action="store_const", dest="db_driver", const="sqlite+aiosqlite", help="use a SQLite database driver")
+    db_type.add_argument("--psql", action="store_const", dest="db_driver", const="postgresql+asyncpg", help="use a PostgreSQL database driver")
+    db_type.add_argument("--mysql", action="store_const", dest="db_driver", const="mysql+aiomysql", help="use a MySQL database driver")
+    db_type.add_argument("--oracle", action="store_const", dest="db_driver", const="oracle+oracledb", help="use an Oracle database driver")
+    db_type.add_argument("--mssql", action="store_const", dest="db_driver", const="mssql+pymssql", help="use a Microsoft database driver")
+    db_type.add_argument("--driver", action="store", dest="db_driver", help="use a custom database driver")
 
-    database = parser.add_argument_group("database settings")
-    database.add_argument("--db-host", help="database address to connect to.")
-    database.add_argument("--db-port", type=int, help="database port to connect to.")
-    database.add_argument("--db-name", required=True, help="database name or file path to connect to.")
-    database.add_argument("--db-user", help="username to authenticate with.")
-    database.add_argument("--db-pass", help="password to authenticate with.")
-    database.add_argument("--db-config", action="store", type=Path, help="path to a database configuration file.")
+    database = parser.add_argument_group("database settings", description="Database connection and authentication settings.")
+    database.add_argument("--db-host", help="database address to connect to")
+    database.add_argument("--db-port", type=int, help="database port to connect to")
+    database.add_argument("--db-name", required=True, help="database name or file path to connect to")
+    database.add_argument("--db-user", help="username to authenticate with")
+    database.add_argument("--db-pass", help="password to authenticate with")
+    database.add_argument("--db-config", action="store", type=Path, help="path to a database configuration file")
 
-    server = parser.add_argument_group(title="server settings")
-    server.add_argument("--server-host", default="127.0.0.1", help="API server host address.")
-    server.add_argument("--server-port", type=int, default=8081, help="API server port number.")
+    server = parser.add_argument_group(title="server settings", description="Options for the deployed API server.")
+    server.add_argument("--server-host", default="127.0.0.1", help="API server host address")
+    server.add_argument("--server-port", type=int, default=8081, help="API server port number")
 
-    methods = parser.add_argument_group(title="server functionality")
-    methods.add_argument("--enable-list", action="store_const", const="list", help="enable GET for listing records.")
-    methods.add_argument("--enable-get", action="store_const", const="get", help="enable GET for fetching single records.")
-    methods.add_argument("--enable-post", action="store_const", const="post", help="enable POST for creating records.")
-    methods.add_argument("--enable-put", action="store_const", const="put", help="enable PUT for replacing records.")
-    methods.add_argument("--enable-patch", action="store_const", const="patch", help="enable PATCH for updating records.")
-    methods.add_argument("--enable-delete", action="store_const", const="delete", help="enable DELETE for deleting records.")
+    methods = parser.add_argument_group(title="REST functionality", description="Enable REST functionality in the deployed server.")
+    methods.add_argument("--enable-list", action="store_true", help="enable GET for listing records")
+    methods.add_argument("--enable-get", action="store_true", help="enable GET for fetching single records")
+    methods.add_argument("--enable-post", action="store_true", help="enable POST for creating records")
+    methods.add_argument("--enable-put", action="store_true", help="enable PUT for replacing records")
+    methods.add_argument("--enable-patch", action="store_true", help="enable PATCH for updating records")
+    methods.add_argument("--enable-delete", action="store_true", help="enable DELETE for deleting records")
+    methods.add_argument("--enable-rest", action="store_true", help="shortcut for enabling all REST functionalities")
 
-    mcp = parser.add_argument_group(title="mcp settings")
-    mcp.add_argument("--enable-mcp", action="store_true", default=False, help="enable MCP server at /mcp.")
+    mcp = parser.add_argument_group(title="MCP functionality", description="Enable MCP functionality in the deployed server.")
+    mcp.add_argument("--enable-mcp", action="store_true", default=False, help="enable MCP server at /mcp")
 
-    schema = parser.add_argument_group(title="schema settings")
-    schema.add_argument("--app-title", default="Auto-REST", help="title for the rendered API schema.")
-    schema.add_argument("--app-version", default=VERSION, help="version number for the rendered API schema.")
+    schema = parser.add_argument_group(title="schema settings", description="Customize the deployed application's metadata.")
+    schema.add_argument("--app-title", default="Auto-REST", help="title for the rendered API schema")
+    schema.add_argument("--app-version", default=VERSION, help="version number for the rendered API schema")
 
     return parser
