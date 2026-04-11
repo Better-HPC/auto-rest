@@ -16,20 +16,20 @@ deploying Fast-API applications.
 
 import logging
 from http import HTTPStatus
+from typing import Callable
 
 import uvicorn
 from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastmcp import FastMCP
 from starlette.responses import Response
 
-__all__ = ["create_rest_app", "create_combined_app", "run_server"]
+__all__ = ["create_rest_app", "run_server"]
 
 access_logger = logging.getLogger("auto_rest.access")
 
 
-async def logging_middleware(request: Request, call_next: callable) -> Response:
+async def logging_middleware(request: Request, call_next: Callable) -> Response:
     """FastAPI middleware for logging response status codes.
 
     Args:
@@ -103,48 +103,6 @@ def create_rest_app(app_title: str, app_version: str) -> FastAPI:
     )
 
     return app
-
-
-def create_mcp_server(app: FastAPI, name: str) -> FastMCP:
-    """Create a FastMCP server derived from an existing FastAPI application.
-
-    Converts the FastAPI app's OpenAPI specification into a set of MCP tools,
-    one per enabled REST endpoint. The resulting server can be mounted back
-    into a parent ASGI application via ``FastMCP.http_app()``.
-
-    Args:
-        app: The FastAPI REST application to convert.
-        name: The name to assign to the MCP server.
-
-    Returns:
-        A configured ``FastMCP`` instance ready to be served.
-    """
-
-    access_logger.debug("Generating MCP server from FastAPI app.")
-    mcp = FastMCP.from_fastapi(app=app, name=name)
-    access_logger.debug(f"MCP server '{name}' created.")
-    return mcp
-
-
-def create_combined_app(rest_app: FastAPI, mcp_asgi_app) -> FastAPI:
-    """Create a top-level ASGI application that mounts the REST and MCP sub-applications.
-
-    The combiner carries no middleware of its own. Each sub-application manages
-    its own middleware stack, which avoids CORS conflicts between FastAPI and
-    FastMCP's OAuth routes.
-
-    Args:
-        rest_app: The configured FastAPI REST application.
-        mcp_asgi_app: The ASGI application returned by ``FastMCP.http_app()``.
-
-    Returns:
-        A FastAPI application with both sub-apps mounted.
-    """
-
-    combined = FastAPI(docs_url=None, redoc_url=None, lifespan=mcp_asgi_app.lifespan)
-    combined.mount("/mcp", mcp_asgi_app)
-    combined.mount("/", rest_app)
-    return combined
 
 
 def run_server(app: FastAPI, host: str, port: int) -> None:  # pragma: no cover

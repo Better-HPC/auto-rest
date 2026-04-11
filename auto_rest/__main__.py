@@ -2,10 +2,11 @@
 
 import logging
 
-from auto_rest.app import create_rest_app, run_server
-from auto_rest.cli import configure_cli_logging, create_cli_parser
-from auto_rest.models import create_db_engine, create_db_metadata, create_db_url, parse_db_settings
-from auto_rest.routers import create_meta_router, create_table_router, create_welcome_router
+from auto_rest.app import *
+from auto_rest.cli import *
+from auto_rest.mcp import *
+from auto_rest.models import *
+from auto_rest.routers import *
 
 __all__ = ["main", "run_application"]
 
@@ -61,22 +62,25 @@ def run_application(cli_args: list[str] = None, /) -> None:  # pragma: no cover
 
     logger.info("Creating application.")
     app = create_rest_app(args.app_title, args.app_version)
-
     app.include_router(create_welcome_router(), prefix="")
     app.include_router(create_meta_router(db_conn, db_meta, args.app_title, args.app_version), prefix="/meta")
     for table_name, table in db_meta.tables.items():
         router = create_table_router(
-            db_conn,
-            table,
-            enable_list=args.enable_list or args.enable_rest,
-            enable_get=args.enable_get or args.enable_rest,
-            enable_post=args.enable_post or args.enable_rest,
-            enable_put=args.enable_put or args.enable_rest,
-            enable_patch=args.enable_patch or args.enable_rest,
-            enable_delete=args.enable_delete or args.enable_rest,
+            engine=db_conn,
+            table=table,
+            enable_list=args.enable_list,
+            enable_get=args.enable_get,
+            enable_post=args.enable_post,
+            enable_put=args.enable_put,
+            enable_patch=args.enable_patch,
+            enable_delete=args.enable_delete,
         )
 
         app.include_router(router, prefix=f"/db/{table_name}")
+
+    if args.enable_mcp:
+        logger.info("Enabling MCP.")
+        app = inject_mcp(app, create_mcp_app(app, name=args.app_title))
 
     logger.info(f"Launching server on http://{args.server_host}:{args.server_port}.")
     run_server(app, args.server_host, args.server_port)
