@@ -157,8 +157,19 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
     server.add_argument("--server-host", default="127.0.0.1", help="API server host address.")
     server.add_argument("--server-port", type=int, default=8081, help="API server port number.")
 
-    schema = parser.add_argument_group(title="application settings")
-    schema.add_argument("--app-title", default="Auto-REST", help="application title.")
-    schema.add_argument("--app-version", default=VERSION, help="application version number.")
+    methods = parser.add_argument_group(title="server functionality")
+    methods.add_argument("--enable-list", action="store_const", const="list", help="enable GET for listing records.")
+    methods.add_argument("--enable-get", action="store_const", const="get", help="enable GET for fetching single records.")
+    methods.add_argument("--enable-post", action="store_const", const="post", help="enable POST for creating records.")
+    methods.add_argument("--enable-put", action="store_const", const="put", help="enable PUT for replacing records.")
+    methods.add_argument("--enable-patch", action="store_const", const="patch", help="enable PATCH for updating records.")
+    methods.add_argument("--enable-delete", action="store_const", const="delete", help="enable DELETE for deleting records.")
+
+    mcp = parser.add_argument_group(title="mcp settings")
+    mcp.add_argument("--enable-mcp", action="store_true", default=False, help="enable MCP server at /mcp.")
+
+    schema = parser.add_argument_group(title="schema settings")
+    schema.add_argument("--app-title", default="Auto-REST", help="title for the rendered API schema.")
+    schema.add_argument("--app-version", default=VERSION, help="version number for the rendered API schema.")
 
     return parser
