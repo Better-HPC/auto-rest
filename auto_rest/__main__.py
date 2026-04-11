@@ -61,19 +61,19 @@ def run_application(cli_args: list[str] = None, /) -> None:  # pragma: no cover
 
     logger.info("Creating application.")
     app = create_rest_app(args.app_title, args.app_version)
+
     app.include_router(create_welcome_router(), prefix="")
     app.include_router(create_meta_router(db_conn, db_meta, args.app_title, args.app_version), prefix="/meta")
-
     for table_name, table in db_meta.tables.items():
         router = create_table_router(
             db_conn,
             table,
-            enable_list=args.enable_list,
-            enable_get=args.enable_get,
-            enable_post=args.enable_post,
-            enable_put=args.enable_put,
-            enable_patch=args.enable_patch,
-            enable_delete=args.enable_delete,
+            enable_list=args.enable_list or args.enable_rest,
+            enable_get=args.enable_get or args.enable_rest,
+            enable_post=args.enable_post or args.enable_rest,
+            enable_put=args.enable_put or args.enable_rest,
+            enable_patch=args.enable_patch or args.enable_rest,
+            enable_delete=args.enable_delete or args.enable_rest,
         )
 
         app.include_router(router, prefix=f"/db/{table_name}")

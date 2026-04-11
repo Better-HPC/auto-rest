@@ -157,19 +157,18 @@ def create_cli_parser(exit_on_error: bool = True) -> ArgumentParser:
     server.add_argument("--server-host", default="127.0.0.1", help="API server host address")
     server.add_argument("--server-port", type=int, default=8081, help="API server port number")
 
-    methods = parser.add_argument_group(title="REST functionality", description="Enable REST functionality in the deployed server.")
+    methods = parser.add_argument_group(title="Server functionality", description="Enable REST functionality in the deployed server.")
     methods.add_argument("--enable-list", action="store_true", help="enable GET for listing records")
     methods.add_argument("--enable-get", action="store_true", help="enable GET for fetching single records")
     methods.add_argument("--enable-post", action="store_true", help="enable POST for creating records")
     methods.add_argument("--enable-put", action="store_true", help="enable PUT for replacing records")
     methods.add_argument("--enable-patch", action="store_true", help="enable PATCH for updating records")
     methods.add_argument("--enable-delete", action="store_true", help="enable DELETE for deleting records")
-    methods.add_argument("--enable-rest", action="store_true", help="shortcut for enabling all REST functionalities")
 
-    mcp = parser.add_argument_group(title="MCP functionality", description="Enable MCP functionality in the deployed server.")
-    mcp.add_argument("--enable-mcp", action="store_true", default=False, help="enable MCP server at /mcp")
+    mcp = parser.add_argument_group(title="MCP functionality", description="Wraps enabled REST endpoints as MCP tools.")
+    mcp.add_argument("--enable-mcp", action="store_true", default=False, help="enable an MCP server at /mcp")
 
-    schema = parser.add_argument_group(title="schema settings", description="Customize the deployed application's metadata.")
+    schema = parser.add_argument_group(title="Schema settings", description="Customize the deployed application's metadata.")
     schema.add_argument("--app-title", default="Auto-REST", help="title for the rendered API schema")
     schema.add_argument("--app-version", default=VERSION, help="version number for the rendered API schema")
 
