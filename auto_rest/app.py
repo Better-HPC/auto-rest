@@ -16,6 +16,7 @@ deploying Fast-API applications.
 
 import logging
 from http import HTTPStatus
+from typing import Callable
 
 import uvicorn
 from asgi_correlation_id import CorrelationIdMiddleware
@@ -23,12 +24,12 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import Response
 
-__all__ = ["create_app", "run_server"]
+__all__ = ["create_rest_app", "run_server"]
 
-logger = logging.getLogger("auto_rest.access")
+access_logger = logging.getLogger("auto_rest.access")
 
 
-async def logging_middleware(request: Request, call_next: callable) -> Response:
+async def logging_middleware(request: Request, call_next: Callable) -> Response:
     """FastAPI middleware for logging response status codes.
 
     Args:
@@ -55,18 +56,18 @@ async def logging_middleware(request: Request, call_next: callable) -> Response:
         response = await call_next(request)
 
     except Exception as exc:
-        logger.error(str(exc), exc_info=exc, extra=request_meta)
+        access_logger.error(str(exc), exc_info=exc, extra=request_meta)
         raise
 
     # Log the outgoing response
     status = HTTPStatus(response.status_code)
     level = logging.INFO if status < 400 else logging.ERROR
-    logger.log(level, f"{status} {status.phrase}", extra=request_meta)
+    access_logger.log(level, f"{status} {status.phrase}", extra=request_meta)
 
     return response
 
 
-def create_app(app_title: str, app_version: str) -> FastAPI:
+def create_rest_app(app_title: str, app_version: str) -> FastAPI:
     """Create and configure a FastAPI application instance.
 
     This function initializes a FastAPI app with a customizable title, version,
@@ -90,9 +91,12 @@ def create_app(app_title: str, app_version: str) -> FastAPI:
 
     app.middleware("http")(logging_middleware)
     app.add_middleware(CorrelationIdMiddleware)
+
+    # CORS is intentionally permissive here. Origin restrictions and credential
+    # handling should be enforced at the proxy level, not the application level.
     app.add_middleware(
         CORSMiddleware,
-        allow_credentials=True,
+        allow_credentials=False,
         allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],

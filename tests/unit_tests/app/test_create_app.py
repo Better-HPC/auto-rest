@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from fastapi.middleware.cors import CORSMiddleware
 
-from auto_rest.app import create_app
+from auto_rest.app import create_rest_app
 
 
 class TestCORSSettings(TestCase):
@@ -11,7 +11,7 @@ class TestCORSSettings(TestCase):
     def setUp(self) -> None:
         """Create a new application instance for every test."""
 
-        self.app = create_app("TestApp", "1.0")
+        self.app = create_rest_app("TestApp", "1.0")
 
     def test_docs_url(self) -> None:
         """Verify OpenAPI documentation is enabled."""

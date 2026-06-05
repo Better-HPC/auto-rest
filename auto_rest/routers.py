@@ -3,7 +3,7 @@ API routers are responsible for redirecting incoming HTTP requests to the
 appropriate handling logic. Router objects are created using a factory
 pattern, with each router being responsible for a single application
 resource. Each factory returns an `APIRouter` instance preconfigured
-with request handling logic for the relevant resource. This allows
+with request handling logic for the relevant resource. This enables
 routers to be added directly to an API application instance.
 
 !!! example "Example: Creating and Adding a Router"
@@ -109,12 +109,27 @@ def create_meta_router(engine: DBEngine, metadata: MetaData, name: str, version:
     return router
 
 
-def create_table_router(engine: DBEngine, table: Table) -> APIRouter:
+def create_table_router(
+    engine: DBEngine,
+    table: Table,
+    enable_list: bool = True,
+    enable_get: bool = True,
+    enable_post: bool = True,
+    enable_put: bool = True,
+    enable_patch: bool = True,
+    enable_delete: bool = True,
+) -> APIRouter:
     """Create an API router with endpoint handlers for a given database table.
 
     Args:
         engine: The SQLAlchemy engine connected to the database.
         table: The database table to create API endpoints for.
+        enable_list: Whether to expose the GET collection endpoint.
+        enable_get: Whether to expose the GET single record endpoint.
+        enable_post: Whether to expose the POST endpoint.
+        enable_put: Whether to expose the PUT endpoint.
+        enable_patch: Whether to expose the PATCH endpoint.
+        enable_delete: Whether to expose the DELETE endpoint.
 
     Returns:
         An APIRouter instance with routes for database operations on the table.
@@ -128,26 +143,29 @@ def create_table_router(engine: DBEngine, table: Table) -> APIRouter:
     path_params_url = "/".join(f"{{{col_name}}}" for col_name in pk_columns)
 
     # Add routes for operations against the table
-    router.add_api_route(
-        path="/",
-        methods=["GET"],
-        endpoint=create_list_records_handler(engine, table),
-        status_code=status.HTTP_200_OK,
-        summary="Fetch multiple records from the table.",
-        tags=[table.name],
-    )
+    if enable_list:
+        router.add_api_route(
+            path="/",
+            methods=["GET"],
+            endpoint=create_list_records_handler(engine, table),
+            status_code=status.HTTP_200_OK,
+            summary="Fetch multiple records from the table.",
+            tags=[table.name],
+        )
 
-    router.add_api_route(
-        path="/",
-        methods=["POST"],
-        endpoint=create_post_record_handler(engine, table),
-        status_code=status.HTTP_201_CREATED,
-        summary="Create a new record.",
-        tags=[table.name],
-    )
+    if enable_post:
+        router.add_api_route(
+            path="/",
+            methods=["POST"],
+            endpoint=create_post_record_handler(engine, table),
+            status_code=status.HTTP_201_CREATED,
+            summary="Create a new record.",
+            tags=[table.name],
+        )
 
-    # Add route for read operations against individual records
-    if pk_columns:
+    # If primary keys are supported by the DBMS and driver,
+    # add routes for operations against individual records
+    if pk_columns and enable_get:
         router.add_api_route(
             path=f"/{path_params_url}/",
             methods=["GET"],
@@ -157,6 +175,7 @@ def create_table_router(engine: DBEngine, table: Table) -> APIRouter:
             tags=[table.name],
         )
 
+    if pk_columns and enable_put:
         router.add_api_route(
             path=f"/{path_params_url}/",
             methods=["PUT"],
@@ -166,6 +185,7 @@ def create_table_router(engine: DBEngine, table: Table) -> APIRouter:
             tags=[table.name],
         )
 
+    if pk_columns and enable_patch:
         router.add_api_route(
             path=f"/{path_params_url}/",
             methods=["PATCH"],
@@ -175,6 +195,7 @@ def create_table_router(engine: DBEngine, table: Table) -> APIRouter:
             tags=[table.name],
         )
 
+    if pk_columns and enable_delete:
         router.add_api_route(
             path=f"/{path_params_url}/",
             methods=["DELETE"],

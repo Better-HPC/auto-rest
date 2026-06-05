@@ -21,7 +21,7 @@ which force interface fields to be optional or read only.
 
 from typing import Any, Iterator, Literal
 
-from pydantic import BaseModel as PydanticModel, create_model
+from pydantic import BaseModel as PydanticModel, ConfigDict, create_model
 from sqlalchemy import Column, Table
 
 __all__ = ["create_interface"]
@@ -115,4 +115,4 @@ def create_interface(table: Table, pk_only: bool = False, mode: MODE_TYPE = "def
     if pk_only:
         name += '-PK'
 
-    return create_model(name, __config__={'arbitrary_types_allowed': True}, **fields)
+    return create_model(name, __config__=ConfigDict(arbitrary_types_allowed=True), **fields)
